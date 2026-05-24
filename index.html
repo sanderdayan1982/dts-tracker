@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Treasury Liquidity Dashboard — DTS Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0e17;--card:#111827;--border:#1e2a3a;
+  --t1:#e2e8f0;--t2:#8899aa;--t3:#556677;
+  --green:#22c55e;--red:#ef4444;--cyan:#06b6d4;
+  --amber:#f59e0b;--violet:#8b5cf6;--rose:#f43f5e;
+}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5}
+.header{padding:1.6rem 2rem 1rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem}
+.header h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+.header h1 span{color:var(--cyan)}
+.header-meta{font-size:.75rem;color:var(--t2);margin-top:.2rem;font-family:'JetBrains Mono',monospace}
+.header-right{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--t2);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.3rem .65rem}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:pulse 1.8s ease-in-out infinite}
+.dot.ok{background:var(--green)}.dot.err{background:var(--red);animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── View Toggle ── */
+.view-bar{display:flex;align-items:center;gap:1rem;padding:.8rem 2rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.view-bar label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
+.view-tabs{display:flex;gap:2px;background:var(--border);border-radius:7px;padding:2px}
+.view-tab{padding:.4rem 1rem;font-size:.75rem;font-weight:600;font-family:'DM Sans',sans-serif;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;transition:all .15s}
+.view-tab.active{background:var(--card);color:var(--t1)}
+.view-tab:hover:not(.active){color:var(--t2)}
+.refresh-info{margin-left:auto;font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--t3)}
+.refresh-info strong{color:var(--t2)}
+
+/* ── KPIs ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.kpi{background:var(--bg);padding:1rem 1.3rem}
+.kpi-label{font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);font-weight:600}
+.kpi-val{font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:600;margin-top:.12rem}
+.kpi-sub{font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--t2)}
+.kpi-sub.pos{color:var(--green)}.kpi-sub.neg{color:var(--red)}
+
+/* ── Sections ── */
+.sec-hdr{padding:1.3rem 2rem .35rem;display:flex;align-items:center;gap:.5rem}
+.sec-dot{width:8px;height:8px;border-radius:2px}
+.sec-hdr h2{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(390px,1fr));gap:1rem;padding:.65rem 2rem 1.8rem}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.15rem;position:relative;overflow:hidden;transition:border-color .2s}
+.card-accent{position:absolute;top:0;left:0;right:0;height:2px;opacity:.6}
+.card:hover{border-color:rgba(255,255,255,.1)}
+.card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
+.card-title{font-size:.76rem;font-weight:600;line-height:1.3}
+.card-sub{font-size:.64rem;color:var(--t3);margin-top:.08rem;font-family:'JetBrains Mono',monospace}
+.card-val{text-align:right;font-family:'JetBrains Mono',monospace}
+.card-val .v{font-size:.9rem;font-weight:600}
+.card-val .u{font-size:.6rem;color:var(--t3)}
+.card.wide{grid-column:1/-1}
+.wrap{height:170px;position:relative}
+.card.wide .wrap{height:220px}
+.no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--t3);font-size:.73rem;font-family:'JetBrains Mono',monospace}
+
+/* ── Loader ── */
+.overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .5s}
+.overlay.hide{opacity:0;pointer-events:none}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:sp .75s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.overlay p{margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--t2)}
+.err-box{margin:1rem 2rem;padding:.7rem 1rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.76rem;color:var(--red);display:none;white-space:pre-wrap}
+.err-box.show{display:block}
+
+/* ── Log ── */
+.log-toggle{position:fixed;bottom:1rem;right:1rem;background:var(--card);border:1px solid var(--border);color:var(--t2);font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:.3rem .6rem;border-radius:6px;cursor:pointer;z-index:100}
+.log-panel{position:fixed;bottom:2.8rem;right:1rem;width:480px;max-height:320px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.65rem;font-size:.62rem;font-family:'JetBrains Mono',monospace;color:var(--t2);z-index:100;display:none;line-height:1.55}
+.log-panel.show{display:block}
+.log-panel .ok{color:var(--green)}.log-panel .warn{color:var(--amber)}.log-panel .fail{color:var(--red)}.log-panel .info{color:var(--cyan)}
+.footer{text-align:center;padding:1.2rem 2rem;font-size:.66rem;color:var(--t3);border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+@media(max-width:768px){
+  .header{padding:1rem}
+  .grid{grid-template-columns:1fr;padding:.5rem 1rem 1.2rem}
+  .sec-hdr{padding:.9rem 1rem .3rem}
+  .kpi-strip{grid-template-columns:repeat(2,1fr)}
+  .log-panel{width:calc(100vw - 2rem)}
+  .view-bar{padding:.6rem 1rem}
+}
+
+/* ── Net Treasury Flow Hero ── */
+.ntf-hero{margin:1.2rem 2rem 0;background:linear-gradient(180deg,rgba(6,182,212,.06) 0%,rgba(17,24,39,1) 100%);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;position:relative;overflow:hidden}
+.ntf-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--red))}
+.ntf-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:.8rem}
+.ntf-title{display:flex;align-items:center;gap:.6rem}
+.ntf-icon{font-size:1.4rem}
+.ntf-name{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t1)}
+.ntf-name span{color:var(--cyan)}
+.ntf-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--t3)}
+.ntf-body{display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;align-items:center;margin-bottom:.8rem}
+@media(max-width:720px){.ntf-body{grid-template-columns:1fr}.ntf-hero{margin:1rem;padding:1rem}}
+.ntf-main-val{font-family:'JetBrains Mono',monospace;font-size:2.1rem;font-weight:700;line-height:1;letter-spacing:-.02em}
+.ntf-main-lbl{font-size:.74rem;font-family:'JetBrains Mono',monospace;color:var(--t2);margin-top:.4rem;font-weight:500}
+.ntf-stats{display:flex;flex-direction:column;gap:.5rem}
+.ntf-stat-row{display:flex;justify-content:space-between;gap:1rem;font-family:'JetBrains Mono',monospace;font-size:.74rem;padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.ntf-stat-row:last-child{border-bottom:none}
+.ntf-stat-lbl{color:var(--t3);text-transform:uppercase;letter-spacing:.05em;font-size:.62rem;font-weight:600}
+.ntf-stat-val{color:var(--t1);font-weight:600}
+.ntf-zbadge{display:inline-flex;align-items:center;gap:.35rem;padding:.18rem .55rem;border-radius:5px;font-size:.66rem;font-weight:700;letter-spacing:.03em}
+.ntf-seasonal{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .5rem;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:5px;font-size:.62rem;font-family:'JetBrains Mono',monospace;color:var(--amber)}
+.ntf-chart-wrap{height:280px;position:relative;margin-top:.6rem}
+.ntf-footer{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--t3);line-height:1.5}
+.ntf-footer strong{color:var(--t2)}
+
+/* ── Delta Toggle ── */
+.delta-toggle{display:flex;align-items:center;gap:.5rem;margin-left:1rem}
+.delta-toggle label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
+.delta-tabs{display:flex;gap:2px;background:var(--border);border-radius:7px;padding:2px}
+.delta-tab{padding:.35rem .8rem;font-size:.7rem;font-weight:600;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.delta-tab.active{background:var(--card);color:var(--t1)}
+.delta-tab:hover:not(.active){color:var(--t2)}
+.delta-tab:disabled{opacity:.4;cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="ov">
+  <div class="spin"></div>
+  <p id="ovTxt">Connecting to api.fiscaldata.treasury.gov…</p>
+</div>
+
+<header class="header">
+  <div>
+    <h1>Treasury <span>Liquidity</span> Dashboard</h1>
+    <p class="header-meta" id="dateRange">Loading data…</p>
+  </div>
+  <div class="header-right">
+    <div class="badge"><div class="dot" id="sDot"></div><span id="sTxt">Connecting…</span></div>
+  </div>
+</header>
+
+<div class="view-bar">
+  <label>View:</label>
+  <div class="view-tabs" id="viewTabs">
+    <button class="view-tab active" data-view="today">Daily</button>
+    <button class="view-tab" data-view="mtd">Month to Date</button>
+    <button class="view-tab" data-view="fytd">Fiscal Year to Date</button>
+  </div>
+  <div class="delta-toggle">
+    <label>Show as:</label>
+    <div class="delta-tabs" id="deltaTabs">
+      <button class="delta-tab active" data-delta="cum">Cumulative</button>
+      <button class="delta-tab" data-delta="day">Daily Δ</button>
+    </div>
+  </div>
+  <div class="refresh-info">Smart Poll: <strong>~16:00 ET Mon–Fri</strong> · Status: <span id="pollStatus">—</span> · Last: <span id="lastUpdate">—</span></div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi"><span class="kpi-label">TGA Balance</span><div class="kpi-val" id="kTGA">—</div><div class="kpi-sub" id="kTGAd"></div></div>
+  <div class="kpi"><span class="kpi-label">Total Public Debt</span><div class="kpi-val" id="kDebt">—</div><div class="kpi-sub" id="kDebtd"></div></div>
+  <div class="kpi"><span class="kpi-label" id="kDepLabel">Deposits (Daily)</span><div class="kpi-val" id="kDep">—</div><div class="kpi-sub" id="kDepd"></div></div>
+  <div class="kpi"><span class="kpi-label" id="kWdLabel">Withdrawals (Daily)</span><div class="kpi-val" id="kWd">—</div><div class="kpi-sub" id="kWdd"></div></div>
+</div>
+
+<!-- ════ HERO: Net Treasury Flow ════ -->
+<div class="ntf-hero" id="ntfHero">
+  <div class="ntf-hdr">
+    <div class="ntf-title">
+      <span class="ntf-icon" id="ntfIcon">⚪</span>
+      <div>
+        <div class="ntf-name">NET <span>TREASURY</span> FLOW</div>
+        <div class="ntf-meta" id="ntfMeta">Loading…</div>
+      </div>
+    </div>
+    <div id="ntfSeasonalBox"></div>
+  </div>
+  <div class="ntf-body">
+    <div>
+      <div class="ntf-main-val" id="ntfMainVal">—</div>
+      <div class="ntf-main-lbl" id="ntfMainLbl">waiting for data…</div>
+    </div>
+    <div class="ntf-stats">
+      <div class="ntf-stat-row">
+        <span class="ntf-stat-lbl">Z-score (30d)</span>
+        <span><span class="ntf-zbadge" id="ntfZBadge">—</span></span>
+      </div>
+      <div class="ntf-stat-row">
+        <span class="ntf-stat-lbl">30-day Mean</span>
+        <span class="ntf-stat-val" id="ntfMean">—</span>
+      </div>
+      <div class="ntf-stat-row">
+        <span class="ntf-stat-lbl">30-day Std Dev</span>
+        <span class="ntf-stat-val" id="ntfStd">—</span>
+      </div>
+      <div class="ntf-stat-row">
+        <span class="ntf-stat-lbl">7-day Cumulative</span>
+        <span class="ntf-stat-val" id="ntfSum7">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="ntf-chart-wrap"><canvas id="ntfChart"></canvas></div>
+  <div class="ntf-footer">
+    <strong>Formula:</strong> Net Treasury Flow = (Withdrawals − Debt Redemptions) − (Deposits − Debt Issues) · Mosler-style.<br>
+    <strong>Sign:</strong> 🟢 positive = government injects reserves into the banking system · 🔴 negative = government drains reserves.<br>
+    <strong>Z-score:</strong> ±1σ = normal range · |Z| &gt; 2 = extraordinary daily flow (rolling 30-day window).
+  </div>
+</div>
+
+<div class="err-box" id="errBox"></div>
+<div id="content"></div>
+<footer class="footer">Source: Daily Treasury Statement — Bureau of the Fiscal Service — api.fiscaldata.treasury.gov<br>All values in millions USD. Smart polling starts ~15:55 ET (Mon–Fri).</footer>
+
+<button class="log-toggle" onclick="document.getElementById('logP').classList.toggle('show')">📋 Log</button>
+<div class="log-panel" id="logP"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   GLOBALS
+   ═══════════════════════════════════════════════════════════ */
+var logEl = document.getElementById("logP");
+function log(msg, cls) {
+  var d = new Date().toLocaleTimeString();
+  logEl.innerHTML += '<div class="'+(cls||"")+'">['+ d +'] '+ msg +'</div>';
+  console.log("[DTS]", msg);
+}
+
+var currentView = "today"; // "today" | "mtd" | "fytd"
+var currentDelta = "cum";  // "cum" | "day" — only applies when view = mtd or fytd
+var chartInstances = [];   // to destroy on re-render
+var ntfChart = null;       // hero chart, kept separately
+var cachedTxData = [];
+var cachedCashData = [];
+var cachedDebtData = [];
+
+/* ═══════════════════════════════════════════════════════════
+   CONFIG — Tracked DTS line items (highlighted yellow in PDF)
+   ═══════════════════════════════════════════════════════════ */
+var DEP = [
+  { key:"Taxes - Withheld Individual/FICA",         label:"Taxes — Withheld Individual / FICA",      color:"#22c55e" },
+  { key:"Taxes - Non Withheld Ind/SECA Electronic", label:"Taxes — Non Withheld Ind/SECA Electronic", color:"#34d399" },
+  { key:"Taxes - Non Withheld Ind/SECA Other",      label:"Taxes — Non Withheld Ind/SECA Other",     color:"#6ee7b7" },
+  { key:"Taxes - Corporate Income",                 label:"Taxes — Corporate Income",                color:"#06b6d4" },
+  { key:"DHS - Customs Duties, Taxes, and Fees",    label:"DHS — Customs Duties, Taxes & Fees",      color:"#38bdf8" },
+  { key:"HHS - Medicare Premiums",                  label:"HHS — Medicare Premiums",                 color:"#818cf8" }
+];
+
+var WD = [
+  { key:"HHS - Federal Hospital Insr Trust Fund",    label:"HHS — Federal Hospital Insurance (Part A)",    color:"#f43f5e" },
+  { key:"HHS - Federal Supple Med Insr Trust Fund",  label:"HHS — Supplementary Medical Ins. (Part B)",    color:"#fb7185" },
+  { key:"HHS - Grants to States for Medicaid",       label:"HHS — Grants to States for Medicaid",          color:"#f97316" },
+  { key:"HHS - Medicare Prescription Drugs",         label:"HHS — Medicare Prescription Drugs (Part D)",    color:"#fbbf24" },
+  { key:"Dept of Defense (DoD) - misc",              label:"Dept of Defense (DoD) — Misc",                 color:"#a78bfa" },
+  { key:"Dept of Health & Human Serv (HHS) - misc",  label:"Dept of HHS — Misc",                           color:"#c084fc" },
+  { key:"USDA - Supp Nutrition Assist Prog (SNAP)",  label:"USDA — SNAP (Food Stamps)",                    color:"#e879f9" },
+  { key:"DOL - Unemployment Benefits",               label:"DOL — Unemployment Benefits",                  color:"#22d3ee" },
+  { key:"Taxes - Individual Tax Refunds (EFT)",      label:"Taxes — Individual Tax Refunds (EFT)",         color:"#facc15" },
+  { key:"Interest on Treasury Securities",           label:"Interest on Treasury Securities",               color:"#fb923c" },
+  { key:"SSA - Benefits Payments",                   label:"SSA — Benefits Payments",                      color:"#4ade80" },
+  { key:"SSA - Supplemental Security Income",        label:"SSA — Supplemental Security Income",           color:"#2dd4bf" }
+];
+
+var VIEW_LABELS = {
+  today: "Daily",
+  mtd:   "Month to Date",
+  fytd:  "Fiscal Year to Date"
+};
+
+var VIEW_FIELD = {
+  today: "transaction_today_amt",
+  mtd:   "transaction_mtd_amt",
+  fytd:  "transaction_fytd_amt"
+};
+
+/* ═══════════════════════════════════════════════════════════
+   API
+   ═══════════════════════════════════════════════════════════ */
+var BASE = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service";
+var CAL_DAYS = 90;
+
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function startDate(){ var d=new Date(); d.setDate(d.getDate()-CAL_DAYS); return isoDate(d); }
+
+async function api(endpoint, params) {
+  var url = BASE + endpoint + "?";
+  var parts = [];
+  for (var k in params) parts.push(encodeURIComponent(k)+"="+encodeURIComponent(params[k]));
+  url += parts.join("&");
+  log("FETCH: "+url.substring(0,150)+"…");
+
+  var controller = new AbortController();
+  var timer = setTimeout(function(){ controller.abort(); }, 30000);
+  try {
+    var resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!resp.ok) throw new Error("HTTP "+resp.status+" "+resp.statusText);
+    var json = await resp.json();
+    var count = json.data ? json.data.length : 0;
+    var total = json.meta ? json.meta["total-count"] : "?";
+    log("  → "+count+" rows (API total: "+total+")", "ok");
+    return json;
+  } catch(e) {
+    clearTimeout(timer);
+    if (e.name==="AbortError") throw new Error("Timeout 30s on "+endpoint);
+    throw e;
+  }
+}
+
+async function fetchCashBalance() {
+  var d = await api("/v1/accounting/dts/operating_cash_balance", {
+    "filter":"record_date:gte:"+startDate(),
+    "fields":"record_date,account_type,open_today_bal",
+    "sort":"record_date",
+    "page[size]":"500"
+  });
+  return d.data||[];
+}
+
+async function fetchTx() {
+  // Fetch all three amount fields at once
+  var d = await api("/v1/accounting/dts/deposits_withdrawals_operating_cash", {
+    "filter":"record_date:gte:"+startDate(),
+    "fields":"record_date,transaction_catg,transaction_catg_desc,transaction_today_amt,transaction_mtd_amt,transaction_fytd_amt,transaction_type",
+    "sort":"record_date",
+    "page[size]":"10000"
+  });
+  return d.data||[];
+}
+
+async function fetchDebt() {
+  var d = await api("/v1/accounting/dts/debt_subject_to_limit", {
+    "filter":"record_date:gte:"+startDate(),
+    "fields":"record_date,debt_catg,close_today_bal",
+    "sort":"record_date",
+    "page[size]":"500"
+  });
+  return d.data||[];
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DATA PROCESSING
+   ═══════════════════════════════════════════════════════════ */
+
+function extractCashSeries(rows, substr) {
+  var map = {};
+  for (var i=0; i<rows.length; i++) {
+    var r = rows[i];
+    if (r.account_type && r.account_type.indexOf(substr)!==-1) {
+      var v = parseFloat(r.open_today_bal);
+      if (!isNaN(v) && v!==0) map[r.record_date] = v;
+    }
+  }
+  var keys = Object.keys(map).sort();
+  return { dates:keys, values:keys.map(function(k){return map[k];}) };
+}
+
+function txMatch(r, key) {
+  if (r.transaction_catg === key) return true;
+  if (r.transaction_catg_desc && r.transaction_catg_desc.indexOf(key) !== -1) return true;
+  if (r.transaction_catg_desc === key) return true;
+  return false;
+}
+
+function extractTxSeries(rows, key, amtField) {
+  var map = {};
+  for (var i=0; i<rows.length; i++) {
+    var r = rows[i];
+    if (txMatch(r, key)) {
+      var v = parseFloat(r[amtField]);
+      if (!isNaN(v)) map[r.record_date] = v;
+    }
+  }
+  var keys = Object.keys(map).sort();
+  return { dates:keys, values:keys.map(function(k){return map[k];}) };
+}
+
+function extractDebtSeries(rows, catg) {
+  var map = {};
+  for (var i=0; i<rows.length; i++) {
+    var r = rows[i];
+    if (r.debt_catg===catg) {
+      var v = parseFloat(r.close_today_bal);
+      if (!isNaN(v)) map[r.record_date] = v;
+    }
+  }
+  var keys = Object.keys(map).sort();
+  return { dates:keys, values:keys.map(function(k){return map[k];}) };
+}
+
+function computeTotalDebt(rows) {
+  var pub={}, intra={};
+  for (var i=0; i<rows.length; i++) {
+    var r=rows[i], v=parseFloat(r.close_today_bal);
+    if (isNaN(v)) continue;
+    if (r.debt_catg==="Debt Held by the Public") pub[r.record_date]=v;
+    if (r.debt_catg==="Intragovernmental Holdings") intra[r.record_date]=v;
+  }
+  var ds={}; var k;
+  for (k in pub) ds[k]=true;
+  for (k in intra) ds[k]=true;
+  var dates=Object.keys(ds).sort();
+  var values=dates.map(function(d){ return (pub[d]||0)+(intra[d]||0); });
+  return { dates:dates, values:values };
+}
+
+/* Structural Balance: Net Spending, Net Deposits, Deficit/Surplus */
+function computeStructuralBalance(txRows, cashRows, amtField) {
+  var totDep={}, totWd={}, debtIss={}, debtRed={};
+  var debugCatgs={};
+
+  for (var i=0; i<txRows.length; i++) {
+    var r=txRows[i], v=parseFloat(r[amtField]);
+    if (isNaN(v)) continue;
+    var d=r.record_date;
+    var catg = (r.transaction_catg || "").trim();
+    var desc = (r.transaction_catg_desc || "").trim();
+    var type = (r.transaction_type || "").toLowerCase();
+    var combined = catg + " | " + desc;
+
+    // Debug: log every unique catg we see
+    if (!debugCatgs[combined]) debugCatgs[combined] = type;
+
+    // ── Total Deposits / Withdrawals ──
+    // Match any row whose catg or desc contains "total" (case-insensitive)
+    // but exclude Public Debt rows (those are handled separately)
+    var catgLow = catg.toLowerCase();
+    var descLow = desc.toLowerCase();
+    var isTotal = (catgLow.indexOf("total") !== -1 || descLow.indexOf("total") !== -1);
+    var isDebt  = (catgLow.indexOf("public debt") !== -1 || descLow.indexOf("public debt") !== -1);
+
+    if (isTotal && !isDebt) {
+      if (type === "deposit")    totDep[d] = v;
+      else if (type === "withdrawal") totWd[d] = v;
+    }
+
+    // ── Public Debt Cash Issues (deposit side) ──
+    if (catgLow.indexOf("public debt cash iss") !== -1 || descLow.indexOf("public debt cash iss") !== -1) {
+      debtIss[d] = (debtIss[d]||0) + v;
+    }
+    // ── Public Debt Cash Redemptions (withdrawal side) ──
+    if (catgLow.indexOf("public debt cash redemp") !== -1 || descLow.indexOf("public debt cash redemp") !== -1) {
+      debtRed[d] = (debtRed[d]||0) + v;
+    }
+  }
+
+  // Debug: log what was found
+  var totalKeys = Object.keys(debugCatgs).filter(function(k){ return k.toLowerCase().indexOf("total")!==-1; });
+  log("Structural: found total-like rows: " + (totalKeys.length > 0 ? totalKeys.slice(0,5).join("; ") : "NONE"), totalKeys.length > 0 ? "ok" : "warn");
+  log("Structural: debt issue dates=" + Object.keys(debtIss).length + " redemp dates=" + Object.keys(debtRed).length);
+
+  var totDepCount = Object.keys(totDep).length;
+  var totWdCount  = Object.keys(totWd).length;
+
+  // ── Fallback 1: operating_cash_balance (works for daily view) ──
+  if (totDepCount === 0 || totWdCount === 0) {
+    log("Structural: Total rows not found in tx data, trying cash balance fallback", "warn");
+    for (var j = 0; j < cashRows.length; j++) {
+      var cr = cashRows[j];
+      var at = (cr.account_type || "").toLowerCase();
+      var cv = parseFloat(cr.open_today_bal);
+      if (isNaN(cv) || cv === 0) continue;
+      if (at.indexOf("deposit") !== -1 && !totDep[cr.record_date]) totDep[cr.record_date] = cv;
+      if (at.indexOf("withdrawal") !== -1 && !totWd[cr.record_date]) totWd[cr.record_date] = cv;
+    }
+  }
+
+  // ── Fallback 2: sum all individual items by transaction_type ──
+  if (Object.keys(totDep).length === 0 || Object.keys(totWd).length === 0) {
+    log("Structural: Fallback 2 — summing all individual items by type", "warn");
+    var sumDep = {}, sumWd = {};
+    for (var i2 = 0; i2 < txRows.length; i2++) {
+      var r2 = txRows[i2], v2 = parseFloat(r2[amtField]);
+      if (isNaN(v2)) continue;
+      var catg2 = (r2.transaction_catg || "").toLowerCase();
+      var desc2 = (r2.transaction_catg_desc || "").toLowerCase();
+      var type2 = (r2.transaction_type || "").toLowerCase();
+      // Skip total/subtotal rows and public debt rows to avoid double counting
+      if (catg2.indexOf("total") !== -1 || desc2.indexOf("total") !== -1) continue;
+      if (catg2.indexOf("public debt cash") !== -1 || desc2.indexOf("public debt cash") !== -1) continue;
+      // Also skip "adjustment" or "transfer" rows that might be subtotals
+      if (catg2.indexOf("transfers") !== -1 && catg2.indexOf("total") !== -1) continue;
+
+      var d2 = r2.record_date;
+      if (type2 === "deposit")         sumDep[d2] = (sumDep[d2]||0) + Math.abs(v2);
+      else if (type2 === "withdrawal") sumWd[d2]  = (sumWd[d2]||0)  + Math.abs(v2);
+    }
+    // Re-add the debt amounts since we excluded them above but the formula needs total INCLUDING debt
+    for (var dk in debtIss) sumDep[dk] = (sumDep[dk]||0) + Math.abs(debtIss[dk]);
+    for (var dk2 in debtRed) sumWd[dk2] = (sumWd[dk2]||0) + Math.abs(debtRed[dk2]);
+
+    if (Object.keys(totDep).length === 0) totDep = sumDep;
+    if (Object.keys(totWd).length === 0) totWd = sumWd;
+    log("Structural fallback2: dep dates=" + Object.keys(totDep).length + " wd dates=" + Object.keys(totWd).length, Object.keys(totDep).length > 0 ? "ok" : "fail");
+  }
+
+  // Build aligned date series
+  var allD={};
+  var k;
+  for(k in totDep) allD[k]=true;
+  for(k in totWd) allD[k]=true;
+  var dates=Object.keys(allD).sort();
+
+  var netSpending=[], netDeposits=[], defSurplus=[];
+  for(var j=0;j<dates.length;j++){
+    var dd=dates[j];
+    var tw=Math.abs(totWd[dd]||0), td=Math.abs(totDep[dd]||0);
+    var dr=Math.abs(debtRed[dd]||0), di=Math.abs(debtIss[dd]||0);
+    var ns=tw-dr;   // Net Spending
+    var nd=td-di;   // Net Deposits
+    var ds=nd-ns;   // Deficit(-) / Surplus(+)
+    netSpending.push(ns);
+    netDeposits.push(nd);
+    defSurplus.push(ds);
+  }
+  return {
+    dates:dates,
+    netSpending:{dates:dates,values:netSpending},
+    netDeposits:{dates:dates,values:netDeposits},
+    defSurplus:{dates:dates,values:defSurplus}
+  };
+}
+
+function fmt(n) {
+  if (n==null||isNaN(n)) return "—";
+  if (Math.abs(n)>=1e6) return "$"+(n/1e6).toFixed(2)+"T";
+  if (Math.abs(n)>=1e3) return "$"+(n/1e3).toFixed(1)+"B";
+  return "$"+n.toLocaleString("en-US")+"M";
+}
+
+function fmtSigned(n) {
+  if (n==null||isNaN(n)) return "—";
+  var s = n >= 0 ? "+" : "";
+  return s + fmt(n);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MMT HELPERS — Z-score, seasonal flags, daily delta
+   ═══════════════════════════════════════════════════════════ */
+
+function rollingZScores(values, window) {
+  // Returns array of Z-scores aligned with values.
+  // For positions i < window-1, returns null (insufficient data).
+  var out = [];
+  for (var i=0; i<values.length; i++) {
+    if (i < window-1) { out.push(null); continue; }
+    var slice = values.slice(i-window+1, i+1);
+    var sum = 0;
+    for (var j=0; j<slice.length; j++) sum += slice[j];
+    var mean = sum / slice.length;
+    var sqSum = 0;
+    for (var j=0; j<slice.length; j++) sqSum += (slice[j]-mean)*(slice[j]-mean);
+    var stdev = Math.sqrt(sqSum / slice.length);
+    if (stdev === 0) { out.push(0); continue; }
+    out.push((values[i] - mean) / stdev);
+  }
+  return out;
+}
+
+function rollingMean(values, window) {
+  var out = [];
+  for (var i=0; i<values.length; i++) {
+    if (i < window-1) { out.push(null); continue; }
+    var slice = values.slice(i-window+1, i+1);
+    var sum = 0;
+    for (var j=0; j<slice.length; j++) sum += slice[j];
+    out.push(sum / slice.length);
+  }
+  return out;
+}
+
+function rollingStd(values, window) {
+  var out = [];
+  for (var i=0; i<values.length; i++) {
+    if (i < window-1) { out.push(null); continue; }
+    var slice = values.slice(i-window+1, i+1);
+    var sum = 0;
+    for (var j=0; j<slice.length; j++) sum += slice[j];
+    var mean = sum / slice.length;
+    var sqSum = 0;
+    for (var j=0; j<slice.length; j++) sqSum += (slice[j]-mean)*(slice[j]-mean);
+    out.push(Math.sqrt(sqSum / slice.length));
+  }
+  return out;
+}
+
+function sumLastN(values, n) {
+  if (!values || values.length === 0) return null;
+  var slice = values.slice(Math.max(0, values.length - n));
+  var s = 0;
+  for (var i=0; i<slice.length; i++) s += slice[i];
+  return s;
+}
+
+function seasonalFlag(dateStr) {
+  // dateStr format: "YYYY-MM-DD"
+  if (!dateStr) return "";
+  var parts = dateStr.split("-");
+  if (parts.length !== 3) return "";
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var d = parseInt(parts[2], 10);
+  // Tax Day window (April 14-16 federal, plus mid-month days for quarterly estimated)
+  if (m === 4 && d >= 14 && d <= 16) return "📅 Tax Day";
+  // Quarterly estimated tax: 15th of Jan, Apr, Jun, Sep — but skip Apr to avoid clash above
+  if (d >= 14 && d <= 16 && (m === 1 || m === 6 || m === 9)) return "📅 Est. Tax Day";
+  // Generic mid-month bias (federal income tax withholding settlement)
+  if (d >= 14 && d <= 16) return "📅 Mid-Month Settl.";
+  // SSA payment window (typically 3rd of month + 2nd/3rd/4th Wednesday)
+  // We use day >=25 as transfer-payment-heavy window (SNAP, end-of-month payrolls, SSI)
+  if (d >= 25) return "📅 Payments Window";
+  // Quarter-end (Mar 31, Jun 30, Sep 30, Dec 31) — overrides Payments Window
+  if ((m === 3 && d === 31) || (m === 6 && d === 30) || (m === 9 && d === 30) || (m === 12 && d === 31)) {
+    return "📅 Quarter-End";
+  }
+  // Fiscal year-end USA (Sep 30) overlaps with Quarter-End above
+  return "";
+}
+
+function zBadgeInfo(z) {
+  // Returns {label, bg, color, icon} based on Z-score
+  if (z == null || isNaN(z)) return {label:"insufficient data", bg:"rgba(136,153,170,.15)", color:"var(--t2)", icon:"⚪"};
+  if (z >= 2)  return {label:"extraordinary inject", bg:"rgba(34,197,94,.22)", color:"var(--green)", icon:"🟢"};
+  if (z >= 1)  return {label:"notable inject",       bg:"rgba(34,197,94,.14)", color:"var(--green)", icon:"🟢"};
+  if (z > -1)  return {label:"within normal range",  bg:"rgba(136,153,170,.15)", color:"var(--t2)",   icon:"⚪"};
+  if (z > -2)  return {label:"notable drain",        bg:"rgba(239,68,68,.14)",  color:"var(--red)",   icon:"🔴"};
+  return            {label:"extraordinary drain",    bg:"rgba(239,68,68,.22)",  color:"var(--red)",   icon:"🔴"};
+}
+
+function toDailyDelta(values) {
+  // For cumulative series (MTD/FYTD), compute day-over-day deltas.
+  // First element keeps its original value (it IS the daily change for that first day).
+  // Note: this is naive — does not detect month/year boundaries. Acceptable trade-off
+  // for our 90-day window; if a month boundary is crossed inside the data, the day
+  // immediately after the reset will show a large negative spike, which is visually
+  // honest (and rare in a 90-day Daily render).
+  if (!values || values.length === 0) return [];
+  var out = [values[0]];
+  for (var i=1; i<values.length; i++) {
+    out.push(values[i] - values[i-1]);
+  }
+  return out;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HERO RENDER — Net Treasury Flow
+   ═══════════════════════════════════════════════════════════ */
+
+function renderHero(sb) {
+  if (!sb || !sb.dates || sb.dates.length === 0) {
+    document.getElementById("ntfMainVal").textContent = "—";
+    document.getElementById("ntfMainLbl").textContent = "no data";
+    return;
+  }
+  // Net Treasury Flow with MMT-direct sign: positive = inject, negative = drain.
+  // Equals Net Spending − Net Deposits.
+  var ns = sb.netSpending.values;
+  var nd = sb.netDeposits.values;
+  var dates = sb.dates;
+  var ntf = [];
+  for (var i=0; i<dates.length; i++) {
+    ntf.push(ns[i] - nd[i]);
+  }
+
+  var zs = rollingZScores(ntf, 30);
+  var means = rollingMean(ntf, 30);
+  var stds  = rollingStd(ntf, 30);
+
+  var lastIdx = ntf.length - 1;
+  var lastVal = ntf[lastIdx];
+  var lastZ   = zs[lastIdx];
+  var lastM   = means[lastIdx];
+  var lastS   = stds[lastIdx];
+  var lastDate = dates[lastIdx];
+  var sum7 = sumLastN(ntf, 7);
+
+  var bi = zBadgeInfo(lastZ);
+
+  // Main val + color
+  var mainEl = document.getElementById("ntfMainVal");
+  var mainLbl = document.getElementById("ntfMainLbl");
+  var iconEl = document.getElementById("ntfIcon");
+  var metaEl = document.getElementById("ntfMeta");
+
+  mainEl.textContent = fmtSigned(lastVal);
+  mainEl.style.color = lastVal >= 0 ? "var(--green)" : "var(--red)";
+  mainLbl.textContent = lastVal >= 0 ? "injecting reserves into the banking system" : "draining reserves from the banking system";
+  iconEl.textContent = bi.icon;
+  metaEl.textContent = "Last record: " + lastDate;
+
+  // Z-badge
+  var zBadge = document.getElementById("ntfZBadge");
+  if (lastZ == null) {
+    zBadge.textContent = "—";
+    zBadge.style.background = bi.bg;
+    zBadge.style.color = bi.color;
+  } else {
+    zBadge.textContent = (lastZ >= 0 ? "+" : "") + lastZ.toFixed(2) + " · " + bi.label;
+    zBadge.style.background = bi.bg;
+    zBadge.style.color = bi.color;
+  }
+
+  // Mean / Std / 7-day sum
+  document.getElementById("ntfMean").textContent = lastM == null ? "—" : fmtSigned(lastM);
+  document.getElementById("ntfStd").textContent  = lastS == null ? "—" : fmt(lastS);
+  document.getElementById("ntfSum7").textContent = sum7 == null ? "—" : fmtSigned(sum7);
+
+  // Seasonal flag
+  var seasBox = document.getElementById("ntfSeasonalBox");
+  var flag = seasonalFlag(lastDate);
+  seasBox.innerHTML = flag ? '<span class="ntf-seasonal">'+flag+'</span>' : '';
+
+  // Chart — bars colored by sign, with mean/±σ overlay lines
+  var canvas = document.getElementById("ntfChart");
+  if (ntfChart) { try { ntfChart.destroy(); } catch(e){} ntfChart = null; }
+
+  var barColors = ntf.map(function(v){ return v >= 0 ? "rgba(34,197,94,.75)" : "rgba(239,68,68,.75)"; });
+  var meanLine    = means;
+  var plus1Sigma  = means.map(function(m,i){ return (m==null||stds[i]==null) ? null : m + stds[i]; });
+  var minus1Sigma = means.map(function(m,i){ return (m==null||stds[i]==null) ? null : m - stds[i]; });
+  var plus2Sigma  = means.map(function(m,i){ return (m==null||stds[i]==null) ? null : m + 2*stds[i]; });
+  var minus2Sigma = means.map(function(m,i){ return (m==null||stds[i]==null) ? null : m - 2*stds[i]; });
+
+  ntfChart = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: dates,
+      datasets: [
+        { type:"bar", label:"Net Treasury Flow", data: ntf, backgroundColor: barColors, borderWidth: 0, order: 5 },
+        { type:"line", label:"30d Mean",  data: meanLine,    borderColor:"rgba(226,232,240,.55)", borderWidth:1.4, pointRadius:0, borderDash:[4,3], fill:false, tension:0, order: 1 },
+        { type:"line", label:"+1σ",        data: plus1Sigma,  borderColor:"rgba(34,197,94,.4)",   borderWidth:1, pointRadius:0, borderDash:[2,3], fill:false, tension:0, order: 2 },
+        { type:"line", label:"−1σ",        data: minus1Sigma, borderColor:"rgba(239,68,68,.4)",   borderWidth:1, pointRadius:0, borderDash:[2,3], fill:false, tension:0, order: 3 },
+        { type:"line", label:"+2σ",        data: plus2Sigma,  borderColor:"rgba(34,197,94,.25)",  borderWidth:1, pointRadius:0, borderDash:[1,4], fill:false, tension:0, order: 4 },
+        { type:"line", label:"−2σ",        data: minus2Sigma, borderColor:"rgba(239,68,68,.25)",  borderWidth:1, pointRadius:0, borderDash:[1,4], fill:false, tension:0, order: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 400 },
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: true, position: "top", labels: { color:"#8899aa", font:{family:"DM Sans",size:10}, boxWidth:11, padding:8, filter:function(item){ return ["Net Treasury Flow","30d Mean","+1σ","−1σ"].indexOf(item.text)!==-1; } } },
+        tooltip: {
+          backgroundColor:"#1e293b", titleColor:"#94a3b8", bodyColor:"#e2e8f0",
+          borderColor:"#334155", borderWidth:1, padding:10,
+          titleFont:{family:"JetBrains Mono",size:11},
+          bodyFont:{family:"JetBrains Mono",size:12,weight:"600"},
+          callbacks: {
+            title: function(items){
+              var l = items[0] ? items[0].label : "";
+              if (!l) return "";
+              var p = l.split("-");
+              var sf = seasonalFlag(l);
+              return p[1]+"/"+p[2]+"/"+p[0] + (sf ? "  " + sf : "");
+            },
+            label: function(item){
+              if (item.dataset.label === "Net Treasury Flow") {
+                var idx = item.dataIndex;
+                var z = zs[idx];
+                var zStr = (z == null) ? "—" : (z>=0?"+":"") + z.toFixed(2);
+                var sign = item.raw >= 0 ? " (inject)" : " (drain)";
+                return "NTF: " + fmtSigned(item.raw) + sign + "  ·  Z: " + zStr;
+              }
+              if (item.raw == null) return null;
+              return item.dataset.label + ": " + fmtSigned(item.raw);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color:"rgba(255,255,255,0.03)", drawBorder:false },
+          ticks: { color:"#556677", font:{family:"JetBrains Mono",size:9}, maxTicksLimit:10,
+            callback: function(val){ var l = this.getLabelForValue(val); if (!l) return ""; var p=l.split("-"); return p[1]+"/"+p[2]; } }
+        },
+        y: {
+          grid: { color:"rgba(255,255,255,0.03)", drawBorder:false },
+          ticks: { color:"#556677", font:{family:"JetBrains Mono",size:9},
+            callback: function(v){
+              if (Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+"T";
+              if (Math.abs(v)>=1e3) return (v/1e3).toFixed(0)+"B";
+              return v.toLocaleString("en-US");
+            } }
+        }
+      }
+    }
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHART FACTORY
+   ═══════════════════════════════════════════════════════════ */
+
+function mkChart(id, series, color, label) {
+  var el = document.getElementById(id);
+  if (!el) return null;
+  if (!series || series.dates.length===0) {
+    el.parentElement.innerHTML = '<div class="no-data">No data for this period</div>';
+    return null;
+  }
+  var ctx = el.getContext("2d");
+  var h = el.parentElement.clientHeight||170;
+  var g = ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0, color+"30");
+  g.addColorStop(1, color+"02");
+
+  var chart = new Chart(el, {
+    type:"line",
+    data:{
+      labels:series.dates,
+      datasets:[{
+        label:label, data:series.values,
+        borderColor:color, backgroundColor:g,
+        borderWidth:2, pointRadius:0,
+        pointHoverRadius:5,
+        pointHoverBackgroundColor:color,
+        pointHoverBorderColor:"#fff",
+        pointHoverBorderWidth:2,
+        fill:true, tension:0.35
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration:400 },
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1e293b",titleColor:"#94a3b8",bodyColor:"#e2e8f0",
+          borderColor:"#334155",borderWidth:1,padding:10,
+          titleFont:{family:"JetBrains Mono",size:11},
+          bodyFont:{family:"JetBrains Mono",size:12,weight:"600"},
+          displayColors:false,
+          callbacks:{
+            title:function(items){
+              var l=items[0]?items[0].label:"";
+              if(!l) return "";
+              var p=l.split("-");
+              return p[1]+"/"+p[2]+"/"+p[0];
+            },
+            label:function(item){
+              return "$"+Number(item.raw).toLocaleString("en-US")+"M";
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:"rgba(255,255,255,0.03)",drawBorder:false},
+          ticks:{color:"#556677",font:{family:"JetBrains Mono",size:9},maxTicksLimit:8,
+            callback:function(val){
+              var l=this.getLabelForValue(val);
+              if(!l) return "";
+              var p=l.split("-");
+              return p[1]+"/"+p[2];
+            }
+          }
+        },
+        y:{
+          grid:{color:"rgba(255,255,255,0.03)",drawBorder:false},
+          ticks:{color:"#556677",font:{family:"JetBrains Mono",size:9},
+            callback:function(v){
+              if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+"T";
+              if(Math.abs(v)>=1e3) return (v/1e3).toFixed(0)+"B";
+              return v.toLocaleString("en-US");
+            }
+          }
+        }
+      }
+    }
+  });
+  chartInstances.push(chart);
+  return chart;
+}
+
+function mkMultiChart(id, datasets, labels) {
+  var el = document.getElementById(id);
+  if (!el) return null;
+  if (!labels || labels.length===0) {
+    el.parentElement.innerHTML = '<div class="no-data">No data for this period</div>';
+    return null;
+  }
+  var ctx = el.getContext("2d");
+  var chart = new Chart(el, {
+    type:"line",
+    data:{
+      labels:labels,
+      datasets:datasets.map(function(ds){
+        return {
+          label:ds.label, data:ds.values,
+          borderColor:ds.color, backgroundColor:ds.color+"18",
+          borderWidth:2, pointRadius:0,
+          pointHoverRadius:5,
+          pointHoverBackgroundColor:ds.color,
+          pointHoverBorderColor:"#fff",
+          pointHoverBorderWidth:2,
+          fill:false, tension:0.35
+        };
+      })
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      animation:{ duration:400 },
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{display:true,position:"top",labels:{color:"#8899aa",font:{family:"DM Sans",size:11},boxWidth:12,padding:12}},
+        tooltip:{
+          backgroundColor:"#1e293b",titleColor:"#94a3b8",bodyColor:"#e2e8f0",
+          borderColor:"#334155",borderWidth:1,padding:10,
+          titleFont:{family:"JetBrains Mono",size:11},
+          bodyFont:{family:"JetBrains Mono",size:12,weight:"600"},
+          callbacks:{
+            title:function(items){
+              var l=items[0]?items[0].label:"";
+              if(!l) return "";
+              var p=l.split("-");
+              return p[1]+"/"+p[2]+"/"+p[0];
+            },
+            label:function(item){
+              return item.dataset.label+": $"+Number(item.raw).toLocaleString("en-US")+"M";
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{color:"rgba(255,255,255,0.03)",drawBorder:false},
+          ticks:{color:"#556677",font:{family:"JetBrains Mono",size:9},maxTicksLimit:8,
+            callback:function(val){
+              var l=this.getLabelForValue(val);
+              if(!l) return "";
+              var p=l.split("-");
+              return p[1]+"/"+p[2];
+            }
+          }
+        },
+        y:{
+          grid:{color:"rgba(255,255,255,0.03)",drawBorder:false},
+          ticks:{color:"#556677",font:{family:"JetBrains Mono",size:9},
+            callback:function(v){
+              if(Math.abs(v)>=1e6) return (v/1e6).toFixed(1)+"T";
+              if(Math.abs(v)>=1e3) return (v/1e3).toFixed(0)+"B";
+              return v.toLocaleString("en-US");
+            }
+          }
+        }
+      }
+    }
+  });
+  chartInstances.push(chart);
+  return chart;
+}
+
+function buildStructuralTable(sb) {
+  var h = '<div style="overflow-x:auto;margin-top:.6rem"><table style="width:100%;border-collapse:collapse;font-family:\'JetBrains Mono\',monospace;font-size:.7rem">';
+  h += '<thead><tr style="border-bottom:1px solid var(--border)">';
+  h += '<th style="text-align:left;padding:.45rem .6rem;color:var(--t3);font-weight:600">Date</th>';
+  h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--rose);font-weight:600">Net Spending</th>';
+  h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--green);font-weight:600">Net Deposits</th>';
+  h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--cyan);font-weight:600">Net Treasury Flow</th>';
+  h += '</tr></thead><tbody>';
+  var dates=sb.dates, ns=sb.netSpending.values, nd=sb.netDeposits.values;
+  // Show last 15 rows
+  var start=Math.max(0, dates.length-15);
+  for(var i=start;i<dates.length;i++){
+    var ntf = ns[i] - nd[i]; // MMT-direct sign: + injects, - drains
+    var ntfColor = ntf>=0 ? "var(--green)" : "var(--red)";
+    var ntfLabel = ntf>=0 ? "inject" : "drain";
+    var sf = seasonalFlag(dates[i]);
+    h += '<tr style="border-bottom:1px solid rgba(255,255,255,.04)">';
+    h += '<td style="padding:.35rem .6rem;color:var(--t2)">'+dates[i]+(sf?' <span style="color:var(--amber);font-size:.6rem">'+sf+'</span>':'')+'</td>';
+    h += '<td style="text-align:right;padding:.35rem .6rem;color:var(--rose)">'+fmt(ns[i])+'</td>';
+    h += '<td style="text-align:right;padding:.35rem .6rem;color:var(--green)">'+fmt(nd[i])+'</td>';
+    h += '<td style="text-align:right;padding:.35rem .6rem;color:'+ntfColor+'">'+fmtSigned(ntf)+' <span style="font-size:.6rem;opacity:.7">'+ntfLabel+'</span></td>';
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  return h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DOM
+   ═══════════════════════════════════════════════════════════ */
+
+function card(id, title, sub, accent, wide) {
+  return '<div class="card'+(wide?' wide':'')+'">' +
+    '<div class="card-accent" style="background:'+accent+'"></div>' +
+    '<div class="card-hdr">' +
+      '<div><div class="card-title">'+title+'</div>' +
+      '<div class="card-sub">'+sub+'</div></div>' +
+      '<div class="card-val" id="'+id+'_v"><div class="v">—</div></div>' +
+    '</div>' +
+    '<div class="wrap"><canvas id="'+id+'"></canvas></div>' +
+  '</div>';
+}
+
+function setVal(id, vals) {
+  var el=document.getElementById(id+"_v");
+  if(!el||!vals||!vals.length) return;
+  el.innerHTML='<div class="v">'+fmt(vals[vals.length-1])+'</div><div class="u">latest</div>';
+}
+
+function buildDOM() {
+  var vl = VIEW_LABELS[currentView];
+  var h = "";
+
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--cyan)"></div><h2>Balance & Debt</h2></div>';
+  h += '<div class="grid">';
+  h += card("cTGA","TGA Closing Balance","Treasury General Account","#06b6d4",true);
+  h += card("cDPub","Debt Held by the Public","Public Debt","#8b5cf6",false);
+  h += card("cDTot","Total Public Debt Outstanding","Public + Intragovernmental","#f59e0b",false);
+  h += "</div>";
+
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--green)"></div><h2>Deposits (Revenue) — '+vl+'</h2></div>';
+  h += '<div class="grid">';
+  for (var i=0;i<DEP.length;i++) h += card("cD"+i, DEP[i].label, vl+" (M$)", DEP[i].color, false);
+  h += "</div>";
+
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--rose)"></div><h2>Withdrawals (Spending) — '+vl+'</h2></div>';
+  h += '<div class="grid">';
+  for (var i=0;i<WD.length;i++) h += card("cW"+i, WD[i].label, vl+" (M$)", WD[i].color, false);
+  h += "</div>";
+
+  // Net Treasury Flow Detail section (was Structural Balance)
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--cyan)"></div><h2>Net Treasury Flow — Detail · '+vl+'</h2></div>';
+  h += '<div class="grid">';
+  h += card("cNetSpend","Net Spending","Total Withdrawals − Debt Redemptions","#f43f5e",false);
+  h += card("cNetDep","Net Deposits","Total Deposits − Debt Issues","#22c55e",false);
+  h += '<div class="card wide">';
+  h += '<div class="card-accent" style="background:#06b6d4"></div>';
+  h += '<div class="card-hdr"><div><div class="card-title">Net Treasury Flow Components</div>';
+  h += '<div class="card-sub">Net Spending (rose) − Net Deposits (green) = Net Treasury Flow (cyan, MMT sign) · '+vl+'</div></div>';
+  h += '<div class="card-val" id="cDefSurp_v"><div class="v">—</div></div></div>';
+  h += '<div class="wrap" style="height:240px"><canvas id="cDefSurpMulti"></canvas></div>';
+  h += '</div>';
+  h += "</div>";
+
+  // Structural Balance table
+  h += '<div id="sbTable" style="padding:0 2rem 2rem"></div>';
+
+  document.getElementById("content").innerHTML = h;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER — called on load and on view change
+   ═══════════════════════════════════════════════════════════ */
+
+function renderCharts() {
+  // Destroy existing charts
+  chartInstances.forEach(function(c){ c.destroy(); });
+  chartInstances = [];
+
+  buildDOM();
+
+  var amtField = VIEW_FIELD[currentView];
+  var vl = VIEW_LABELS[currentView];
+
+  // ── TGA ──
+  var tga = extractCashSeries(cachedCashData, "Closing Balance");
+  if (tga.dates.length===0) tga = extractCashSeries(cachedCashData, "TGA");
+  mkChart("cTGA", tga, "#06b6d4", "TGA Closing Balance");
+  setVal("cTGA", tga.values);
+
+  // ── Debt ──
+  var dPub = extractDebtSeries(cachedDebtData, "Debt Held by the Public");
+  var dTot = computeTotalDebt(cachedDebtData);
+  mkChart("cDPub", dPub, "#8b5cf6", "Debt Held by Public");
+  mkChart("cDTot", dTot, "#f59e0b", "Total Debt");
+  setVal("cDPub", dPub.values);
+  setVal("cDTot", dTot.values);
+
+  // ── Deposits ──
+  for (var i=0;i<DEP.length;i++) {
+    var s = extractTxSeries(cachedTxData, DEP[i].key, amtField);
+    mkChart("cD"+i, s, DEP[i].color, DEP[i].label);
+    setVal("cD"+i, s.values);
+  }
+
+  // ── Withdrawals ──
+  for (var i=0;i<WD.length;i++) {
+    var s = extractTxSeries(cachedTxData, WD[i].key, amtField);
+    mkChart("cW"+i, s, WD[i].color, WD[i].label);
+    setVal("cW"+i, s.values);
+  }
+
+  // ── Net Treasury Flow Detail ──
+  var sb = computeStructuralBalance(cachedTxData, cachedCashData, amtField);
+
+  // Build NTF (Net Treasury Flow) with MMT-direct sign for hero AND multi-chart
+  var ntfVals = [];
+  for (var k=0; k<sb.dates.length; k++) {
+    ntfVals.push(sb.netSpending.values[k] - sb.netDeposits.values[k]);
+  }
+
+  // Apply daily-delta transformation if the toggle is on AND we are in MTD/FYTD view.
+  // The hero chart always uses the underlying flow per the current view.
+  var renderNS  = sb.netSpending.values.slice();
+  var renderND  = sb.netDeposits.values.slice();
+  var renderNTF = ntfVals.slice();
+  if (currentDelta === "day" && currentView !== "today") {
+    renderNS  = toDailyDelta(renderNS);
+    renderND  = toDailyDelta(renderND);
+    renderNTF = toDailyDelta(renderNTF);
+  }
+
+  // Build a "view-adjusted" sb for hero so it respects the delta toggle
+  var sbForHero = {
+    dates: sb.dates,
+    netSpending: { dates: sb.dates, values: renderNS },
+    netDeposits: { dates: sb.dates, values: renderND }
+  };
+  renderHero(sbForHero);
+
+  mkChart("cNetSpend", {dates:sb.dates, values:renderNS}, "#f43f5e", "Net Spending");
+  setVal("cNetSpend", renderNS);
+  mkChart("cNetDep",  {dates:sb.dates, values:renderND}, "#22c55e", "Net Deposits");
+  setVal("cNetDep", renderND);
+
+  // Multi-line chart: Net Spending, Net Deposits, Net Treasury Flow (MMT sign)
+  if (sb.dates.length>0) {
+    mkMultiChart("cDefSurpMulti", [
+      {label:"Net Spending",     values:renderNS,  color:"#f43f5e"},
+      {label:"Net Deposits",     values:renderND,  color:"#22c55e"},
+      {label:"Net Treasury Flow",values:renderNTF, color:"#06b6d4"}
+    ], sb.dates);
+    var lastNTF = renderNTF[renderNTF.length-1];
+    var dsEl = document.getElementById("cDefSurp_v");
+    if (dsEl) {
+      var tag = lastNTF>=0 ? "inject" : "drain";
+      var clr = lastNTF>=0 ? "var(--green)" : "var(--red)";
+      dsEl.innerHTML = '<div class="v" style="color:'+clr+'">'+fmtSigned(lastNTF)+'</div><div class="u">'+tag+'</div>';
+    }
+  }
+
+  // Build a sb-equivalent object for table rendering with view-adjusted values
+  var sbForTable = {
+    dates: sb.dates,
+    netSpending: { dates: sb.dates, values: renderNS },
+    netDeposits: { dates: sb.dates, values: renderND }
+  };
+
+  // Table
+  var tbEl = document.getElementById("sbTable");
+  if (tbEl && sb.dates.length>0) tbEl.innerHTML = buildStructuralTable(sbForTable);
+
+  // ── KPIs ──
+  if (tga.values.length>0) {
+    var last=tga.values[tga.values.length-1];
+    var prev=tga.values.length>1?tga.values[tga.values.length-2]:null;
+    document.getElementById("kTGA").textContent = fmt(last);
+    if (prev!=null) {
+      var d=last-prev;
+      var el=document.getElementById("kTGAd");
+      el.textContent=(d>=0?"+":"")+d.toLocaleString("en-US")+"M vs prev";
+      el.className="kpi-sub "+(d>=0?"pos":"neg");
+    }
+  }
+
+  if (dTot.values.length>0) {
+    document.getElementById("kDebt").textContent = fmt(dTot.values[dTot.values.length-1]);
+    if (dTot.values.length>1) {
+      var d=dTot.values[dTot.values.length-1]-dTot.values[dTot.values.length-2];
+      var el=document.getElementById("kDebtd");
+      el.textContent=(d>=0?"+":"")+d.toLocaleString("en-US")+"M vs prev";
+      el.className="kpi-sub "+(d>=0?"pos":"neg");
+    }
+  }
+
+  // Deposits/Withdrawals KPIs use the appropriate field
+  var depTotals = extractCashSeries(cachedCashData, "Deposits");
+  var wdTotals = extractCashSeries(cachedCashData, "Withdrawals");
+
+  document.getElementById("kDepLabel").textContent = "Deposits ("+vl+")";
+  document.getElementById("kWdLabel").textContent = "Withdrawals ("+vl+")";
+
+  if (depTotals.values.length>0) {
+    document.getElementById("kDep").textContent = fmt(depTotals.values[depTotals.values.length-1]);
+    document.getElementById("kDepd").textContent = depTotals.dates[depTotals.dates.length-1];
+  }
+  if (wdTotals.values.length>0) {
+    document.getElementById("kWd").textContent = fmt(wdTotals.values[wdTotals.values.length-1]);
+    document.getElementById("kWdd").textContent = wdTotals.dates[wdTotals.dates.length-1];
+  }
+
+  // ── Date range ──
+  var allDates = tga.dates.length>0 ? tga.dates : (dTot.dates.length>0 ? dTot.dates : []);
+  if (allDates.length>0) {
+    document.getElementById("dateRange").textContent =
+      allDates[0]+" → "+allDates[allDates.length-1]+" · "+allDates.length+" business days · View: "+vl;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DATA LOAD
+   ═══════════════════════════════════════════════════════════ */
+
+async function loadData(isRefresh) {
+  var sDot = document.getElementById("sDot");
+  var sTxt = document.getElementById("sTxt");
+  var errBox = document.getElementById("errBox");
+
+  if (!isRefresh) {
+    sDot.className = "dot";
+    sTxt.textContent = "Loading…";
+  }
+
+  try {
+    log(isRefresh ? "Auto-refresh triggered…" : "Initial data load…");
+
+    var results = await Promise.allSettled([
+      fetchCashBalance(),
+      fetchTx(),
+      fetchDebt()
+    ]);
+
+    var names = ["operating_cash_balance","deposits_withdrawals","debt_subject_to_limit"];
+    var newCash=[], newTx=[], newDebt=[];
+
+    if (results[0].status==="fulfilled") newCash=results[0].value;
+    else log("✗ "+names[0]+": "+results[0].reason, "fail");
+
+    if (results[1].status==="fulfilled") newTx=results[1].value;
+    else log("✗ "+names[1]+": "+results[1].reason, "fail");
+
+    if (results[2].status==="fulfilled") newDebt=results[2].value;
+    else log("✗ "+names[2]+": "+results[2].reason, "fail");
+
+    if (newCash.length===0 && newTx.length===0 && newDebt.length===0) {
+      throw new Error("No data received from any endpoint.");
+    }
+
+    cachedCashData = newCash;
+    cachedTxData = newTx;
+    cachedDebtData = newDebt;
+
+    // Debug logging (only on first load)
+    if (!isRefresh) {
+      var accountTypes=[];
+      newCash.forEach(function(r){ if(accountTypes.indexOf(r.account_type)===-1) accountTypes.push(r.account_type); });
+      log("account_type: "+accountTypes.join(" | "), "warn");
+
+      var txCatgs=[];
+      var txDescs=[];
+      newTx.forEach(function(r){ 
+        if(txCatgs.indexOf(r.transaction_catg)===-1) txCatgs.push(r.transaction_catg);
+        if(r.transaction_catg_desc && txDescs.indexOf(r.transaction_catg_desc)===-1) txDescs.push(r.transaction_catg_desc);
+      });
+      log(txCatgs.length+" unique transaction_catg, "+txDescs.length+" unique catg_desc found", "ok");
+
+      var allTracked=DEP.concat(WD);
+      var found=0;
+      for (var i=0;i<allTracked.length;i++) {
+        var k=allTracked[i].key;
+        var inCatg = txCatgs.indexOf(k)!==-1;
+        var inDesc = txDescs.some(function(d){ return d===k || d.indexOf(k)!==-1; });
+        if (inCatg||inDesc) found++;
+        else log("⚠ Not found: \""+k+"\"","warn");
+      }
+      log("Tracked items: "+found+"/"+allTracked.length+" matched","ok");
+
+      if (newTx.length>0) {
+        var s=newTx[0];
+        log("Sample: catg=\""+s.transaction_catg+"\" desc=\""+(s.transaction_catg_desc||"")+"\" today="+s.transaction_today_amt+" mtd="+s.transaction_mtd_amt+" fytd="+s.transaction_fytd_amt);
+      }
+    }
+
+    renderCharts();
+
+    errBox.classList.remove("show");
+    sDot.className = "dot ok";
+    sTxt.textContent = "Live";
+    document.getElementById("lastUpdate").textContent = new Date().toLocaleTimeString();
+    log(isRefresh ? "Refresh complete ✓" : "Dashboard ready ✓", "ok");
+
+  } catch(e) {
+    console.error(e);
+    log("ERROR: "+e.message, "fail");
+    sDot.className = "dot err";
+    sTxt.textContent = "Error";
+    errBox.textContent = "Error: "+e.message+"\nClick 📋 Log for details.";
+    errBox.classList.add("show");
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   VIEW TAB SWITCHING
+   ═══════════════════════════════════════════════════════════ */
+
+document.getElementById("viewTabs").addEventListener("click", function(e) {
+  var btn = e.target;
+  if (!btn.classList.contains("view-tab") || btn.classList.contains("active")) return;
+
+  document.querySelectorAll(".view-tab").forEach(function(b){ b.classList.remove("active"); });
+  btn.classList.add("active");
+
+  currentView = btn.getAttribute("data-view");
+  log("View switched to: "+VIEW_LABELS[currentView]);
+
+  // Update delta toggle availability
+  syncDeltaToggleState();
+
+  if (cachedTxData.length > 0) {
+    renderCharts();
+  }
+});
+
+document.getElementById("deltaTabs").addEventListener("click", function(e) {
+  var btn = e.target;
+  if (!btn.classList.contains("delta-tab") || btn.classList.contains("active")) return;
+  if (btn.disabled) return;
+
+  document.querySelectorAll(".delta-tab").forEach(function(b){ b.classList.remove("active"); });
+  btn.classList.add("active");
+
+  currentDelta = btn.getAttribute("data-delta");
+  log("Delta mode switched to: "+(currentDelta==="day"?"Daily Δ":"Cumulative"));
+
+  if (cachedTxData.length > 0) {
+    renderCharts();
+  }
+});
+
+function syncDeltaToggleState() {
+  // In Daily view, the toggle is meaningless (data is already daily).
+  // We disable it but keep the visual presence.
+  var tabs = document.querySelectorAll(".delta-tab");
+  if (currentView === "today") {
+    tabs.forEach(function(b){ b.disabled = true; });
+    // Force back to "cum" since "day" wouldn't change anything anyway
+    if (currentDelta === "day") {
+      currentDelta = "cum";
+      tabs.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-delta")==="cum"); });
+    }
+  } else {
+    tabs.forEach(function(b){ b.disabled = false; });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   INIT + SMART POLLING
+   ═══════════════════════════════════════════════════════════ */
+
+var pollTimer = null;
+var holidayStrikes = 0;        // counts failed polls during release window
+var MAX_HOLIDAY_STRIKES = 3;   // after 3 misses (90 min), assume holiday
+var POLL_INTERVAL_MS = 3 * 60 * 1000;   // 3 minutes
+var BUFFER_MS = 5 * 60 * 1000;          // 5-minute cooldown after detection
+var POLL_START_HOUR = 15;
+var POLL_START_MIN = 55;
+
+function getET() {
+  // Returns a Date-like object representing current ET
+  var s = new Date().toLocaleString("en-US", {timeZone:"America/New_York"});
+  return new Date(s);
+}
+
+function getLatestRecordDate() {
+  // Return the most recent record_date from cached data
+  var dates = [];
+  cachedCashData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
+  cachedTxData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
+  cachedDebtData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
+  dates.sort();
+  return dates.length > 0 ? dates[dates.length - 1] : null;
+}
+
+function setPollStatus(msg) {
+  var el = document.getElementById("pollStatus");
+  if (el) el.textContent = msg;
+}
+
+async function checkForNewData() {
+  var currentLatest = getLatestRecordDate();
+  log("Polling: checking API for new data (current latest: " + (currentLatest||"none") + ")…", "info");
+  try {
+    // Lightweight probe — fetch just 1 record from cash balance
+    var probe = await api("/v1/accounting/dts/operating_cash_balance", {
+      "sort": "-record_date",
+      "page[size]": "1",
+      "fields": "record_date"
+    });
+    var apiDate = (probe.data && probe.data.length > 0) ? probe.data[0].record_date : null;
+    if (!apiDate) {
+      log("Polling: API returned no data", "warn");
+      return false;
+    }
+    log("Polling: API latest record_date = " + apiDate, "info");
+    if (currentLatest && apiDate > currentLatest) {
+      log("🆕 NEW DATA DETECTED: " + apiDate + " > " + currentLatest, "ok");
+      return true;
+    }
+    return false;
+  } catch(e) {
+    log("Polling probe error: " + e.message, "fail");
+    return false;
+  }
+}
+
+function scheduleSmartPolling() {
+  // Clear any existing timer
+  if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
+  holidayStrikes = 0;
+
+  var et = getET();
+  var day = et.getDay(); // 0=Sun,6=Sat
+
+  // ── Weekend check ──
+  if (day === 0 || day === 6) {
+    var dayName = day === 0 ? "Sunday" : "Saturday";
+    log("📅 Weekend (" + dayName + "): Standby mode — no data expected.", "warn");
+    setPollStatus("Weekend standby");
+    var sDot = document.getElementById("sDot");
+    var sTxt = document.getElementById("sTxt");
+    if (sDot) sDot.className = "dot";
+    if (sTxt) sTxt.textContent = "Weekend standby";
+    // Schedule re-check at midnight ET to detect Monday
+    var msToMidnight = new Date(et.getFullYear(), et.getMonth(), et.getDate()+1, 0, 1, 0).getTime() - et.getTime();
+    if (msToMidnight < 0) msToMidnight += 86400000;
+    log("Will re-evaluate at midnight ET (in " + Math.round(msToMidnight/60000) + " min)");
+    pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
+    return;
+  }
+
+  // ── Weekday: calculate ms until 15:55 ET today ──
+  var pollTarget = new Date(et.getFullYear(), et.getMonth(), et.getDate(), POLL_START_HOUR, POLL_START_MIN, 0);
+  var msUntilPoll = pollTarget.getTime() - et.getTime();
+
+  if (msUntilPoll > 0) {
+    // Before the monitoring window
+    log("⏱ Monitoring window opens at " + POLL_START_HOUR + ":" + String(POLL_START_MIN).padStart(2,"0") + " ET (in " + Math.round(msUntilPoll/60000) + " min)", "info");
+    setPollStatus("Waiting for " + POLL_START_HOUR + ":" + String(POLL_START_MIN).padStart(2,"0") + " ET");
+    pollTimer = setTimeout(function(){ startPollingLoop(); }, msUntilPoll);
+  } else {
+    // Already inside or past the window — start immediately
+    startPollingLoop();
+  }
+}
+
+function startPollingLoop() {
+  if (holidayStrikes >= MAX_HOLIDAY_STRIKES) {
+    log("🏦 No new data after " + MAX_HOLIDAY_STRIKES + " attempts — likely a bank holiday. Standby until next business day.", "warn");
+    setPollStatus("Holiday assumed — standby");
+    // Schedule for next day midnight
+    var et = getET();
+    var msToMidnight = new Date(et.getFullYear(), et.getMonth(), et.getDate()+1, 0, 1, 0).getTime() - et.getTime();
+    if (msToMidnight < 0) msToMidnight += 86400000;
+    pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
+    return;
+  }
+
+  log("🔍 Monitoring: Waiting for Treasury data release (Checking every 3 min)…", "info");
+  setPollStatus("Monitoring (every 3 min)");
+  var sDot = document.getElementById("sDot");
+  var sTxt = document.getElementById("sTxt");
+  if (sDot) sDot.className = "dot";
+  if (sTxt) sTxt.textContent = "Monitoring…";
+
+  // Run the check
+  checkForNewData().then(function(found) {
+    if (found) {
+      // New data detected — start 5-minute buffer
+      log("⏳ Release Detected: Cooling down for 5 minutes before final update…", "ok");
+      setPollStatus("Cooldown (5 min)…");
+      if (sDot) sDot.className = "dot";
+      if (sTxt) sTxt.textContent = "Cooling down…";
+      pollTimer = setTimeout(function() {
+        log("─── Executing full data refresh after cooldown ───", "ok");
+        setPollStatus("Refreshing…");
+        loadData(true).then(function() {
+          log("✅ Smart poll refresh complete.", "ok");
+          setPollStatus("Up to date");
+          // Schedule for next business day
+          var et2 = getET();
+          var msToMidnight = new Date(et2.getFullYear(), et2.getMonth(), et2.getDate()+1, 0, 1, 0).getTime() - et2.getTime();
+          if (msToMidnight < 0) msToMidnight += 86400000;
+          pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
+        });
+      }, BUFFER_MS);
+    } else {
+      // No new data yet — poll again in 3 minutes
+      holidayStrikes++;
+      log("No new data yet (attempt " + holidayStrikes + "/" + MAX_HOLIDAY_STRIKES + "). Next check in 3 min.", "info");
+      setPollStatus("Monitoring (" + holidayStrikes + "/" + MAX_HOLIDAY_STRIKES + ")");
+      pollTimer = setTimeout(function(){ startPollingLoop(); }, POLL_INTERVAL_MS);
+    }
+  });
+}
+
+(async function init() {
+  var ov = document.getElementById("ov");
+
+  // Initialize delta toggle state (will be disabled in Daily view)
+  syncDeltaToggleState();
+
+  await loadData(false);
+
+  ov.classList.add("hide");
+  setTimeout(function(){ ov.remove(); }, 600);
+
+  // Start smart polling
+  scheduleSmartPolling();
+})();
+</script>
+</body>
+</html>
