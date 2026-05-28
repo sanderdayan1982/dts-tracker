@@ -1337,28 +1337,104 @@ function syncDeltaToggleState() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   INIT + SMART POLLING
+   INIT + SMART POLLING (v2.1 — phase-based, T-1 aware)
+   ───────────────────────────────────────────────────────────
+   Phases: weekend | pre | window | post
+     • weekend → Sat/Sun ET. Standby until Mon 15:55 ET.
+     • pre     → Weekday < 15:55 ET. Wait, no probes.
+     • window  → Weekday 15:55–18:00 ET. Probe every 3 min.
+     • post    → Weekday ≥ 18:00 ET. If expected record cached
+                 → "Up to date". Otherwise → holiday/delay.
+
+   T-1 SEMANTICS (v2.1 fix):
+     DTS published on day N has record_date = previous business
+     day (T-1). So after today's release, the expected `latest`
+     in the API is previousBusinessDay(today), NOT today.
+     e.g. Wed ~16:00 ET publishes record_date=Tue;
+          Mon ~16:00 ET publishes record_date=Fri.
+
+   Replaces the legacy `holidayStrikes` heuristic, which fired
+   "Holiday assumed" 9 min after page load even outside the
+   release window. ET time uses Intl.DateTimeFormat.formatToParts
+   (no toLocaleString re-parsing trick).
    ═══════════════════════════════════════════════════════════ */
 
 var pollTimer = null;
-var holidayStrikes = 0;        // counts failed polls during release window
-var MAX_HOLIDAY_STRIKES = 3;   // after 3 misses (90 min), assume holiday
-var POLL_INTERVAL_MS = 3 * 60 * 1000;   // 3 minutes
-var BUFFER_MS = 5 * 60 * 1000;          // 5-minute cooldown after detection
-var POLL_START_HOUR = 15;
-var POLL_START_MIN = 55;
+var POLL_INTERVAL_MS    = 3 * 60 * 1000;   // 3 min probe cadence within window
+var BUFFER_MS           = 5 * 60 * 1000;   // 5 min cooldown after detection
+var WINDOW_OPEN_HOUR    = 15, WINDOW_OPEN_MIN  = 55;   // 15:55 ET
+var WINDOW_CLOSE_HOUR   = 18, WINDOW_CLOSE_MIN = 0;    // 18:00 ET
 
-function getET() {
-  // Returns a Date-like object representing current ET
-  var s = new Date().toLocaleString("en-US", {timeZone:"America/New_York"});
-  return new Date(s);
+/* ── ET time helpers (clean, no offset tricks) ── */
+function getETParts() {
+  var parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false, weekday: "short"
+  }).formatToParts(new Date());
+  var o = {};
+  parts.forEach(function(p){ o[p.type] = p.value; });
+  var wdMap = {Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6};
+  return {
+    year:    parseInt(o.year, 10),
+    month:   parseInt(o.month, 10),
+    day:     parseInt(o.day, 10),
+    hour:    parseInt(o.hour === "24" ? "0" : o.hour, 10),
+    minute:  parseInt(o.minute, 10),
+    second:  parseInt(o.second, 10),
+    weekday: wdMap[o.weekday]
+  };
+}
+
+function etISODate(p) {
+  return p.year + "-" + String(p.month).padStart(2,"0") + "-" + String(p.day).padStart(2,"0");
+}
+
+function getPhase(p) {
+  if (p.weekday === 0 || p.weekday === 6) return "weekend";
+  var nowMin   = p.hour * 60 + p.minute;
+  var openMin  = WINDOW_OPEN_HOUR  * 60 + WINDOW_OPEN_MIN;
+  var closeMin = WINDOW_CLOSE_HOUR * 60 + WINDOW_CLOSE_MIN;
+  if (nowMin < openMin)  return "pre";
+  if (nowMin < closeMin) return "window";
+  return "post";
+}
+
+// ms from now until a target ET hh:mm, with optional daysOffset (0=today, 1=tomorrow, …)
+// Math is done in wall-clock ET minutes. DST transitions could skew this by 1h
+// twice a year, but each scheduleSmartPolling() call self-corrects on entry.
+function msUntilETTime(p, targetHour, targetMin, daysOffset) {
+  daysOffset = daysOffset || 0;
+  var nowMin      = p.hour * 60 + p.minute + p.second / 60;
+  var targetMinOD = targetHour * 60 + targetMin;
+  var diffMin     = (daysOffset * 1440) + targetMinOD - nowMin;
+  return Math.max(0, Math.round(diffMin * 60 * 1000));
+}
+
+function daysUntilNextBusinessDay(weekday) {
+  if (weekday === 5) return 3;   // Fri → Mon
+  if (weekday === 6) return 2;   // Sat → Mon
+  if (weekday === 0) return 1;   // Sun → Mon
+  return 1;                       // Mon–Thu → next day
+}
+
+// DTS published on day N has record_date = previous business day (T-1).
+// We use UTC anchors so the calendar walk is timezone-safe (only the
+// date components matter, not the time-of-day).
+function previousBusinessDay(p) {
+  var d = new Date(Date.UTC(p.year, p.month - 1, p.day));
+  do { d.setUTCDate(d.getUTCDate() - 1); }
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6);
+  return d.getUTCFullYear() + "-"
+    + String(d.getUTCMonth() + 1).padStart(2, "0") + "-"
+    + String(d.getUTCDate()).padStart(2, "0");
 }
 
 function getLatestRecordDate() {
-  // Return the most recent record_date from cached data
   var dates = [];
   cachedCashData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
-  cachedTxData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
+  cachedTxData.forEach(function(r){   if(r.record_date) dates.push(r.record_date); });
   cachedDebtData.forEach(function(r){ if(r.record_date) dates.push(r.record_date); });
   dates.sort();
   return dates.length > 0 ? dates[dates.length - 1] : null;
@@ -1369,135 +1445,124 @@ function setPollStatus(msg) {
   if (el) el.textContent = msg;
 }
 
-async function checkForNewData() {
-  var currentLatest = getLatestRecordDate();
-  log("Polling: checking API for new data (current latest: " + (currentLatest||"none") + ")…", "info");
+function setStatusDot(cls, txt) {
+  var d = document.getElementById("sDot");
+  var t = document.getElementById("sTxt");
+  if (d) d.className = cls;
+  if (t) t.textContent = txt;
+}
+
+async function probeAPI() {
   try {
-    // Lightweight probe — fetch just 1 record from cash balance
     var probe = await api("/v1/accounting/dts/operating_cash_balance", {
       "sort": "-record_date",
       "page[size]": "1",
       "fields": "record_date"
     });
-    var apiDate = (probe.data && probe.data.length > 0) ? probe.data[0].record_date : null;
-    if (!apiDate) {
-      log("Polling: API returned no data", "warn");
-      return false;
-    }
-    log("Polling: API latest record_date = " + apiDate, "info");
-    if (currentLatest && apiDate > currentLatest) {
-      log("🆕 NEW DATA DETECTED: " + apiDate + " > " + currentLatest, "ok");
-      return true;
-    }
-    return false;
+    return (probe.data && probe.data.length > 0) ? probe.data[0].record_date : null;
   } catch(e) {
     log("Polling probe error: " + e.message, "fail");
-    return false;
+    return null;
   }
 }
 
-function scheduleSmartPolling() {
-  // Clear any existing timer
+async function scheduleSmartPolling() {
   if (pollTimer) { clearTimeout(pollTimer); pollTimer = null; }
-  holidayStrikes = 0;
 
-  var et = getET();
-  var day = et.getDay(); // 0=Sun,6=Sat
+  var p              = getETParts();
+  var phase          = getPhase(p);
+  var todayET        = etISODate(p);
+  var expectedLatest = previousBusinessDay(p);   // DTS publishes T-1
+  var currentLatest  = getLatestRecordDate();
 
-  // ── Weekend check ──
-  if (day === 0 || day === 6) {
-    var dayName = day === 0 ? "Sunday" : "Saturday";
-    log("📅 Weekend (" + dayName + "): Standby mode — no data expected.", "warn");
+  log("📍 ET: " + todayET + " " + String(p.hour).padStart(2,"0") + ":" + String(p.minute).padStart(2,"0")
+      + " · phase=" + phase + " · expected latest=" + expectedLatest
+      + " · cached latest=" + (currentLatest||"none"), "info");
+
+  /* ── WEEKEND ── */
+  if (phase === "weekend") {
+    var dayName  = p.weekday === 0 ? "Sunday" : "Saturday";
+    var daysToMon = p.weekday === 6 ? 2 : 1;
+    var ms       = msUntilETTime(p, WINDOW_OPEN_HOUR, WINDOW_OPEN_MIN, daysToMon);
+    log("📅 " + dayName + " ET — standby until Mon 15:55 ET (in " + Math.round(ms/60000) + " min)", "warn");
     setPollStatus("Weekend standby");
-    var sDot = document.getElementById("sDot");
-    var sTxt = document.getElementById("sTxt");
-    if (sDot) sDot.className = "dot";
-    if (sTxt) sTxt.textContent = "Weekend standby";
-    // Schedule re-check at midnight ET to detect Monday
-    var msToMidnight = new Date(et.getFullYear(), et.getMonth(), et.getDate()+1, 0, 1, 0).getTime() - et.getTime();
-    if (msToMidnight < 0) msToMidnight += 86400000;
-    log("Will re-evaluate at midnight ET (in " + Math.round(msToMidnight/60000) + " min)");
-    pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
+    setStatusDot("dot", "Weekend standby");
+    pollTimer = setTimeout(scheduleSmartPolling, ms);
     return;
   }
 
-  // ── Weekday: calculate ms until 15:55 ET today ──
-  var pollTarget = new Date(et.getFullYear(), et.getMonth(), et.getDate(), POLL_START_HOUR, POLL_START_MIN, 0);
-  var msUntilPoll = pollTarget.getTime() - et.getTime();
-
-  if (msUntilPoll > 0) {
-    // Before the monitoring window
-    log("⏱ Monitoring window opens at " + POLL_START_HOUR + ":" + String(POLL_START_MIN).padStart(2,"0") + " ET (in " + Math.round(msUntilPoll/60000) + " min)", "info");
-    setPollStatus("Waiting for " + POLL_START_HOUR + ":" + String(POLL_START_MIN).padStart(2,"0") + " ET");
-    pollTimer = setTimeout(function(){ startPollingLoop(); }, msUntilPoll);
-  } else {
-    // Already inside or past the window — start immediately
-    startPollingLoop();
-  }
-}
-
-function startPollingLoop() {
-  if (holidayStrikes >= MAX_HOLIDAY_STRIKES) {
-    log("🏦 No new data after " + MAX_HOLIDAY_STRIKES + " attempts — likely a bank holiday. Standby until next business day.", "warn");
-    setPollStatus("Holiday assumed — standby");
-    // Schedule for next day midnight
-    var et = getET();
-    var msToMidnight = new Date(et.getFullYear(), et.getMonth(), et.getDate()+1, 0, 1, 0).getTime() - et.getTime();
-    if (msToMidnight < 0) msToMidnight += 86400000;
-    pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
+  /* ── PRE-WINDOW ── */
+  if (phase === "pre") {
+    var ms = msUntilETTime(p, WINDOW_OPEN_HOUR, WINDOW_OPEN_MIN, 0);
+    log("⏱ Window opens at 15:55 ET (in " + Math.round(ms/60000) + " min)", "info");
+    setPollStatus("Waiting for 15:55 ET");
+    pollTimer = setTimeout(scheduleSmartPolling, ms);
     return;
   }
 
-  log("🔍 Monitoring: Waiting for Treasury data release (Checking every 3 min)…", "info");
+  /* ── EARLY EXIT: expected release already cached (window or post) ──
+     DTS published on day N has record_date = T-1 business day. So after
+     today's ~16:00 ET release, expectedLatest === previousBusinessDay(today). */
+  if (currentLatest === expectedLatest) {
+    var daysNext = daysUntilNextBusinessDay(p.weekday);
+    var ms       = msUntilETTime(p, WINDOW_OPEN_HOUR, WINDOW_OPEN_MIN, daysNext);
+    log("✅ Up to date — record_date " + expectedLatest + " cached (today's release). Next re-eval in " + Math.round(ms/60000) + " min.", "ok");
+    setPollStatus("Up to date · next release ~16:00 ET");
+    setStatusDot("dot ok", "Up to date");
+    pollTimer = setTimeout(scheduleSmartPolling, ms);
+    return;
+  }
+
+  /* ── POST-WINDOW without expected release → likely holiday or delay ── */
+  if (phase === "post") {
+    var daysNext = daysUntilNextBusinessDay(p.weekday);
+    var ms       = msUntilETTime(p, WINDOW_OPEN_HOUR, WINDOW_OPEN_MIN, daysNext);
+    log("⚠ Window closed without expected release " + expectedLatest + " (cached: " + (currentLatest||"none")
+        + "). Likely bank holiday or Treasury delay. Standby for " + Math.round(ms/60000) + " min.", "warn");
+    setPollStatus("No release today · standby");
+    setStatusDot("dot", "No release");
+    pollTimer = setTimeout(scheduleSmartPolling, ms);
+    return;
+  }
+
+  /* ── IN-WINDOW (15:55–18:00 ET), today's data not yet cached ── */
+  log("🔍 In release window — probing API…", "info");
   setPollStatus("Monitoring (every 3 min)");
-  var sDot = document.getElementById("sDot");
-  var sTxt = document.getElementById("sTxt");
-  if (sDot) sDot.className = "dot";
-  if (sTxt) sTxt.textContent = "Monitoring…";
+  setStatusDot("dot", "Monitoring…");
 
-  // Run the check
-  checkForNewData().then(function(found) {
-    if (found) {
-      // New data detected — start 5-minute buffer
-      log("⏳ Release Detected: Cooling down for 5 minutes before final update…", "ok");
-      setPollStatus("Cooldown (5 min)…");
-      if (sDot) sDot.className = "dot";
-      if (sTxt) sTxt.textContent = "Cooling down…";
-      pollTimer = setTimeout(function() {
-        log("─── Executing full data refresh after cooldown ───", "ok");
-        setPollStatus("Refreshing…");
-        loadData(true).then(function() {
-          log("✅ Smart poll refresh complete.", "ok");
-          setPollStatus("Up to date");
-          // Schedule for next business day
-          var et2 = getET();
-          var msToMidnight = new Date(et2.getFullYear(), et2.getMonth(), et2.getDate()+1, 0, 1, 0).getTime() - et2.getTime();
-          if (msToMidnight < 0) msToMidnight += 86400000;
-          pollTimer = setTimeout(function(){ scheduleSmartPolling(); }, msToMidnight);
-        });
-      }, BUFFER_MS);
-    } else {
-      // No new data yet — poll again in 3 minutes
-      holidayStrikes++;
-      log("No new data yet (attempt " + holidayStrikes + "/" + MAX_HOLIDAY_STRIKES + "). Next check in 3 min.", "info");
-      setPollStatus("Monitoring (" + holidayStrikes + "/" + MAX_HOLIDAY_STRIKES + ")");
-      pollTimer = setTimeout(function(){ startPollingLoop(); }, POLL_INTERVAL_MS);
-    }
-  });
+  var apiDate = await probeAPI();
+  log("Polling: API latest record_date = " + (apiDate || "none"), "info");
+
+  if (apiDate && currentLatest && apiDate > currentLatest) {
+    log("🆕 NEW DATA: " + apiDate + " > " + currentLatest + " — cooling down 5 min before full refresh", "ok");
+    setPollStatus("Cooldown (5 min)…");
+    setStatusDot("dot", "Cooling down…");
+    pollTimer = setTimeout(function() {
+      log("─── Executing full data refresh ───", "ok");
+      setPollStatus("Refreshing…");
+      loadData(true).then(function() {
+        log("✅ Smart poll refresh complete.", "ok");
+        scheduleSmartPolling();   // recurse → falls into "Up to date" branch
+      });
+    }, BUFFER_MS);
+    return;
+  }
+
+  // No new data — re-probe in 3 min, but never overshoot window close
+  var msToClose = msUntilETTime(p, WINDOW_CLOSE_HOUR, WINDOW_CLOSE_MIN, 0);
+  var nextDelay = Math.min(POLL_INTERVAL_MS, msToClose);
+  if (nextDelay <= 0) { scheduleSmartPolling(); return; }
+  log("No new data yet. Next probe in " + Math.round(nextDelay/60000) + " min (window closes in "
+      + Math.round(msToClose/60000) + " min)", "info");
+  pollTimer = setTimeout(scheduleSmartPolling, nextDelay);
 }
 
 (async function init() {
   var ov = document.getElementById("ov");
-
-  // Initialize delta toggle state (will be disabled in Daily view)
   syncDeltaToggleState();
-
   await loadData(false);
-
   ov.classList.add("hide");
   setTimeout(function(){ ov.remove(); }, 600);
-
-  // Start smart polling
   scheduleSmartPolling();
 })();
 </script>
