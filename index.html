@@ -6,19 +6,19 @@
 <title>US Treasury Liquidity Dashboard — DTS Tracker</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0a0e17;--card:#111827;--border:#1e2a3a;
+  --bg:#090d13;--card:#0d1219;--border:#1a2230;
   --t1:#e2e8f0;--t2:#8899aa;--t3:#556677;
-  --green:#22c55e;--red:#ef4444;--cyan:#06b6d4;
+  --green:#22c55e;--red:#ef4444;--gold:#fdb813;
   --amber:#f59e0b;--violet:#8b5cf6;--rose:#f43f5e;
 }
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5}
+body{font-family:'IBM Plex Sans Condensed',system-ui,sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;line-height:1.5}
 .header{padding:1.6rem 2rem 1rem;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem}
 .header h1{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
-.header h1 span{color:var(--cyan)}
+.header h1 span{color:var(--gold)}
 .header-meta{font-size:.75rem;color:var(--t2);margin-top:.2rem;font-family:'JetBrains Mono',monospace}
 .header-right{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
 .badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.7rem;font-family:'JetBrains Mono',monospace;color:var(--t2);background:var(--card);border:1px solid var(--border);border-radius:6px;padding:.3rem .65rem}
@@ -30,7 +30,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .view-bar{display:flex;align-items:center;gap:1rem;padding:.8rem 2rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .view-bar label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t3)}
 .view-tabs{display:flex;gap:2px;background:var(--border);border-radius:7px;padding:2px}
-.view-tab{padding:.4rem 1rem;font-size:.75rem;font-weight:600;font-family:'DM Sans',sans-serif;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;transition:all .15s}
+.view-tab{padding:.4rem 1rem;font-size:.75rem;font-weight:600;font-family:'IBM Plex Sans Condensed',sans-serif;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;transition:all .15s}
 .view-tab.active{background:var(--card);color:var(--t1)}
 .view-tab:hover:not(.active){color:var(--t2)}
 .refresh-info{margin-left:auto;font-size:.68rem;font-family:'JetBrains Mono',monospace;color:var(--t3)}
@@ -68,7 +68,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 /* ── Loader ── */
 .overlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;transition:opacity .5s}
 .overlay.hide{opacity:0;pointer-events:none}
-.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:sp .75s linear infinite}
+.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:sp .75s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 .overlay p{margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--t2)}
 .err-box{margin:1rem 2rem;padding:.7rem 1rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.76rem;color:var(--red);display:none;white-space:pre-wrap}
@@ -78,7 +78,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .log-toggle{position:fixed;bottom:1rem;right:1rem;background:var(--card);border:1px solid var(--border);color:var(--t2);font-size:.68rem;font-family:'JetBrains Mono',monospace;padding:.3rem .6rem;border-radius:6px;cursor:pointer;z-index:100}
 .log-panel{position:fixed;bottom:2.8rem;right:1rem;width:480px;max-height:320px;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:.65rem;font-size:.62rem;font-family:'JetBrains Mono',monospace;color:var(--t2);z-index:100;display:none;line-height:1.55}
 .log-panel.show{display:block}
-.log-panel .ok{color:var(--green)}.log-panel .warn{color:var(--amber)}.log-panel .fail{color:var(--red)}.log-panel .info{color:var(--cyan)}
+.log-panel .ok{color:var(--green)}.log-panel .warn{color:var(--amber)}.log-panel .fail{color:var(--red)}.log-panel .info{color:var(--gold)}
 .footer{text-align:center;padding:1.2rem 2rem;font-size:.66rem;color:var(--t3);border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace}
 @media(max-width:768px){
   .header{padding:1rem}
@@ -91,12 +91,12 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 
 /* ── Net Treasury Flow Hero ── */
 .ntf-hero{margin:1.2rem 2rem 0;background:linear-gradient(180deg,rgba(6,182,212,.06) 0%,rgba(17,24,39,1) 100%);border:1px solid var(--border);border-radius:12px;padding:1.3rem 1.5rem;position:relative;overflow:hidden}
-.ntf-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--cyan),var(--red))}
+.ntf-hero::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--gold),var(--red))}
 .ntf-hdr{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:.8rem}
 .ntf-title{display:flex;align-items:center;gap:.6rem}
 .ntf-icon{font-size:1.4rem}
 .ntf-name{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--t1)}
-.ntf-name span{color:var(--cyan)}
+.ntf-name span{color:var(--gold)}
 .ntf-meta{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--t3)}
 .ntf-body{display:grid;grid-template-columns:1.2fr 1fr;gap:1.5rem;align-items:center;margin-bottom:.8rem}
 @media(max-width:720px){.ntf-body{grid-template-columns:1fr}.ntf-hero{margin:1rem;padding:1rem}}
@@ -117,7 +117,7 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
 .delta-toggle{display:flex;align-items:center;gap:.5rem;margin-left:1rem}
 .delta-toggle label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3)}
 .delta-tabs{display:flex;gap:2px;background:var(--border);border-radius:7px;padding:2px}
-.delta-tab{padding:.35rem .8rem;font-size:.7rem;font-weight:600;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.delta-tab{padding:.35rem .8rem;font-size:.7rem;font-weight:600;color:var(--t3);background:transparent;border:none;border-radius:5px;cursor:pointer;font-family:'IBM Plex Sans Condensed',sans-serif}
 .delta-tab.active{background:var(--card);color:var(--t1)}
 .delta-tab:hover:not(.active){color:var(--t2)}
 .delta-tab:disabled{opacity:.4;cursor:not-allowed}
@@ -198,19 +198,24 @@ body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(-
         <span class="ntf-stat-lbl">7-day Cumulative</span>
         <span class="ntf-stat-val" id="ntfSum7">—</span>
       </div>
+      <div class="ntf-stat-row">
+        <span class="ntf-stat-lbl">ΔTGA Reserve Impact</span>
+        <span class="ntf-stat-val" id="ntfDTGA">—</span>
+      </div>
     </div>
   </div>
   <div class="ntf-chart-wrap"><canvas id="ntfChart"></canvas></div>
   <div class="ntf-footer">
     <strong>Formula:</strong> Net Treasury Flow = (Withdrawals − Debt Redemptions) − (Deposits − Debt Issues) · Mosler-style.<br>
-    <strong>Sign:</strong> 🟢 positive = government injects reserves into the banking system · 🔴 negative = government drains reserves.<br>
-    <strong>Z-score:</strong> ±1σ = normal range · |Z| &gt; 2 = extraordinary daily flow (rolling 30-day window).
+    <strong>Sign:</strong> 🟢 positive = net fiscal injection — government creates net financial assets (NFA) for the non-government sector · 🔴 negative = net fiscal drain (NFA destruction).<br>
+    <strong>Reserves ≠ NFA:</strong> day-to-day bank reserve impact is <strong>−ΔTGA</strong> (TGA down = reserves added; TGA up = reserves drained). A bond-financed deficit creates NFA while leaving reserves ~flat — issuance drains what spending injects.<br>
+    <strong>Z-score:</strong> ±1σ = normal range · |Z| &gt; 2 = extraordinary daily flow (rolling 30-business-day window, always computed on the daily-flow basis).
   </div>
 </div>
 
 <div class="err-box" id="errBox"></div>
 <div id="content"></div>
-<footer class="footer">Source: Daily Treasury Statement — Bureau of the Fiscal Service — api.fiscaldata.treasury.gov<br>All values in millions USD. Smart polling starts ~15:55 ET (Mon–Fri).</footer>
+<footer class="footer">Source: Daily Treasury Statement — Bureau of the Fiscal Service — api.fiscaldata.treasury.gov<br>All values in millions USD. Smart polling starts ~15:55 ET (Mon–Fri). · <span style="color:var(--gold)">v3.0-AUDIT</span></footer>
 
 <button class="log-toggle" onclick="document.getElementById('logP').classList.toggle('show')">📋 Log</button>
 <div class="log-panel" id="logP"></div>
@@ -287,42 +292,60 @@ async function api(endpoint, params) {
   var parts = [];
   for (var k in params) parts.push(encodeURIComponent(k)+"="+encodeURIComponent(params[k]));
   url += parts.join("&");
-  log("FETCH: "+url.substring(0,150)+"…");
 
-  var controller = new AbortController();
-  var timer = setTimeout(function(){ controller.abort(); }, 30000);
-  try {
-    var resp = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
-    if (!resp.ok) throw new Error("HTTP "+resp.status+" "+resp.statusText);
-    var json = await resp.json();
-    var count = json.data ? json.data.length : 0;
-    var total = json.meta ? json.meta["total-count"] : "?";
-    log("  → "+count+" rows (API total: "+total+")", "ok");
-    return json;
-  } catch(e) {
-    clearTimeout(timer);
-    if (e.name==="AbortError") throw new Error("Timeout 30s on "+endpoint);
-    throw e;
+  // v3.0 AUDIT FIX (M2): 3 intentos con backoff exponencial (2s, 4s),
+  // mismo patrón que SOFR/US Bills en el pipeline G8.
+  var MAX_ATTEMPTS = 3;
+  for (var attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    log("FETCH"+(attempt>1?" (retry "+attempt+"/"+MAX_ATTEMPTS+")":"")+": "+url.substring(0,150)+"…");
+    var controller = new AbortController();
+    var timer = setTimeout(function(){ controller.abort(); }, 30000);
+    try {
+      var resp = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!resp.ok) throw new Error("HTTP "+resp.status+" "+resp.statusText);
+      var json = await resp.json();
+      var count = json.data ? json.data.length : 0;
+      var total = json.meta ? json.meta["total-count"] : null;
+      log("  → "+count+" rows (API total: "+(total==null?"?":total)+")", "ok");
+      // v3.0 AUDIT FIX (C1): detectar truncamiento silencioso de página
+      if (total != null && Number(total) > count) {
+        log("⚠ TRUNCATION: API reports "+total+" rows but page returned "+count+". Data may be incomplete.", "warn");
+      }
+      return json;
+    } catch(e) {
+      clearTimeout(timer);
+      var msg = (e.name==="AbortError") ? "Timeout 30s on "+endpoint : e.message;
+      if (attempt === MAX_ATTEMPTS) throw new Error(msg);
+      var backoff = Math.pow(2, attempt) * 1000; // 2s, 4s
+      log("  ✗ "+msg+" — backoff "+(backoff/1000)+"s", "warn");
+      await new Promise(function(res){ setTimeout(res, backoff); });
+    }
   }
 }
 
 async function fetchCashBalance() {
+  // NOTA (auditado, correcto): en el formato DTS post-abr-2022, la fila
+  // account_type "...Closing Balance" almacena el valor en open_today_bal.
+  // Quirk documentado del esquema — NO cambiar a close_today_bal.
   var d = await api("/v1/accounting/dts/operating_cash_balance", {
     "filter":"record_date:gte:"+startDate(),
     "fields":"record_date,account_type,open_today_bal",
-    "sort":"record_date",
+    "sort":"-record_date",
     "page[size]":"500"
   });
   return d.data||[];
 }
 
 async function fetchTx() {
-  // Fetch all three amount fields at once
+  // v3.0 AUDIT FIX (C1): sort DESCENDENTE. Con ascendente, si el total
+  // supera page[size] la API recorta los días MÁS RECIENTES sin error
+  // (datos stale mostrados como frescos). Descendente → un recorte solo
+  // pierde los más antiguos. Las extract* reordenan por fecha igualmente.
   var d = await api("/v1/accounting/dts/deposits_withdrawals_operating_cash", {
     "filter":"record_date:gte:"+startDate(),
     "fields":"record_date,transaction_catg,transaction_catg_desc,transaction_today_amt,transaction_mtd_amt,transaction_fytd_amt,transaction_type",
-    "sort":"record_date",
+    "sort":"-record_date",
     "page[size]":"10000"
   });
   return d.data||[];
@@ -332,7 +355,7 @@ async function fetchDebt() {
   var d = await api("/v1/accounting/dts/debt_subject_to_limit", {
     "filter":"record_date:gte:"+startDate(),
     "fields":"record_date,debt_catg,close_today_bal",
-    "sort":"record_date",
+    "sort":"-record_date",
     "page[size]":"500"
   });
   return d.data||[];
@@ -348,7 +371,8 @@ function extractCashSeries(rows, substr) {
     var r = rows[i];
     if (r.account_type && r.account_type.indexOf(substr)!==-1) {
       var v = parseFloat(r.open_today_bal);
-      if (!isNaN(v) && v!==0) map[r.record_date] = v;
+      // v3.0 AUDIT FIX (M3): 0 es un valor válido, no un NA
+      if (!isNaN(v)) map[r.record_date] = v;
     }
   }
   var keys = Object.keys(map).sort();
@@ -407,7 +431,25 @@ function computeTotalDebt(rows) {
 /* Structural Balance: Net Spending, Net Deposits, Deficit/Surplus */
 function computeStructuralBalance(txRows, cashRows, amtField) {
   var totDep={}, totWd={}, debtIss={}, debtRed={};
+  // v3.0 AUDIT FIX (C2): ranking de prioridad por fecha. Antes, cualquier
+  // fila que contuviera "total" sobrescribía totDep[d]/totWd[d] y ganaba
+  // la ÚLTIMA en llegar (arbitrario): un "Total Other Deposits" podía
+  // pisar al "Total TGA Deposits". Ahora solo sobrescribe un match de
+  // rango superior:  3 = empieza por "total tga"
+  //                  2 = empieza por "total" (no sub-total)
+  //                  1 = contiene "total" (no sub-total)
+  var depRank={}, wdRank={};
   var debugCatgs={};
+
+  function totalRank(catgLow, descLow) {
+    var s = catgLow || descLow;
+    if (catgLow.indexOf("sub-total")!==-1 || descLow.indexOf("sub-total")!==-1 ||
+        catgLow.indexOf("subtotal")!==-1  || descLow.indexOf("subtotal")!==-1) return 0;
+    if (catgLow.indexOf("total tga")===0 || descLow.indexOf("total tga")===0) return 3;
+    if (catgLow.indexOf("total")===0     || descLow.indexOf("total")===0)     return 2;
+    if (catgLow.indexOf("total")!==-1    || descLow.indexOf("total")!==-1)    return 1;
+    return 0;
+  }
 
   for (var i=0; i<txRows.length; i++) {
     var r=txRows[i], v=parseFloat(r[amtField]);
@@ -421,17 +463,14 @@ function computeStructuralBalance(txRows, cashRows, amtField) {
     // Debug: log every unique catg we see
     if (!debugCatgs[combined]) debugCatgs[combined] = type;
 
-    // ── Total Deposits / Withdrawals ──
-    // Match any row whose catg or desc contains "total" (case-insensitive)
-    // but exclude Public Debt rows (those are handled separately)
     var catgLow = catg.toLowerCase();
     var descLow = desc.toLowerCase();
-    var isTotal = (catgLow.indexOf("total") !== -1 || descLow.indexOf("total") !== -1);
     var isDebt  = (catgLow.indexOf("public debt") !== -1 || descLow.indexOf("public debt") !== -1);
+    var rank    = totalRank(catgLow, descLow);
 
-    if (isTotal && !isDebt) {
-      if (type === "deposit")    totDep[d] = v;
-      else if (type === "withdrawal") totWd[d] = v;
+    if (rank > 0 && !isDebt) {
+      if (type === "deposit" && rank > (depRank[d]||0)) { totDep[d] = v; depRank[d] = rank; }
+      else if (type === "withdrawal" && rank > (wdRank[d]||0)) { totWd[d] = v; wdRank[d] = rank; }
     }
 
     // ── Public Debt Cash Issues (deposit side) ──
@@ -517,7 +556,12 @@ function computeStructuralBalance(txRows, cashRows, amtField) {
     dates:dates,
     netSpending:{dates:dates,values:netSpending},
     netDeposits:{dates:dates,values:netDeposits},
-    defSurplus:{dates:dates,values:defSurplus}
+    defSurplus:{dates:dates,values:defSurplus},
+    // v3.0 AUDIT FIX (A4): totales brutos expuestos para los KPIs
+    // (antes los KPIs buscaban "Deposits"/"Withdrawals" en
+    // operating_cash_balance, que en el formato post-2022 no existen).
+    totDeposits:{dates:dates,values:dates.map(function(dd){return Math.abs(totDep[dd]||0);})},
+    totWithdrawals:{dates:dates,values:dates.map(function(dd){return Math.abs(totWd[dd]||0);})}
   };
 }
 
@@ -600,6 +644,11 @@ function seasonalFlag(dateStr) {
   var y = parseInt(parts[0], 10);
   var m = parseInt(parts[1], 10);
   var d = parseInt(parts[2], 10);
+  // v3.0 AUDIT FIX (M1): Quarter-End evaluado PRIMERO. Antes estaba
+  // después de "d >= 25 → Payments Window" y era inalcanzable.
+  if ((m === 3 && d === 31) || (m === 6 && d === 30) || (m === 9 && d === 30) || (m === 12 && d === 31)) {
+    return "📅 Quarter-End";
+  }
   // Tax Day window (April 14-16 federal, plus mid-month days for quarterly estimated)
   if (m === 4 && d >= 14 && d <= 16) return "📅 Tax Day";
   // Quarterly estimated tax: 15th of Jan, Apr, Jun, Sep — but skip Apr to avoid clash above
@@ -609,11 +658,6 @@ function seasonalFlag(dateStr) {
   // SSA payment window (typically 3rd of month + 2nd/3rd/4th Wednesday)
   // We use day >=25 as transfer-payment-heavy window (SNAP, end-of-month payrolls, SSI)
   if (d >= 25) return "📅 Payments Window";
-  // Quarter-end (Mar 31, Jun 30, Sep 30, Dec 31) — overrides Payments Window
-  if ((m === 3 && d === 31) || (m === 6 && d === 30) || (m === 9 && d === 30) || (m === 12 && d === 31)) {
-    return "📅 Quarter-End";
-  }
-  // Fiscal year-end USA (Sep 30) overlaps with Quarter-End above
   return "";
 }
 
@@ -627,17 +671,29 @@ function zBadgeInfo(z) {
   return            {label:"extraordinary drain",    bg:"rgba(239,68,68,.22)",  color:"var(--red)",   icon:"🔴"};
 }
 
-function toDailyDelta(values) {
-  // For cumulative series (MTD/FYTD), compute day-over-day deltas.
-  // First element keeps its original value (it IS the daily change for that first day).
-  // Note: this is naive — does not detect month/year boundaries. Acceptable trade-off
-  // for our 90-day window; if a month boundary is crossed inside the data, the day
-  // immediately after the reset will show a large negative spike, which is visually
-  // honest (and rare in a 90-day Daily render).
+function toDailyDelta(values, dates, mode) {
+  // v3.0 AUDIT FIX (A3): reset-aware. Las series MTD/FYTD se reinician
+  // en frontera de mes / de año fiscal (1-oct). Antes, el delta naive
+  // generaba spikes negativos falsos de cientos de $B en cada frontera
+  // (3 fronteras de mes en una ventana de 90 días). En frontera, el
+  // valor acumulado del primer día ES el delta de ese día.
   if (!values || values.length === 0) return [];
   var out = [values[0]];
   for (var i=1; i<values.length; i++) {
-    out.push(values[i] - values[i-1]);
+    var isReset = false;
+    if (dates && dates[i] && dates[i-1]) {
+      var mCur  = dates[i].slice(0,7);   // "YYYY-MM"
+      var mPrev = dates[i-1].slice(0,7);
+      if (mode === "fytd") {
+        // Año fiscal US: reinicia el 1 de octubre
+        var fyCur  = parseInt(dates[i].slice(0,4),10)  + (parseInt(dates[i].slice(5,7),10)  >= 10 ? 1 : 0);
+        var fyPrev = parseInt(dates[i-1].slice(0,4),10) + (parseInt(dates[i-1].slice(5,7),10) >= 10 ? 1 : 0);
+        isReset = (fyCur !== fyPrev);
+      } else {
+        isReset = (mCur !== mPrev);
+      }
+    }
+    out.push(isReset ? values[i] : values[i] - values[i-1]);
   }
   return out;
 }
@@ -646,14 +702,14 @@ function toDailyDelta(values) {
    HERO RENDER — Net Treasury Flow
    ═══════════════════════════════════════════════════════════ */
 
-function renderHero(sb) {
+function renderHero(sb, tga, basisLabel) {
   if (!sb || !sb.dates || sb.dates.length === 0) {
     document.getElementById("ntfMainVal").textContent = "—";
     document.getElementById("ntfMainLbl").textContent = "no data";
     return;
   }
-  // Net Treasury Flow with MMT-direct sign: positive = inject, negative = drain.
-  // Equals Net Spending − Net Deposits.
+  // Net Treasury Flow, MMT-direct sign: positive = net fiscal injection
+  // (NFA creation), negative = net fiscal drain. Equals NetSpending − NetDeposits.
   var ns = sb.netSpending.values;
   var nd = sb.netDeposits.values;
   var dates = sb.dates;
@@ -684,9 +740,10 @@ function renderHero(sb) {
 
   mainEl.textContent = fmtSigned(lastVal);
   mainEl.style.color = lastVal >= 0 ? "var(--green)" : "var(--red)";
-  mainLbl.textContent = lastVal >= 0 ? "injecting reserves into the banking system" : "draining reserves from the banking system";
+  // v3.0 AUDIT FIX (A1): el NTF mide creación/destrucción de NFA, no reservas.
+  mainLbl.textContent = lastVal >= 0 ? "net fiscal injection — NFA creation" : "net fiscal drain — NFA destruction";
   iconEl.textContent = bi.icon;
-  metaEl.textContent = "Last record: " + lastDate;
+  metaEl.textContent = "Last record: " + lastDate + (basisLabel ? " · basis: " + basisLabel : "");
 
   // Z-badge
   var zBadge = document.getElementById("ntfZBadge");
@@ -704,6 +761,19 @@ function renderHero(sb) {
   document.getElementById("ntfMean").textContent = lastM == null ? "—" : fmtSigned(lastM);
   document.getElementById("ntfStd").textContent  = lastS == null ? "—" : fmt(lastS);
   document.getElementById("ntfSum7").textContent = sum7 == null ? "—" : fmtSigned(sum7);
+
+  // v3.0 AUDIT FIX (A1): impacto en reservas = −ΔTGA (concepto separado del NTF)
+  var dtgaEl = document.getElementById("ntfDTGA");
+  if (dtgaEl) {
+    if (tga && tga.values && tga.values.length > 1) {
+      var dTGA = tga.values[tga.values.length-1] - tga.values[tga.values.length-2];
+      var resImpact = -dTGA; // TGA baja → reservas suben
+      dtgaEl.textContent = fmtSigned(resImpact) + (resImpact >= 0 ? " (reserves add)" : " (reserves drain)");
+      dtgaEl.style.color = resImpact >= 0 ? "var(--green)" : "var(--red)";
+    } else {
+      dtgaEl.textContent = "—";
+    }
+  }
 
   // Seasonal flag
   var seasBox = document.getElementById("ntfSeasonalBox");
@@ -739,7 +809,7 @@ function renderHero(sb) {
       animation: { duration: 400 },
       interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: { display: true, position: "top", labels: { color:"#8899aa", font:{family:"DM Sans",size:10}, boxWidth:11, padding:8, filter:function(item){ return ["Net Treasury Flow","30d Mean","+1σ","−1σ"].indexOf(item.text)!==-1; } } },
+        legend: { display: true, position: "top", labels: { color:"#8899aa", font:{family:"IBM Plex Sans Condensed",size:10}, boxWidth:11, padding:8, filter:function(item){ return ["Net Treasury Flow","30d Mean","+1σ","−1σ"].indexOf(item.text)!==-1; } } },
         tooltip: {
           backgroundColor:"#1e293b", titleColor:"#94a3b8", bodyColor:"#e2e8f0",
           borderColor:"#334155", borderWidth:1, padding:10,
@@ -903,7 +973,7 @@ function mkMultiChart(id, datasets, labels) {
       animation:{ duration:400 },
       interaction:{mode:"index",intersect:false},
       plugins:{
-        legend:{display:true,position:"top",labels:{color:"#8899aa",font:{family:"DM Sans",size:11},boxWidth:12,padding:12}},
+        legend:{display:true,position:"top",labels:{color:"#8899aa",font:{family:"IBM Plex Sans Condensed",size:11},boxWidth:12,padding:12}},
         tooltip:{
           backgroundColor:"#1e293b",titleColor:"#94a3b8",bodyColor:"#e2e8f0",
           borderColor:"#334155",borderWidth:1,padding:10,
@@ -957,7 +1027,7 @@ function buildStructuralTable(sb) {
   h += '<th style="text-align:left;padding:.45rem .6rem;color:var(--t3);font-weight:600">Date</th>';
   h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--rose);font-weight:600">Net Spending</th>';
   h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--green);font-weight:600">Net Deposits</th>';
-  h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--cyan);font-weight:600">Net Treasury Flow</th>';
+  h += '<th style="text-align:right;padding:.45rem .6rem;color:var(--gold);font-weight:600">Net Treasury Flow</th>';
   h += '</tr></thead><tbody>';
   var dates=sb.dates, ns=sb.netSpending.values, nd=sb.netDeposits.values;
   // Show last 15 rows
@@ -1004,9 +1074,9 @@ function buildDOM() {
   var vl = VIEW_LABELS[currentView];
   var h = "";
 
-  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--cyan)"></div><h2>Balance & Debt</h2></div>';
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--gold)"></div><h2>Balance & Debt</h2></div>';
   h += '<div class="grid">';
-  h += card("cTGA","TGA Closing Balance","Treasury General Account","#06b6d4",true);
+  h += card("cTGA","TGA Closing Balance","Treasury General Account","#fdb813",true);
   h += card("cDPub","Debt Held by the Public","Public Debt","#8b5cf6",false);
   h += card("cDTot","Total Public Debt Outstanding","Public + Intragovernmental","#f59e0b",false);
   h += "</div>";
@@ -1022,12 +1092,12 @@ function buildDOM() {
   h += "</div>";
 
   // Net Treasury Flow Detail section (was Structural Balance)
-  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--cyan)"></div><h2>Net Treasury Flow — Detail · '+vl+'</h2></div>';
+  h += '<div class="sec-hdr"><div class="sec-dot" style="background:var(--gold)"></div><h2>Net Treasury Flow — Detail · '+vl+'</h2></div>';
   h += '<div class="grid">';
   h += card("cNetSpend","Net Spending","Total Withdrawals − Debt Redemptions","#f43f5e",false);
   h += card("cNetDep","Net Deposits","Total Deposits − Debt Issues","#22c55e",false);
   h += '<div class="card wide">';
-  h += '<div class="card-accent" style="background:#06b6d4"></div>';
+  h += '<div class="card-accent" style="background:#fdb813"></div>';
   h += '<div class="card-hdr"><div><div class="card-title">Net Treasury Flow Components</div>';
   h += '<div class="card-sub">Net Spending (rose) − Net Deposits (green) = Net Treasury Flow (cyan, MMT sign) · '+vl+'</div></div>';
   h += '<div class="card-val" id="cDefSurp_v"><div class="v">—</div></div></div>';
@@ -1058,7 +1128,7 @@ function renderCharts() {
   // ── TGA ──
   var tga = extractCashSeries(cachedCashData, "Closing Balance");
   if (tga.dates.length===0) tga = extractCashSeries(cachedCashData, "TGA");
-  mkChart("cTGA", tga, "#06b6d4", "TGA Closing Balance");
+  mkChart("cTGA", tga, "#fdb813", "TGA Closing Balance");
   setVal("cTGA", tga.values);
 
   // ── Debt ──
@@ -1093,23 +1163,36 @@ function renderCharts() {
   }
 
   // Apply daily-delta transformation if the toggle is on AND we are in MTD/FYTD view.
-  // The hero chart always uses the underlying flow per the current view.
+  // v3.0 AUDIT FIX (A3): deltas reset-aware (mes / año fiscal).
   var renderNS  = sb.netSpending.values.slice();
   var renderND  = sb.netDeposits.values.slice();
   var renderNTF = ntfVals.slice();
   if (currentDelta === "day" && currentView !== "today") {
-    renderNS  = toDailyDelta(renderNS);
-    renderND  = toDailyDelta(renderND);
-    renderNTF = toDailyDelta(renderNTF);
+    renderNS  = toDailyDelta(renderNS,  sb.dates, currentView);
+    renderND  = toDailyDelta(renderND,  sb.dates, currentView);
+    renderNTF = toDailyDelta(renderNTF, sb.dates, currentView);
   }
 
-  // Build a "view-adjusted" sb for hero so it respects the delta toggle
+  // v3.0 AUDIT FIX (A2): el hero SIEMPRE calcula Z/media/σ sobre base
+  // diaria. Antes, en vista MTD/FYTD modo Cumulative, el Z-score se
+  // calculaba sobre una serie acumulada trending — estadísticamente
+  // inválido (el badge "extraordinary" se disparaba siempre a fin de mes).
+  var heroNS, heroND, heroBasis;
+  if (currentView === "today") {
+    heroNS = sb.netSpending.values.slice();
+    heroND = sb.netDeposits.values.slice();
+    heroBasis = "daily";
+  } else {
+    heroNS = toDailyDelta(sb.netSpending.values.slice(), sb.dates, currentView);
+    heroND = toDailyDelta(sb.netDeposits.values.slice(), sb.dates, currentView);
+    heroBasis = "daily Δ of " + VIEW_LABELS[currentView];
+  }
   var sbForHero = {
     dates: sb.dates,
-    netSpending: { dates: sb.dates, values: renderNS },
-    netDeposits: { dates: sb.dates, values: renderND }
+    netSpending: { dates: sb.dates, values: heroNS },
+    netDeposits: { dates: sb.dates, values: heroND }
   };
-  renderHero(sbForHero);
+  renderHero(sbForHero, tga, heroBasis);
 
   mkChart("cNetSpend", {dates:sb.dates, values:renderNS}, "#f43f5e", "Net Spending");
   setVal("cNetSpend", renderNS);
@@ -1121,7 +1204,7 @@ function renderCharts() {
     mkMultiChart("cDefSurpMulti", [
       {label:"Net Spending",     values:renderNS,  color:"#f43f5e"},
       {label:"Net Deposits",     values:renderND,  color:"#22c55e"},
-      {label:"Net Treasury Flow",values:renderNTF, color:"#06b6d4"}
+      {label:"Net Treasury Flow",values:renderNTF, color:"#fdb813"}
     ], sb.dates);
     var lastNTF = renderNTF[renderNTF.length-1];
     var dsEl = document.getElementById("cDefSurp_v");
@@ -1166,9 +1249,13 @@ function renderCharts() {
     }
   }
 
-  // Deposits/Withdrawals KPIs use the appropriate field
-  var depTotals = extractCashSeries(cachedCashData, "Deposits");
-  var wdTotals = extractCashSeries(cachedCashData, "Withdrawals");
+  // v3.0 AUDIT FIX (A4): los KPIs Deposits/Withdrawals se alimentan de
+  // los totales reales de deposits_withdrawals_operating_cash (campo de
+  // la vista actual). Antes buscaban account_type "Deposits"/"Withdrawals"
+  // en operating_cash_balance, inexistentes en el formato post-2022
+  // → mostraban "—" siempre, con etiqueta que cambiaba sin cambiar la fuente.
+  var depTotals = sb.totDeposits;
+  var wdTotals = sb.totWithdrawals;
 
   document.getElementById("kDepLabel").textContent = "Deposits ("+vl+")";
   document.getElementById("kWdLabel").textContent = "Withdrawals ("+vl+")";
@@ -1229,9 +1316,17 @@ async function loadData(isRefresh) {
       throw new Error("No data received from any endpoint.");
     }
 
-    cachedCashData = newCash;
-    cachedTxData = newTx;
-    cachedDebtData = newDebt;
+    // v3.0 AUDIT FIX (C3): preservar caché en fallo parcial. Antes, si un
+    // endpoint fallaba durante un auto-refresh, su caché se sobrescribía
+    // con [] y el dashboard perdía los datos buenos que ya tenía en pantalla.
+    if (newCash.length>0) cachedCashData = newCash;
+    else if (isRefresh && cachedCashData.length>0) log("↺ Keeping previous cash cache ("+cachedCashData.length+" rows)", "warn");
+
+    if (newTx.length>0) cachedTxData = newTx;
+    else if (isRefresh && cachedTxData.length>0) log("↺ Keeping previous tx cache ("+cachedTxData.length+" rows)", "warn");
+
+    if (newDebt.length>0) cachedDebtData = newDebt;
+    else if (isRefresh && cachedDebtData.length>0) log("↺ Keeping previous debt cache ("+cachedDebtData.length+" rows)", "warn");
 
     // Debug logging (only on first load)
     if (!isRefresh) {
@@ -1422,6 +1517,10 @@ function daysUntilNextBusinessDay(weekday) {
 // DTS published on day N has record_date = previous business day (T-1).
 // We use UTC anchors so the calendar walk is timezone-safe (only the
 // date components matter, not the time-of-day).
+// LIMITACIÓN CONOCIDA (M4): no descuenta festivos federales US. Tras un
+// festivo, expectedLatest apunta a un día sin publicación y la fase post
+// mostrará "No release today" (benigno: el sistema reintenta al día
+// siguiente). Fix completo requeriría calendario OPM hardcodeado anual.
 function previousBusinessDay(p) {
   var d = new Date(Date.UTC(p.year, p.month - 1, p.day));
   do { d.setUTCDate(d.getUTCDate() - 1); }
