@@ -19,6 +19,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
+from treasury_book import build_book
 from institutional_core import (atomic_json, business_day, cash_contract, finite,
                                 lag364_stats, settlement)
 
@@ -2002,6 +2003,8 @@ def main():
     nowcast_payload = cash_contract(nowcast_payload, now_utc_dt)
     atomic_json(NOWCAST_PATH, nowcast_payload)
     print(f"[DTS NOWCASTER v6.0] Wrote {NOWCAST_PATH} ({NOWCAST_PATH.stat().st_size} bytes)")
+
+    atomic_json(DATA_DIR / "treasury_book.json", build_book(t1_by_date, t2_canon, t3b_by_date, daily_records, nowcast_payload, t3c_by_date), compact=True)
 
     hist_dates = all_bd_dates[-HISTORY_BD_LIMIT:]
     history_rows = []
