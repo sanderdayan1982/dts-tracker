@@ -1,5 +1,11 @@
 {
   "ahe_deflator_yoy": 4.00,
+  "ahe_vintage": "2026-09",
+  "ahe_release_date": "2026-10-02",
+  "consensus_loaded": false,
+  "nfp_consensus_k": null,
+  "slgs_window_policy_status": "OPEN",
+  "slgs_policy_source": "31 CFR Part 344 / Bureau of the Fiscal Service SLGS Daily Rate Table",
   "updated_at": "2026-11-05",
-  "source": "BLS CES Average Hourly Earnings YoY (%)"
+  "source": "BLS CES Average Hourly Earnings YoY (%) & Fiscal Service SLGS Status"
 }
