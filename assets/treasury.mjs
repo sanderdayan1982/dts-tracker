@@ -34,7 +34,7 @@ export function treasuryHTML(book,dts,opts={}){
  function bars(id,rows,key,color,bands=false,get=null){
    const values=rows.map(row=>get?get(row):amount(row,key));const extra=bands?rows.flatMap(x=>finite(x.mean)?[x.mean+2*x.sd,x.mean-2*x.sd]:[]):[];
    const all=[...values,...extra].filter(finite);if(!all.length)return `<p>${t('missing')}</p>`;
-   const min=Math.min(0,...all),max=Math.max(0,...all),span=max-min||1,w=Math.max(380,rows.length*7+70),h=220,pad=60,right=w-15,step=(right-pad)/rows.length;
+   const min=Math.min(0,...all),max=Math.max(0,...all),span=max-min||1,w=Math.max(300,rows.length*7+70),h=220,pad=60,right=w-15,step=(right-pad)/rows.length;
    const y=v=>185-(v-min)/span*165;
    const ticks=[min,min+span/2,max];
    let svg=`<svg class="treasury-bars" viewBox="0 0 ${w} ${h}" style="min-width:${w}px" role="group" aria-label="${esc(t(key))}">`;
