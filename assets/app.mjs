@@ -33,6 +33,12 @@ export function localConsensus(entry,card,now=Date.now()){
     &&Number.isFinite(captured)&&captured<=now&&now-captured<86400000&&now<release?entry:null;
 }
 
+export function sharedConsensus(entry,card,now=Date.now()){
+  const captured=Date.parse(entry?.captured_at),release=Date.parse(entry?.release_at);
+  return entry&&numeric(entry.value)&&entry.reference_period===card.reference_period&&entry.unit===card.unit&&entry.source
+    &&Number.isFinite(captured)&&Number.isFinite(release)&&captured<=now&&now<release&&now-captured<=7*86400000?entry:null;
+}
+
 const RAW='https://raw.githubusercontent.com/sanderdayan1982/dts-tracker/main/data/';
 const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,history:null,loading:true,error:false,consensus:{},edit:null};
 const $=id=>document.getElementById(id);
@@ -68,7 +74,7 @@ function spark(rows,color='var(--blue)'){
   const vs=(rows??[]).map(r=>r.value).filter(numeric);if(vs.length<2)return '';
   const lo=Math.min(...vs),hi=Math.max(...vs),span=hi-lo||1;
   const points=vs.map((v,i)=>`${(i*300/(vs.length-1)).toFixed(2)},${(42-(v-lo)/span*38).toFixed(2)}`).join(' ');
-  return `<svg class="spark" viewBox="0 0 300 48" preserveAspectRatio="none" role="img" aria-label="${e(t('history'))}"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.7" vector-effect="non-scaling-stroke"/></svg>`;
+  return `<svg class="spark" viewBox="0 0 300 48" preserveAspectRatio="none" role="img" aria-label="${e(t('seriesHistory'))}"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.7" vector-effect="non-scaling-stroke"/></svg>`;
 }
 function renderHeader(){
   document.documentElement.lang=state.lang;
@@ -84,7 +90,7 @@ function renderHeader(){
   const metrics=[['cash',blocked?'—':signed(m.ntf_total/1000),t('billion')+' · '+t('cashSub')],['reserve',blocked?'—':signed(m.reserves_impact/1000),t('billion')+' · '+t('reserveSub')],['z',zOk?signed(m.z_ntf_ex_exp_weekday_100bd):'—',t('zSub')],['coverage',`${available} / 10`,t('coverageSub')]];
   $('kpis').innerHTML=metrics.map(([key,value,sub])=>`<article class="kpi"><div class="label">${e(t(key))}</div><div class="value">${e(value)}</div><div class="sub">${e(sub)}</div></article>`).join('');
 }
-function consensusFor(c){return localConsensus(state.consensus[c.id],c)??c.consensus??null;}
+function consensusFor(c){return localConsensus(state.consensus[c.id],c)??sharedConsensus(c.consensus,c)??null;}
 function cardHTML(c){
   const desc=targets[c.id]?.[state.lang]??[c.id,'',''];const f=c.forecast;const con=consensusFor(c);
   const cls=c.signal==='HOTTER'?'hot':c.signal==='WEAKER'?'weak':'';

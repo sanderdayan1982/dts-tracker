@@ -280,6 +280,9 @@ def main(offline=False):
     dts=json.loads(dts_path.read_text()) if dts_path.exists() else {}
     dts=cash_contract(dts,now)
     valid_until=now+dt.timedelta(hours=26)
+    for card in cards:
+        if card.get("consensus"):
+            valid_until=min(valid_until,parse_time(card["consensus"]["release_at"]))
     payload={"schema":"macro-radar-1.0","generated_at":iso(now),"valid_until_utc":iso(valid_until),
              "mode":"cached_replay" if offline else "live_fetch", "cards":cards,"context":context,
              "dts_asof":dts.get("asof"),"dts_status":dts.get("dq",{}).get("status"),
