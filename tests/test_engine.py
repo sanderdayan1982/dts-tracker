@@ -77,6 +77,17 @@ class ForecastTests(unittest.TestCase):
         self.assertIsNone(r['probability_above_consensus'])
         self.assertTrue(all(math.isfinite(x) for x in r['range80']))
     def test_insufficient_history(self):self.assertIsNone(estimate([1,2,3],'level'))
+    def test_gap_is_not_multimonth_inflation(self):
+        rows=[{'date':'2025-09-01','value':100},{'date':'2025-11-01','value':110},{'date':'2025-12-01','value':111}]
+        out=transform(rows,SERIES['cpi'])
+        self.assertIsNone(out[0]['value'])
+        self.assertAlmostEqual(out[1]['value'],100*(111/110-1))
+    def test_old_hole_skipped_current_hole_blocks(self):
+        values=[100+math.sin(i/4) for i in range(180)]
+        values[100]=None
+        self.assertIsNotNone(estimate(values,'level'))
+        values[-1]=None
+        self.assertIsNone(estimate(values,'level'))
     def test_failed_feed(self):
         src={'status':'FETCH_FAIL','retrieved_at':'2026-11-05T17:00:00Z','observations':[{'date':'2026-09-01','value':4.2}]}
         self.assertIsNone(make_card('unemployment',SERIES['unemployment'],src,self.now,{})['forecast'])

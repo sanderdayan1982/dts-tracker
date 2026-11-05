@@ -26,6 +26,8 @@ jobs:
           python-version: '3.11'
       - name: Verify accounting and forecast contracts
         run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Verify bilingual interface and expiry rules
+        run: node --test tests/test_ui.mjs
       - name: Refresh Treasury cash data
         id: dts
         continue-on-error: true

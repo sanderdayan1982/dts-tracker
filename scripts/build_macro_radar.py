@@ -135,8 +135,10 @@ def transform(observations, spec):
         if spec["transform"] != "level":
             if i==0: continue
             prior=observations[i-1]["value"]*scale
-            value=value-prior if spec["transform"]=="difference" else (100*(value/prior-1) if prior>0 else None)
-        if finite(value): rows.append({"date":row["date"],"value":value})
+            consecutive = (month_step(observations[i-1]["date"])==row["date"] if spec["frequency"]=="monthly"
+                           else (dt.date.fromisoformat(row["date"])-dt.date.fromisoformat(observations[i-1]["date"])).days==7)
+            value=(value-prior if spec["transform"]=="difference" else (100*(value/prior-1) if prior>0 else None)) if consecutive else None
+        rows.append({"date":row["date"],"value":value})
     return rows
 
 def continuous(rows, frequency):
@@ -151,7 +153,9 @@ def baseline(values, mode):
 def autoregression(values):
     """AR(1), rolling 120 observations, fixed ridge shrinkage; no hyperparameter search."""
     values=values[-120:]
-    x,y=values[:-1],values[1:]
+    pairs=[(a,b) for a,b in zip(values,values[1:]) if finite(a) and finite(b)]
+    if len(pairs)<12:return values[-1]
+    x,y=zip(*pairs)
     mx,my=stats.fmean(x),stats.fmean(y)
     variance=sum((v-mx)**2 for v in x)
     slope=sum((a-mx)*(b-my) for a,b in zip(x,y))/(variance*1.1+1e-12)
@@ -159,10 +163,12 @@ def autoregression(values):
     return my+slope*(values[-1]-mx)
 
 def estimate(values, mode):
-    if len(values)<120: return None
+    if sum(finite(v) for v in values)<120 or not all(finite(v) for v in values[-3:]): return None
     # Last 60 origins: first 30 choose AR vs naive, last 30 are untouched holdout.
     errors={"baseline":[],"ar1":[]}
-    for i in range(len(values)-60,len(values)):
+    origins=[i for i in range(60,len(values)) if all(finite(v) for v in values[i-3:i+1])][-60:]
+    if len(origins)<60:return None
+    for i in origins:
         past=values[:i]
         errors["baseline"].append(values[i]-baseline(past,mode))
         errors["ar1"].append(values[i]-autoregression(past))
@@ -208,9 +214,15 @@ def make_card(key,spec,source,now,consensus):
     if source.get("status")!="OK" or stale:
         card.update(status="STALE" if stale else "FETCH_FAIL")
         return card
-    if not continuous(observations[-180:],spec["frequency"]):
+    if not continuous(observations[-3:],spec["frequency"]) or not all(finite(r["value"]) for r in rows[-3:]):
         card.update(status="DATA_GAP");return card
-    forecast=estimate([r["value"] for r in rows],spec["transform"])
+    # Preserve holes in the historical sequence. Do not interpolate a shutdown or
+    # call a two-month price change a one-month change. Skip invalid forecast origins.
+    dense=[]; by_date={r["date"]:r["value"] for r in rows}; d=rows[0]["date"]
+    while d<=rows[-1]["date"]:
+        dense.append(by_date.get(d))
+        d=month_step(d) if spec["frequency"]=="monthly" else (dt.date.fromisoformat(d)+dt.timedelta(days=7)).isoformat()
+    forecast=estimate(dense,spec["transform"])
     if forecast is None:
         card.update(status="INSUFFICIENT_HISTORY");return card
     # Physical bounds apply to a level, never to payroll change or the trade balance.
@@ -219,6 +231,7 @@ def make_card(key,spec,source,now,consensus):
         forecast["range80"]=[max(0,x) for x in forecast["range80"]]
     card.update(status="RESEARCH_ESTIMATE",forecast=forecast,
                 flags=["LATEST_REVISED_DATA", "NOT_FIRST_RELEASE_VALIDATED", "NOT_MARKET_CONSENSUS"])
+    if any(v is None for v in dense):card["flags"].append("HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED")
     delta=forecast["point"]-last["value"]
     # Use forecast uncertainty to distinguish a material change from noise.
     material=max(forecast["validation"]["mae"]*.25,1e-9)
@@ -281,12 +294,12 @@ def main(offline=False):
                 if not path.exists(): atomic_json(path,{"issued_at":iso(now),"card":c},compact=True)
     # Compact contract for ARGOS. Explicit directions refer to previous data, never surprise odds.
     compact={"v":1,"at":iso(now),"expires":iso(valid_until),"dts":{"at":dts.get("asof"),
-             "blocked":dts["dq"]["block"],"ntf":None if dts["dq"]["block"] else dts.get("mmt_liquidity",{}).get("ntf_total"),
+             "blocked":dts["dq"]["block"],"expires":dts.get("valid_until_utc"),"ntf":None if dts["dq"]["block"] else dts.get("mmt_liquidity",{}).get("ntf_total"),
              "reserve_contribution":None if dts["dq"]["block"] else dts.get("mmt_liquidity",{}).get("reserves_impact")},
              "basis":"research_vs_previous_not_consensus","probabilities":None,"events":[]}
     for c in cards:
         f=c.get("forecast")
-        compact["events"].append({"id":c["id"],"period":c.get("reference_period"),"status":c["status"],
+        compact["events"].append({"id":c["id"],"period":c.get("reference_period"),"unit":c["unit"],"status":c["status"],
                                   "point":round(f["point"],3) if f else None,"signal":c["signal"],"consensus":c["consensus"]["value"] if c["consensus"] else None})
     atomic_json(DATA/"argos_summary.json",compact,compact=True)
     atomic_json(DATA/"dts_nowcast.json",dts)
@@ -294,4 +307,6 @@ def main(offline=False):
 
 if __name__=="__main__":
     parser=argparse.ArgumentParser();parser.add_argument("--offline",action="store_true")
-    main(parser.parse_args().offline)
+    result=main(parser.parse_args().offline)
+    if not any(c["forecast"] for c in result["cards"]):
+        raise SystemExit("No valid macro estimate; failure state has been published")
