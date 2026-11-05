@@ -42,3 +42,11 @@ GitHub Actions refreshes public data and preserves failure states. The browser u
 - `data/consensus.json`: optional dated shared consensus configuration. See methodology for required fields.
 
 Browser-entered consensus is local and does not alter ARGOS's shared inputs. A forecast point is never permission to trade.
+
+## Treasury cash monitor / Monitor de caja
+
+The first section retains daily, month-to-date and fiscal-year-to-date Treasury deposits and withdrawals, a stock-only closing TGA balance, and the original daily NTF mean/±1σ/±2σ overlays. Choose a fiscal year and as-of date; daily bars and cumulative official amounts remain distinct.
+
+La primera sección conserva las entradas, salidas y el saldo del TGA. Incluye 18 partidas originales, conciliación exacta, cascada de caja, separación de financiación, persistencia de flujos, mapa de reservas y comparación fiscal. El radar macro permanece disponible mediante «Ir al radar macro».
+
+`data/treasury_book.json` publishes 800 calendar days of retrieved Table-I history with official cumulative fields, Table-II selected categories and II/IIIB cash debt totals. Charts retain signed reversals and do not sum balances. The oldest fiscal year can be partial; the visible window is explicitly labeled.

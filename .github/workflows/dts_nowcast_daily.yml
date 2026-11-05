@@ -5,8 +5,8 @@ on:
     - cron: '15 21,22,23 * * 1-5'
   workflow_dispatch:
   push:
-    branches: [main, codex/dts-institutional-v6]
-    paths: ['scripts/**', 'tests/**', '.github/workflows/**', 'data/consensus.json']
+    branches: [main, codex/dts-institutional-v6, codex/restore-treasury-cash]
+    paths: ['scripts/**', 'tests/**', 'assets/**', 'index.html', '.github/workflows/**', 'data/consensus.json']
 permissions:
   contents: write
 concurrency:

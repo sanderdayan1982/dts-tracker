@@ -1,3 +1,4 @@
+import {treasuryHTML} from './treasury.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from './content.mjs';
 
 export const numeric=x=>typeof x==='number'&&Number.isFinite(x);
@@ -40,7 +41,7 @@ export function sharedConsensus(entry,card,now=Date.now()){
 }
 
 const RAW='https://raw.githubusercontent.com/sanderdayan1982/dts-tracker/main/data/';
-const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,history:null,loading:true,error:false,consensus:{},edit:null};
+const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,history:null,loading:true,error:false,consensus:{},edit:null,book:null,cashMode:'today',cashYear:null,cashDate:null,cashDays:90,cashDaily:false};
 const $=id=>document.getElementById(id);
 const t=key=>copy[state.lang][key]??key;
 const e=escapeHTML;
@@ -66,8 +67,8 @@ async function fetchFile(name){
 }
 async function load(){
   state.loading=true;render();
-  const r=await Promise.allSettled(['dts_nowcast.json','macro_radar.json','dts_history_400d.json'].map(fetchFile));
-  ['data','radar','history'].forEach((key,i)=>{if(r[i].status==='fulfilled')state[key]=r[i].value;else state[key]=null;});
+  const r=await Promise.allSettled(['dts_nowcast.json','macro_radar.json','dts_history_400d.json','treasury_book.json'].map(fetchFile));
+  ['data','radar','history','book'].forEach((key,i)=>{if(r[i].status==='fulfilled')state[key]=r[i].value;else state[key]=null;});
   state.error=r.some(x=>x.status==='rejected');state.loading=false;render();
 }
 function spark(rows,color='var(--blue)'){
@@ -149,7 +150,12 @@ function guideHTML(){
 function render(){
   if(typeof document==='undefined')return;
   const openDetails=[...document.querySelectorAll('[data-card] details[open]')].map(el=>el.closest('[data-card]').dataset.card);
-  renderHeader();$('view').innerHTML=({radar:radarHTML,fiscal:cashHTML,liquidity:liquidityHTML,guide:guideHTML}[state.tab])();
+  const cashDetails=[...document.querySelectorAll('#treasury details')].map(el=>[el.id,el.open]);
+  const cashScroll=new Map([...document.querySelectorAll('#treasury [data-scroll-id]')].map(el=>[el.dataset.scrollId,el.scrollLeft]));
+  renderHeader();$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily});
+  for(const [id,open] of cashDetails){const el=document.getElementById(id);if(el)el.open=open;}
+  for(const el of document.querySelectorAll('#treasury [data-scroll-id]'))el.scrollLeft=cashScroll.get(el.dataset.scrollId)??Math.max(0,el.scrollWidth-el.clientWidth);
+  $('view').innerHTML=({radar:radarHTML,fiscal:cashHTML,liquidity:liquidityHTML,guide:guideHTML}[state.tab])();
   for(const id of openDetails)document.querySelector(`[data-card="${id}"] details`)?.setAttribute('open','');
 }
 function saveLocal(){try{localStorage.setItem('dts-v6-consensus',JSON.stringify(state.consensus));}catch{}}
@@ -165,7 +171,10 @@ function init(){
   try{state.lang=localStorage.getItem('dts-v6-language')??'es';if(!copy[state.lang])state.lang='es';state.consensus=JSON.parse(localStorage.getItem('dts-v6-consensus')??'{}');}catch{}
   for(const lang of ['en','es'])$('lang'+(lang==='en'?'En':'Es')).addEventListener('click',()=>{state.lang=lang;try{localStorage.setItem('dts-v6-language',lang);}catch{}render();});
   $('refresh').addEventListener('click',load);
-  document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.tab){state.tab=b.dataset.tab;render();}if(b.dataset.filter){state.filter=b.dataset.filter;render();}if(b.dataset.days){state.days=Number(b.dataset.days);render();}if(b.dataset.consensus)editConsensus(b.dataset.consensus);if(b.dataset.download==='history')download(state.history,'dts-history.json');});
+  document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.tab){state.tab=b.dataset.tab;render();}if(b.dataset.filter){state.filter=b.dataset.filter;render();}if(b.dataset.days){state.days=Number(b.dataset.days);render();}if(b.dataset.consensus)editConsensus(b.dataset.consensus);if(b.dataset.cashMode){state.cashMode=b.dataset.cashMode;state.cashDaily=false;if(state.cashMode==='fytd')state.cashDays='fy';render();}if(b.dataset.cashDaily){state.cashDaily=b.dataset.cashDaily==='yes';render();}if(b.dataset.download==='treasury')download(state.book,'treasury-cash-ledger.json');if(b.dataset.download==='history')download(state.history,'dts-history.json');});
+  document.addEventListener('change',ev=>{if(ev.target.id==='cashYear'){state.cashYear=Number(ev.target.value);state.cashDate=null;render();}if(ev.target.id==='cashDate'){state.cashDate=ev.target.value;render();}if(ev.target.id==='cashWindow'){state.cashDays=ev.target.value;render();}});
+  const inspectBar=ev=>{const bar=ev.target.closest('[data-cash-bar]');if(bar){const box=document.getElementById('readout-'+bar.dataset.chartId);if(box)box.textContent=bar.dataset.cashBar;}};
+  document.addEventListener('click',inspectBar);document.addEventListener('focusin',inspectBar);
   $('cancelConsensus').onclick=()=>$('consensusDialog').close();$('removeConsensus').onclick=()=>{delete state.consensus[state.edit.id];saveLocal();$('consensusDialog').close();render();};
   $('consensusForm').onsubmit=ev=>{ev.preventDefault();const value=Number($('consensusValue').value),source=$('consensusSource').value.trim();if(!numeric(value)||!source||!$('consensusValue').value){$('dialogError').textContent=t('consensusError');return;}const c=state.edit;state.consensus[c.id]={value,source,unit:c.unit,reference_period:c.reference_period,captured_at:new Date().toISOString()};saveLocal();$('consensusDialog').close();render();};
   setInterval(()=>{if(!document.hidden&&!$('consensusDialog').open)render();},30000);

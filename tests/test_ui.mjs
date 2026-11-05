@@ -41,3 +41,34 @@ test('shared consensus expires at its release time',()=>{
   assert.equal(sharedConsensus(v,c,Date.parse(v.release_at)),null);
   assert.equal(sharedConsensus(v,{...c,unit:'percent'},now),null);
 });
+
+import {legacyBands,legacyZone,selectCashRows,fiscalYear,monitorFresh,treasuryCopy} from '../assets/treasury.mjs';
+test('restored legacy bands retain inclusive 30-session population formula',()=>{
+ const rows=Array.from({length:31},(_,i)=>({ntf:i+1}));const out=legacyBands(rows);
+ assert.equal(out[28].mean,null);assert.equal(out[29].mean,15.5);assert.equal(out[30].mean,16.5);
+ assert.ok(Math.abs(out[29].sd-Math.sqrt(899/12))<1e-10);
+ assert.equal(legacyBands([...rows.slice(0,29),{ntf:null}])[29].mean,null);
+});
+test('legacy threshold boundaries are unchanged',()=>{
+ assert.equal(legacyZone(2),'strongIn');assert.equal(legacyZone(1),'notableIn');assert.equal(legacyZone(-.999),'inline');assert.equal(legacyZone(-1),'notableOut');assert.equal(legacyZone(-2),'strongOut');assert.equal(legacyZone(null),'missing');
+});
+test('fiscal-year and as-of selection never cross into another year',()=>{
+ const book={rows:[{d:'2026-09-30',fy:2026,ntf:1},{d:'2026-10-01',fy:2027,ntf:2},{d:'2026-10-02',fy:2027,ntf:3}]};
+ const s=selectCashRows(book,{year:2027,cutoff:'2026-10-01',days:'fy'});assert.equal(s.rows.length,1);assert.equal(s.last.ntf,2);assert.equal(fiscalYear('2026-09-30'),2026);
+});
+test('Treasury monitor rejects stale or mismatched snapshots',()=>{
+ const book={...fresh,schema:'treasury-book-1.0',asof:'2026-11-03'};assert.ok(monitorFresh(book,{asof:book.asof,dq:{block:false}},now));assert.equal(monitorFresh(book,{asof:'2026-11-04',dq:{block:false}},now),false);
+ assert.deepEqual(Object.keys(treasuryCopy.en).sort(),Object.keys(treasuryCopy.es).sort());
+});
+
+import {windowTotals,comparableFiscal} from '../assets/cash-desk.mjs';
+test('cash-desk windows preserve the reserve/financing identity and require coverage',()=>{
+ const rows=Array.from({length:20},()=>({ntf:4,tga:103,periods:{today:{ok:true,open:100,I:10,R:3,net:3}}}));
+ assert.deepEqual(windowTotals(rows,5),{ntf:20,reserves:-15,debt:35});
+ assert.equal(windowTotals(rows,60),null);rows[19].periods.today.ok=false;assert.equal(windowTotals(rows,5),null);
+});
+test('partial first fiscal year cannot masquerade as a full prior-year comparator',()=>{
+ const row=(d,fy)=>({d,fy,periods:{fytd:{ok:true,D:20,W:30}}});
+ assert.equal(comparableFiscal({rows:[row('2025-11-01',2026),row('2026-10-01',2027)]},2027,'2026-10-01'),null);
+ const c=comparableFiscal({rows:[row('2025-10-01',2026),row('2026-10-01',2027)]},2027,'2026-10-01');assert.equal(c.sessions,1);
+});
