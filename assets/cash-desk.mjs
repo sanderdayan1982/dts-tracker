@@ -20,7 +20,7 @@ export function comparableFiscal(book,year,cutoff){
 export function cashDeskHTML(book,selection,mode,lang){
  const t=text[lang]??text.es,n=(v,d=2)=>ok(v)?new Intl.NumberFormat(lang==='en'?'en-US':'es-ES',{maximumFractionDigits:d}).format(v):'—',b=v=>ok(v)?n(v/1000):'—';
  const r=selection.last,p=r.periods[mode],all=book.rows.filter(x=>x.d<=r.d),comparison=comparableFiscal(book,selection.year,r.d);
- const svg=(body,label,height=200)=>`<svg class="desk-svg" viewBox="0 0 520 ${height}" role="img" aria-label="${label}">${body}</svg>`;
+ const svg=(body,label=t.waterfall,height=200)=>`<svg class="desk-svg" viewBox="0 0 520 ${height}" role="img" aria-label="${label}">${body}</svg>`;
  const txt=(x,y,label,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}">${label}</text>`;
  let waterfall=`<p>${t.invalid}</p>`;
  if([p.open,p.D,p.W,r.tga].every(ok)){
