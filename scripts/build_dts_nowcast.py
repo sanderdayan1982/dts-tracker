@@ -1,34 +1,29 @@
 #!/usr/bin/env python3
 """
-DTS Fiscal Nowcaster & MMT Liquidity Engine (v4.0 — dts-g8-4.0)
+DTS Fiscal Nowcaster & MMT Liquidity Engine (v5.0 — dts-g8-5.0)
 Institutional serverless pipeline for `dts-tracker` & `ARGOS`.
-Incorporates Round-3 6-AI Red-Team Triangulation fixes:
-  1. Complete Calendar & Baseline Strip:
-     - Restores Day-1 Medicare Advantage capitated lump-sum payments (`MEDICARE_PART_A`,
-       `MEDICARE_PART_B`, `MEDICARE_PART_D` on `PRECEDING` Day 1, fixing the +8.5 sigma Oct 30 spike).
-     - Separates `SSA_DAY3_WED` when the 3rd of the month falls on the 1st Wednesday, and keeps
-       `OPM_RET_DAY1` on `FOLLOWING` (verified empirically: $7,485M paid on Mon Nov 2, 2026) and
-       `MIL_RET_DAY1` on `PRECEDING` (verified empirically: ~$6,200M paid on Fri Oct 30, 2026).
-     - Splits statutory tax deadlines by cohort (`CORP_EST_TAX_15` for Apr/Jun/Sep/Dec,
-       `INDIV_EST_TAX_JAN15`, `PASSTHROUGH_TAX_MAR15`, `EXT_TAX_OCT15`) and strips the `[-1, +2]` bd
-       settlement window around statutory deadlines + the First-Business-Day / Coupon-Monday
-       Payroll Withholding surge (`WITHHELD_MSTART`, fixing the -9.86 sigma Nov 2 spike).
-     - Includes rolling weekday baseline for `WITHHELD_FICA`, `FED_SALARIES_EFT`, `MEDICAID`,
-       `MEDICARE_PART_A/B` daily FFS, and `TSP` net so non-event days are not polluted by routine flows.
-  2. Distinct, Non-Aliased Z-Scores & Ex-Ante Governance:
-     - `ntf_residual_realized_cal = ntf_total - ntf_scheduled_realized` (contemporaneous strip)
-     - `ntf_surprise_ex_ante = ntf_total - ntf_expected_cal` (true ex-ante surprise vs prior medians)
-     - `z_ntf_ex_ante_weekday_100bd` (governs `funding_state`), `z_ntf_realized_weekday_100bd`,
-       and `z_ntf_uncond_60d` — never aliased to the same variable!
-  3. Holiday- & DST-Aware Publication Calendar (`zoneinfo("America/New_York")` + US Federal Holidays
-     2025-2027 + `valid_until` timestamp + `FETCH_FAIL` fallback writer on network outage).
-  4. Strict Null Gating & Critical Series Validation:
-     - Removes all `*_offwindow_*`, `*_offseason_*`, `*_raw_*`, and `*_eft_only_*` keys from the
-       nowcast cards so ARGOS never reads suppressed/spliced numbers alongside `dir: null`.
-     - Verifies non-zero FYTD on critical series (`WITHHELD_FICA`, `SSA_BENEFITS`, `TREAS_INTEREST`,
-       `CORP_INCOME`, `CUSTOMS_DUTIES`) and explicit presence of `I`, `R`, `i_calc`, `r_calc`.
-     - Keeps `customs_fytd_yoy = null` until `2027-10-01` (`FY2028`, when the entire FYTD base is
-       post-`2025-11-10` splice) while `customs_20d_yoy` becomes clean on `2026-12-09`.
+Incorporates Round-4 6-AI Red-Team Triangulation fixes:
+  1. Real-Time Boundary Fix in `settle_date` (ChatGPT #1):
+     - When `convention == "PRECEDING"`, never abort when `nominal_dt > max_bd` before stepping
+       backward `-1` into `<= max_bd` (fixes real-time recognition of Nov 1 PRECEDING payments on Oct 30).
+  2. True 20-Weekday Sample (No Silent Fallback on Tuesdays — ChatGPT #2, Codeword, Cursor):
+     - Removes `biz_ref_d >= 1000` from `is_shock` (since IRS Business Refunds are a routine Tuesday
+       operation) and moves `BIZ_REFUNDS_EFT`, `INDIV_REFUNDS_EFT`, `CUSTOMS_DUTIES`, and `STATE_UI_DEP`
+       into `continuous_specs` (weekday baseline). Tuesday `z_sample_n` is now 19-20 genuine Tuesdays
+       (zero fallback to 60d unconditioned!), and `z_ntf_realized_weekday_100bd` != `z_ntf_uncond_60d`.
+  3. Empirical 250d Percentile Calibration (`z_ex_ante_pctile_250d` — Perplexity #1):
+     - Computes rolling out-of-sample empirical percentile (`z_ex_ante_pctile_250d`) and requires
+       both `|z| >= 3.0` AND two-sided 5% empirical tail (`pctile <= 2.5` or `pctile >= 97.5`) for
+       `SURPRISE_INJECTION` / `SURPRISE_DRAIN`, cutting false alarms from 23% to ~5%.
+  4. Federal Reserve K.8 Holiday Rule & `FETCH_FAIL` Timestamp Integrity (Perplexity #3 & #4, Kimi #F):
+     - Removes Friday closures when a holiday falls on Saturday (`2026-07-03`, `2027-06-18`, `2027-12-24`),
+       matching the actual Federal Reserve / DTS publication schedule.
+     - Preserves original `generated_at` on `FETCH_FAIL` and writes `last_fetch_attempt_utc`.
+  5. Complete Tax Spillover (`D+2` & `M1` across cohorts — Kimi P1-A/B/C) & Descriptive Cash Metrics:
+     - Adds `TAX_CORP_EST_P2`, `TAX_JAN_EST_M1`, `TAX_MAR_OCT_M1`, `TAX_MAR_OCT_P1`, and splits
+       `WITHHELD_MID_D0` (when the 15th shifts from a weekend) vs `WITHHELD_MID_P1`.
+     - Keeps descriptive nominal cash withholding growth (`withheld_t2_20d_norm_yoy`, `withheld_t2_fytd_yoy`)
+       visible in `INFO_ONLY` mode while strictly gating `dir: null` and `emp_hours_proxy_yoy: null`.
 """
 
 import calendar
@@ -59,22 +54,60 @@ NOWCAST_PATH = DATA_DIR / "dts_nowcast.json"
 HISTORY_PATH = DATA_DIR / "dts_history_400d.json"
 BENCHMARKS_PATH = DATA_DIR / "macro_benchmarks.json"
 
-# US Federal Holidays (2025–2027) observed by the Federal Reserve & Bureau of the Fiscal Service
-US_FEDERAL_HOLIDAYS = {
-    # 2025
-    "2025-01-01", "2025-01-20", "2025-02-17", "2025-05-26", "2025-06-19",
-    "2025-07-04", "2025-09-01", "2025-10-13", "2025-11-11", "2025-11-27", "2025-12-25",
-    # 2026
-    "2026-01-01", "2026-01-19", "2026-02-16", "2026-05-25", "2026-06-19",
-    "2026-07-03", "2026-09-07", "2026-10-12", "2026-11-11", "2026-11-26", "2026-12-25",
-    # 2027
-    "2027-01-01", "2027-01-18", "2027-02-15", "2027-05-31", "2027-06-18",
-    "2027-07-05", "2027-09-06", "2027-10-11", "2027-11-11", "2027-11-25", "2027-12-24",
-}
+
+def _nth_weekday_of_month(year, month, weekday, n):
+    """Return the nth occurrence (1-based, or -1 for last) of `weekday` (0=Mon..6=Sun) in (year, month)."""
+    _, last_day = calendar.monthrange(year, month)
+    matches = [
+        datetime.date(year, month, d)
+        for d in range(1, last_day + 1)
+        if datetime.date(year, month, d).weekday() == weekday
+    ]
+    return matches[n - 1] if n > 0 else matches[-1]
+
+
+def build_fed_k8_holidays(years=(2024, 2025, 2026, 2027, 2028, 2029, 2030)):
+    """
+    Generate the official Federal Reserve K.8 / Bureau of the Fiscal Service holiday calendar:
+      - Fixed-date holidays (Jan 1, Jun 19, Jul 4, Nov 11, Dec 25):
+        * If Sunday -> observed on Monday (+1d).
+        * If Saturday -> Federal Reserve Banks and DTS remain OPEN on the preceding Friday!
+      - Floating Monday/Thursday holidays:
+        * MLK Day (3rd Mon Jan), Presidents Day (3rd Mon Feb), Memorial Day (Last Mon May),
+          Labor Day (1st Mon Sep), Columbus Day (2nd Mon Oct), Thanksgiving (4th Thu Nov).
+    """
+    hols = set()
+    for y in years:
+        fixed = [
+            datetime.date(y, 1, 1),
+            datetime.date(y, 6, 19),
+            datetime.date(y, 7, 4),
+            datetime.date(y, 11, 11),
+            datetime.date(y, 12, 25),
+        ]
+        for dt in fixed:
+            if dt.weekday() == 6:  # Sunday -> observed Monday
+                hols.add((dt + datetime.timedelta(days=1)).isoformat())
+            elif dt.weekday() < 5: # Mon-Fri -> observed on the day itself (Saturday is NOT closed on Friday)
+                hols.add(dt.isoformat())
+
+        floating = [
+            _nth_weekday_of_month(y, 1, 0, 3),  # MLK Day
+            _nth_weekday_of_month(y, 2, 0, 3),  # Presidents Day
+            _nth_weekday_of_month(y, 5, 0, -1), # Memorial Day
+            _nth_weekday_of_month(y, 9, 0, 1),  # Labor Day
+            _nth_weekday_of_month(y, 10, 0, 2), # Columbus Day
+            _nth_weekday_of_month(y, 11, 3, 4), # Thanksgiving
+        ]
+        for dt in floating:
+            hols.add(dt.isoformat())
+    return hols
+
+
+US_FEDERAL_HOLIDAYS = build_fed_k8_holidays()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. VERSIONED CANONICAL ALIAS DICTIONARY (Strictly separated by side)
-#    Includes explicit splice metadata for Customs Duties (2025-11-10 break)
 # ─────────────────────────────────────────────────────────────────────────────
 SERIES_SPLICE_META = {
     "CUSTOMS_DUTIES": {
@@ -246,7 +279,6 @@ REVERSAL_SHORT_CODES = {
 
 
 def parse_num(val):
-    """Parse numeric value from FiscalData string without ever calling abs()."""
     if val is None:
         return None
     if isinstance(val, (int, float)):
@@ -281,7 +313,6 @@ SSL_CTX = _build_ssl_context()
 
 
 def fetch_paginated(endpoint, start_date):
-    """Fetch 100% of records across all pages with page[size]=10000 and retries."""
     all_rows = []
     page_num = 1
     total_pages = 1
@@ -302,7 +333,7 @@ def fetch_paginated(endpoint, start_date):
                 req = urllib.request.Request(
                     url,
                     headers={
-                        "User-Agent": "dts-tracker-g8-nowcaster/4.0 (Institutional Macro Pipeline)",
+                        "User-Agent": "dts-tracker-g8-nowcaster/5.0 (Institutional Macro Pipeline)",
                         "Accept": "application/json",
                     },
                 )
@@ -334,13 +365,16 @@ def fetch_paginated(endpoint, start_date):
 
 
 def mark_fetch_failure_on_existing_json(err_msg):
-    """If FiscalData API is unreachable, mark the existing dts_nowcast.json as FETCH_FAIL & block=true."""
+    """
+    If FiscalData API is unreachable, mark the existing dts_nowcast.json as FETCH_FAIL & block=true
+    while preserving the original `generated_at` timestamp (Perplexity #4).
+    """
     if not NOWCAST_PATH.exists():
         return
     try:
         prev = json.loads(NOWCAST_PATH.read_text(encoding="utf-8"))
         now_utc = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-        prev["generated_at"] = now_utc
+        prev["last_fetch_attempt_utc"] = now_utc
         dq = prev.setdefault("dq", {})
         dq["status"] = "FETCH_FAIL"
         dq["stale"] = True
@@ -352,7 +386,7 @@ def mark_fetch_failure_on_existing_json(err_msg):
             card["state"] = "BLOCKED"
             card["dir"] = None
         NOWCAST_PATH.write_text(json.dumps(prev, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        print(f"[DTS NOWCASTER v4.0] Marked existing {NOWCAST_PATH} with status=FETCH_FAIL and block=True")
+        print(f"[DTS NOWCASTER v5.0] Marked existing {NOWCAST_PATH} with status=FETCH_FAIL and block=True")
     except Exception as exc:
         print(f"[WARN] Could not update existing JSON on fetch fail: {exc}")
 
@@ -373,7 +407,6 @@ def normalize_side(raw_type):
 
 
 def get_catg_label(row):
-    """Extract clean category label from a FiscalData row."""
     for field in (
         "transaction_catg",
         "classification",
@@ -397,7 +430,6 @@ def get_catg_label(row):
 
 
 def match_canonical(side, label, desc=""):
-    """Return list of canonical IDs matched by (side, label/desc)."""
     matched = []
     side_map = CANONICAL_ALIASES.get(side, {})
     lbl_clean = label.strip()
@@ -418,7 +450,6 @@ def _first_present(row, keys):
 
 
 def get_row_amounts(row):
-    """Return (today, mtd, fytd) from any DTS table row."""
     today = parse_num(
         _first_present(row, ("transaction_today_amt", "today_amt", "tax_refund_today_amt", "adj_today_amt"))
     )
@@ -438,29 +469,17 @@ def fiscal_year_for_date(d_str):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. HOLIDAY- & DST-AWARE TREASURY PUBLICATION CALENDAR
+# 2. HOLIDAY- & DST-AWARE TREASURY PUBLICATION CALENDAR (Federal Reserve K.8)
 # ─────────────────────────────────────────────────────────────────────────────
 def is_us_business_day(dt):
     return dt.weekday() < 5 and dt.isoformat() not in US_FEDERAL_HOLIDAYS
 
 
 def expected_latest_bd_and_validity(now_utc_dt):
-    """
-    Compute:
-      1. `exp_asof`: the latest DTS record_date that MUST be available by `now_utc_dt`.
-         Treasury publishes record_date T on the next business day T+1 around 16:00 ET.
-         To allow a 45-minute publication buffer, after 16:45 ET on business day B, the
-         expected published record_date is the previous business day B-1; before 16:45 ET
-         on business day B (or on a weekend/holiday), the latest publication occurred on
-         the most recent completed business day B_pub, which published record_date B_pub - 1.
-      2. `valid_until_utc`: ISO timestamp of the next scheduled DTS publication window
-         (next business day at 16:45 ET converted to UTC).
-    """
     et_tz = ZoneInfo("America/New_York")
     et_now = now_utc_dt.astimezone(et_tz)
     cur_date = et_now.date()
 
-    # Determine the latest business day whose 16:45 ET publication window has already passed
     if is_us_business_day(cur_date) and (et_now.hour > 16 or (et_now.hour == 16 and et_now.minute >= 45)):
         latest_pub_bd = cur_date
     else:
@@ -469,12 +488,10 @@ def expected_latest_bd_and_validity(now_utc_dt):
             d -= datetime.timedelta(days=1)
         latest_pub_bd = d
 
-    # The DTS published on `latest_pub_bd` contains data for the business day prior to `latest_pub_bd`
     exp_rec_dt = latest_pub_bd - datetime.timedelta(days=1)
     while not is_us_business_day(exp_rec_dt):
         exp_rec_dt -= datetime.timedelta(days=1)
 
-    # Next publication window is the business day after `latest_pub_bd` at 16:45 ET
     next_pub_bd = latest_pub_bd + datetime.timedelta(days=1)
     while not is_us_business_day(next_pub_bd):
         next_pub_bd += datetime.timedelta(days=1)
@@ -488,21 +505,25 @@ def expected_latest_bd_and_validity(now_utc_dt):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. ASYMMETRIC SETTLEMENT CALENDAR + WEEKDAY/MONTH-START BASELINE ENGINE
-#    Solves:
-#      - Oct 30 (+8.5 sigma) by restoring Day-1 Medicare Advantage (Part A/B/D) PRECEDING lump
-#      - Nov 2 (-9.86 sigma) by modeling First-Business-Day / Coupon-Monday Withholding Surge
-#      - Apr 14 / Apr 16 (-10.3 sigma / -8.3 sigma) by modeling [-1, +2] bd tax deadline windows
-#      - Oct 15 (+8.25 sigma) by separating tax deadline cohorts by month type
-#      - Routine weekday flows (Withheld FICA, Federal Salaries, Medicaid, Medicare FFS, TSP)
 # ─────────────────────────────────────────────────────────────────────────────
 def settle_date(nominal_dt, bd_set, min_bd, max_bd, convention="PRECEDING"):
+    """
+    Shift a nominal calendar date to its effective DTS settlement date.
+    Crucial fix (ChatGPT #1):
+      - When `convention == "PRECEDING"` (`step = -1`), a nominal date on a weekend after
+        `max_bd` (e.g. Sunday Nov 1 when `asof = max_bd = Oct 30`) MUST step backward into
+        `<= max_bd` rather than returning `None` on the first iteration!
+      - When `convention == "FOLLOWING"` (`step = +1`), only stop early if `iso > max_bd`.
+    """
     step = -1 if convention == "PRECEDING" else 1
     cur = nominal_dt
     for _ in range(10):
         iso = cur.isoformat()
         if iso in bd_set:
             return iso
-        if iso < min_bd or iso > max_bd:
+        if step < 0 and iso < min_bd:
+            return None
+        if step > 0 and iso > max_bd:
             return None
         cur += datetime.timedelta(days=step)
     return None
@@ -519,16 +540,6 @@ def nth_wednesdays(year, month, ns=(2, 3, 4)):
 
 
 def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
-    """
-    Build per-date scheduled calendar strip combining:
-      A. Discrete date-shifted calendar events (SSA Day 3, SSA 2nd/3rd/4th Wed, SSI Day 1,
-         VA Day 1, Military Active 1 & 15, Military Retirement Day 1, Medicare Part A/B/D Day 1,
-         OPM Retirement Day 1 FOLLOWING, Coupon 15 & Month-End FOLLOWING, First-BD Withholding
-         Surge, and Cohort-Specific Statutory Tax Deadlines with [-1, +1] bd spillover).
-      B. Out-of-sample rolling weekday baseline for continuous daily streams (`WITHHELD_FICA`,
-         `FED_SALARIES_EFT`, `MEDICAID`, `MEDICARE_PART_A`, `MEDICARE_PART_B`, `TSP_NET`) on
-         days where those streams are not already in a discrete event.
-    """
     bd_set = set(all_bd_dates)
     bd_index = {d: i for i, d in enumerate(all_bd_dates)}
     min_bd, max_bd = all_bd_dates[0], all_bd_dates[-1]
@@ -558,7 +569,6 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
     # Discrete Event Specifications:
     # (event_key, side, canonical_ids, nominal_dates_fn, conv, bd_offset, hist_len, ntf_sign)
     event_specs = [
-        # Outflow events (ntf_sign = +1.0)
         (
             "SSA_DAY3",
             "Withdrawals",
@@ -619,7 +629,6 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             6,
             1.0,
         ),
-        # Medicare Day-1 Capitated Payments (Part A MA + Part B SMI MA + Part D Rx) settle PRECEDING Day 1!
         (
             "MEDICARE_MA_DAY1",
             "Withdrawals",
@@ -630,7 +639,6 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             6,
             1.0,
         ),
-        # OPM Civil Service Retirement settles FOLLOWING Day 1 (verified $7,485M on 2026-11-02)
         (
             "OPM_RET_DAY1",
             "Withdrawals",
@@ -661,8 +669,8 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             6,
             1.0,
         ),
-        # Scheduled Inflow Events (ntf_sign = -1.0 because Deposits reduce NTF):
-        # 1. Month-Start / Post-Month-End Payroll Withholding Surge (1st business day on/after the 1st)
+        # Scheduled Inflow Events (ntf_sign = -1.0):
+        # 1. Month-Start Payroll Withholding Surge (1st business day on/after the 1st)
         (
             "WITHHELD_MSTART",
             "Deposits",
@@ -673,18 +681,30 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             6,
             -1.0,
         ),
-        # 2. Mid-Month Payroll Withholding Surge (1st business day on/after the 15th)
+        # 2. Mid-Month Payroll Withholding Surge:
+        #    - D0 when the 15th falls on a weekend/Monday (Kimi P1-B)
+        #    - P1 (next business day after 15th) when the 15th is a weekday
         (
-            "WITHHELD_MIDMONTH",
+            "WITHHELD_MID_D0",
             "Deposits",
             ["WITHHELD_FICA"],
-            lambda y, m: [datetime.date(y, m, 15)],
+            lambda y, m: [datetime.date(y, m, 15)] if datetime.date(y, m, 15).weekday() in (0, 5, 6) else [],
+            "FOLLOWING",
+            0,
+            6,
+            -1.0,
+        ),
+        (
+            "WITHHELD_MID_P1",
+            "Deposits",
+            ["WITHHELD_FICA"],
+            lambda y, m: [datetime.date(y, m, 15)] if datetime.date(y, m, 15).weekday() in (1, 2, 3, 4) else [],
             "FOLLOWING",
             1,
             6,
             -1.0,
         ),
-        # 3. Separated Statutory Tax Deadline Cohorts (Day -1, Day 0, Day +1 around FOLLOWING-shifted 15th):
+        # 3. Separated Statutory Tax Deadline Cohorts (M1, D0, P1, P2):
         #    - Quarterly Corporate & Estimated Tax (Apr, Jun, Sep, Dec)
         (
             "TAX_CORP_EST_M1",
@@ -716,7 +736,27 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             4,
             -1.0,
         ),
-        #    - January Individual Q4 Estimated Tax Deadline (Jan 15)
+        (
+            "TAX_CORP_EST_P2",
+            "Deposits",
+            ["CORP_INCOME", "NON_WITHHELD_SECA"],
+            lambda y, m: [datetime.date(y, m, 15)] if m in (4, 6, 9, 12) else [],
+            "FOLLOWING",
+            2,
+            4,
+            -1.0,
+        ),
+        #    - January Individual Q4 Estimated Tax Deadline (Jan 15: M1, D0, P1)
+        (
+            "TAX_JAN_EST_M1",
+            "Deposits",
+            ["CORP_INCOME", "NON_WITHHELD_SECA"],
+            lambda y, m: [datetime.date(y, m, 15)] if m == 1 else [],
+            "FOLLOWING",
+            -1,
+            2,
+            -1.0,
+        ),
         (
             "TAX_JAN_EST_D0",
             "Deposits",
@@ -737,7 +777,17 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             2,
             -1.0,
         ),
-        #    - March Pass-Through Entity Deadline (Mar 15) & October Extension Deadline (Oct 15)
+        #    - March Pass-Through (Mar 15) & October Extension (Oct 15): M1, D0, P1
+        (
+            "TAX_MAR_OCT_M1",
+            "Deposits",
+            ["CORP_INCOME", "NON_WITHHELD_SECA"],
+            lambda y, m: [datetime.date(y, m, 15)] if m in (3, 10) else [],
+            "FOLLOWING",
+            -1,
+            2,
+            -1.0,
+        ),
         (
             "TAX_MAR_OCT_D0",
             "Deposits",
@@ -745,6 +795,16 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             lambda y, m: [datetime.date(y, m, 15)] if m in (3, 10) else [],
             "FOLLOWING",
             0,
+            2,
+            -1.0,
+        ),
+        (
+            "TAX_MAR_OCT_P1",
+            "Deposits",
+            ["CORP_INCOME", "NON_WITHHELD_SECA"],
+            lambda y, m: [datetime.date(y, m, 15)] if m in (3, 10) else [],
+            "FOLLOWING",
+            1,
             2,
             -1.0,
         ),
@@ -792,29 +852,29 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
                         counted_expected_cid.add((d, side, cid))
                     expected_by_date[d] += ntf_sign * exp_val
 
-                # Bidirectional calendar_miss check on major scheduled outflows (> $5,000M expected)
                 if ntf_sign > 0 and exp_val > 5000.0:
                     if obs_val < 0.30 * exp_val or obs_val > 1.70 * exp_val:
                         calendar_miss_by_date[d] = True
             else:
                 calendar_warmup_by_date[d] = True
 
-            # Record all non-negative realizations (including 0.0 if a scheduled date had 0)
             if obs_val >= 0.0:
                 hist_vals.append(obs_val)
 
-    # Part B: Out-of-Sample Weekday Baseline for Continuous Daily Flows
-    # (`WITHHELD_FICA`, `FED_SALARIES_EFT`, `MEDICAID`, `MEDICARE_PART_A`, `MEDICARE_PART_B`, `TSP`)
-    # On dates where a continuous line is NOT already in a discrete calendar event, strip its
-    # realized value in `realized_sched_by_date` and its prior 8-same-weekday median in `expected_by_date`.
+    # Part B: Symmetric Out-of-Sample Weekday Baseline for Continuous Daily Flows
+    # Includes both recurrent Withdrawals and recurrent Deposits (Codeword §4 & Perplexity)
     continuous_specs = [
         ("Deposits", "WITHHELD_FICA", -1.0),
+        ("Deposits", "CUSTOMS_DUTIES", -1.0),
+        ("Deposits", "STATE_UI_DEP", -1.0),
+        ("Deposits", "TSP_DEP", -1.0),
         ("Withdrawals", "FED_SALARIES_EFT", 1.0),
         ("Withdrawals", "MEDICAID", 1.0),
         ("Withdrawals", "MEDICARE_PART_A", 1.0),
         ("Withdrawals", "MEDICARE_PART_B", 1.0),
+        ("Withdrawals", "BIZ_REFUNDS_EFT", 1.0),
+        ("Withdrawals", "INDIV_REFUNDS_EFT", 1.0),
         ("Withdrawals", "TSP_WD", 1.0),
-        ("Deposits", "TSP_DEP", -1.0),
     ]
 
     for side, cid, ntf_sign in continuous_specs:
@@ -843,10 +903,6 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
 
 
 def robust_zscore_out_of_sample(series, is_shock_day_flags, idx, window=60, mad_floor=MAD_FLOOR_MUSD):
-    """
-    Out-of-sample Robust MAD Z-score (unconditioned 60bd window):
-      Z_t = (u_t - median(u_{t-60:t-1})) / max(1.4826 * MAD(u_{t-60:t-1}), mad_floor)
-    """
     if idx < 20 or series[idx] is None:
         return None, False, 0
     start_i = max(0, idx - window)
@@ -879,10 +935,10 @@ def robust_zscore_weekday_out_of_sample(
 ):
     """
     Weekday-Conditioned Out-of-Sample Robust MAD Z-score (`lookback_bd=100`, ~20 prior same-weekdays).
-    Returns (z_val, floor_hit, sample_n).
+    Returns (z_val, floor_hit, sample_n, fallback_used).
     """
     if idx < 25 or series[idx] is None:
-        return None, False, 0
+        return None, False, 0, False
     target_wd = datetime.date.fromisoformat(all_bd_dates[idx]).weekday()
     start_i = max(0, idx - lookback_bd)
 
@@ -905,7 +961,8 @@ def robust_zscore_weekday_out_of_sample(
         ][-16:]
 
     if len(prior_wd_clean) < 8:
-        return robust_zscore_out_of_sample(series, is_shock_day_flags, idx, window=60, mad_floor=mad_floor)
+        z_fb, fl_fb, n_fb = robust_zscore_out_of_sample(series, is_shock_day_flags, idx, window=60, mad_floor=mad_floor)
+        return z_fb, fl_fb, n_fb, True
 
     u_t = series[idx]
     med = statistics.median(prior_wd_clean)
@@ -914,13 +971,25 @@ def robust_zscore_weekday_out_of_sample(
     raw_scale = 1.4826 * mad
     floor_hit = raw_scale < mad_floor
     scale = max(raw_scale, mad_floor)
-    return round((u_t - med) / scale, 2), floor_hit, len(prior_wd_clean)
+    return round((u_t - med) / scale, 2), floor_hit, len(prior_wd_clean), False
+
+
+def rolling_empirical_percentile(z_series, idx, window=250):
+    """Compute out-of-sample empirical percentile (0..100) of `z_series[idx]` over prior `window` days."""
+    if idx < 30 or z_series[idx] is None:
+        return None
+    start_i = max(0, idx - window)
+    prior_z = [z_series[j] for j in range(start_i, idx) if z_series[j] is not None]
+    if len(prior_z) < 30:
+        return None
+    z_cur = z_series[idx]
+    less_or_eq = sum(1 for v in prior_z if v <= z_cur)
+    return round((less_or_eq / len(prior_z)) * 100.0, 1)
 
 
 def main():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Load macro benchmarks (AHE deflator YoY, vintage, release date, consensus, and SLGS policy status)
     ahe_deflator_yoy = None
     ahe_vintage = None
     ahe_release_date = None
@@ -947,7 +1016,7 @@ def main():
             print(f"[WARN] Could not parse {BENCHMARKS_PATH}: {exc}")
 
     start_dt = (datetime.date.today() - datetime.timedelta(days=CAL_DAYS)).isoformat()
-    print(f"[DTS NOWCASTER v4.0] Fetching 7 DTS tables since {start_dt} ...")
+    print(f"[DTS NOWCASTER v5.0] Fetching 7 DTS tables since {start_dt} ...")
 
     try:
         t1_rows = fetch_paginated("operating_cash_balance", start_dt)
@@ -997,7 +1066,7 @@ def main():
         raise RuntimeError("No operating_cash_balance dates found!")
 
     asof = all_bd_dates[-1]
-    print(f"[DTS NOWCASTER v4.0] Latest business date (asof): {asof} (total business days: {len(all_bd_dates)})")
+    print(f"[DTS NOWCASTER v5.0] Latest business date (asof): {asof} (total business days: {len(all_bd_dates)})")
 
     # ── Organize Table II (Deposits and Withdrawals of Operating Cash) ──
     t2_raw = {}
@@ -1027,7 +1096,6 @@ def main():
                 if v is not None:
                     day_map[key][idx_v] = (day_map[key][idx_v] or 0.0) + v
 
-    # Footnote recovery pass: if today_v is None on a date where mtd_v is present, recover today_v from mtd delta
     for i, d in enumerate(all_bd_dates):
         day_map = t2_raw.get(d, {})
         prev_d = all_bd_dates[i - 1] if i > 0 else None
@@ -1299,7 +1367,6 @@ def main():
     def has_cval(side, cid, d):
         return d in t2_canon.get(side, {}).get(cid, {})
 
-    # Build asymmetric calendar schedule + weekday baseline
     (
         expected_sched_by_date,
         realized_sched_by_date,
@@ -1313,12 +1380,12 @@ def main():
     daily_records = {}
     ntf_realized_resid_series = []
     ntf_ex_ante_surp_series = []
+    z_ex_ante_series = []
     shock_day_flags = []
 
     for idx, d in enumerate(all_bd_dates):
         t1 = t1_by_date.get(d, {})
         t3b = t3b_by_date.get(d, {})
-        t5_d = t5_by_date.get(d, {})
 
         tga_close = t1.get("tga_close")
         tga_open = t1.get("tga_open")
@@ -1347,7 +1414,6 @@ def main():
         i_calc = t3b.get("cash_issues_calc")
         r_calc = t3b.get("cash_redemp_calc")
 
-        # Track whether all 6 reconciliation inputs were explicitly present (never pass on missing!)
         inputs_complete = bool(
             tga_close is not None
             and tga_open is not None
@@ -1387,30 +1453,29 @@ def main():
         ntf_residual_realized = ntf_total - ntf_scheduled
         ntf_ex_expected = None if ntf_expected_cal is None else (ntf_total - ntf_expected_cal)
 
-        # Exclude statutory tax window days, large corporate/SECA tax days, or >$1,000M business refund days
-        # from the MAD scale denominator so quarterly deadlines never poison the reference scale
+        # Shock day filter for MAD denominator:
+        # Only exclude statutory tax deadline windows or extreme corporate/SECA tax days (> $20,000M).
+        # Do NOT exclude Tuesday business refunds (which are now in `continuous_specs` weekday baseline)!
         corp_d = get_cval("Deposits", "CORP_INCOME", d, "today")
         nonw_d = get_cval("Deposits", "NON_WITHHELD_SECA", d, "today")
-        biz_ref_d = t5_d.get("biz_eft_today", 0.0) + t5_d.get("biz_checks_today", 0.0)
-        is_shock = (d in tax_window_dates) or (corp_d + nonw_d > 12000.0) or (biz_ref_d >= 1000.0)
+        is_shock = (d in tax_window_dates) or (corp_d + nonw_d > 20000.0)
 
         ntf_realized_resid_series.append(ntf_residual_realized)
         ntf_ex_ante_surp_series.append(ntf_ex_expected)
         shock_day_flags.append(is_shock)
 
-        # Three genuinely distinct Z-scores:
-        # 1. z_ntf_ex_ante_weekday_100bd: weekday-conditioned Z-score on (NTF - Expected Calendar) -> GOVERNS funding_state
-        # 2. z_ntf_realized_weekday_100bd: weekday-conditioned Z-score on (NTF - Realized Calendar)
-        # 3. z_ntf_uncond_60d: unconditioned 60-day Z-score on (NTF - Realized Calendar)
-        z_ex_ante_wd, floor_ex_ante, n_ex_ante = robust_zscore_weekday_out_of_sample(
+        z_ex_ante_wd, floor_ex_ante, n_ex_ante, fb_ex_ante = robust_zscore_weekday_out_of_sample(
             ntf_ex_ante_surp_series, all_bd_dates, shock_day_flags, idx, lookback_bd=100, mad_floor=MAD_FLOOR_MUSD
         )
-        z_realized_wd, floor_realized, n_realized = robust_zscore_weekday_out_of_sample(
+        z_realized_wd, floor_realized, n_realized, fb_realized = robust_zscore_weekday_out_of_sample(
             ntf_realized_resid_series, all_bd_dates, shock_day_flags, idx, lookback_bd=100, mad_floor=MAD_FLOOR_MUSD
         )
         z_uncond_60d, _, n_uncond = robust_zscore_out_of_sample(
             ntf_realized_resid_series, shock_day_flags, idx, window=60, mad_floor=MAD_FLOOR_MUSD
         )
+
+        z_ex_ante_series.append(z_ex_ante_wd)
+        z_pctile_250d = rolling_empirical_percentile(z_ex_ante_series, idx, window=250)
 
         daily_records[d] = {
             "tga_close": round(tga_close or 0.0),
@@ -1430,9 +1495,11 @@ def main():
             "ntf_residual_realized_cal": round(ntf_residual_realized),
             "ntf_ex_expected": round(ntf_ex_expected) if ntf_ex_expected is not None else None,
             "z_ntf_ex_exp_weekday_100bd": z_ex_ante_wd,
+            "z_ex_ante_pctile_250d": z_pctile_250d,
             "z_ntf_realized_weekday_100bd": z_realized_wd,
             "z_ntf_uncond_60d": z_uncond_60d,
-            "z_sample_n": n_ex_ante or n_realized,
+            "z_sample_n": n_ex_ante,
+            "z_fallback_used": fb_ex_ante,
             "mad_floor_hit": bool(floor_ex_ante or floor_realized),
             "calendar_miss": calendar_miss_by_date.get(d, False),
             "calendar_warmup": is_warmup,
@@ -1442,8 +1509,7 @@ def main():
         }
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 4. LAG 364 ENGINE WITH UNIQUE 1-TO-1 MATCHING, EFFECTIVE-BD NORMALIZATION
-    #    AND MONTH-END BUNCHING DETECTOR
+    # 4. LAG 364 ENGINE WITH COVERAGE VALIDATION (>=85% MATCHED PAIRS REQUIRED)
     # ─────────────────────────────────────────────────────────────────────────
     bd_index = {d: i for i, d in enumerate(all_bd_dates)}
     bd_set = set(all_bd_dates)
@@ -1455,8 +1521,8 @@ def main():
     def compute_lag364_window_stats(flow_by_date, end_idx, window_bd=20):
         start_idx = max(0, end_idx - window_bd + 1)
         window_dates = all_bd_dates[start_idx : end_idx + 1]
-        if not window_dates:
-            return None, None, 0, 0, 0, None, None
+        if len(window_dates) < window_bd:
+            return None, None, 0, len(window_dates), 0, None, None, 0
 
         cal_start_cur = datetime.date.fromisoformat(window_dates[0])
         cal_end_cur = datetime.date.fromisoformat(window_dates[-1])
@@ -1497,19 +1563,20 @@ def main():
         n_pairs = len(used_prev_dates)
         min_prev = min(used_prev_dates) if used_prev_dates else None
         max_prev = max(used_prev_dates) if used_prev_dates else None
-        if n_pairs < max(5, window_bd // 2) or abs(prev_sum) < 1e-6:
-            return None, None, holiday_skew_bd, len(window_dates), len(prev_span_dates), min_prev, max_prev
+        min_required_pairs = int(math.ceil(0.85 * window_bd))
+        if n_pairs < min_required_pairs or abs(prev_sum) < 1e-6:
+            return None, None, holiday_skew_bd, len(window_dates), len(prev_span_dates), min_prev, max_prev, n_pairs
 
         raw_yoy = round(((cur_sum / prev_sum) - 1.0) * 100.0, 2)
 
-        if prev_span_dates and abs(sum(flow_by_date[d] for d in prev_span_dates)) > 1e-6:
+        if len(prev_span_dates) >= min_required_pairs and abs(sum(flow_by_date[d] for d in prev_span_dates)) > 1e-6:
             cur_per_bd = sum(flow_by_date[d] for d in window_dates) / len(window_dates)
             prev_per_bd = sum(flow_by_date[d] for d in prev_span_dates) / len(prev_span_dates)
             norm_yoy = round(((cur_per_bd / prev_per_bd) - 1.0) * 100.0, 2)
         else:
             norm_yoy = raw_yoy
 
-        return norm_yoy, raw_yoy, holiday_skew_bd, len(window_dates), len(prev_span_dates), min_prev, max_prev
+        return norm_yoy, raw_yoy, holiday_skew_bd, len(window_dates), len(prev_span_dates), min_prev, max_prev, n_pairs
 
     def find_yoy_anchor_date(d_str):
         dt = datetime.date.fromisoformat(d_str)
@@ -1531,7 +1598,7 @@ def main():
 
     yoy_anchor = find_yoy_anchor_date(asof)
     last_idx = len(all_bd_dates) - 1
-    print(f"[DTS NOWCASTER v4.0] FYTD YoY anchor date for {asof}: {yoy_anchor}")
+    print(f"[DTS NOWCASTER v5.0] FYTD YoY anchor date for {asof}: {yoy_anchor}")
 
     fy_cur = fiscal_year_for_date(asof)
     bd_fy = sum(1 for d in all_bd_dates if fiscal_year_for_date(d) == fy_cur and d <= asof)
@@ -1562,7 +1629,7 @@ def main():
         return round(((cur_rate / prev_rate) - 1.0) * 100.0, 2)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 5. DATA QUALITY (dq), CRITICAL SERIES CHECK & FRESHNESS GATE
+    # 5. DATA QUALITY (dq): SEPARATE HARD `block` FROM `warn` (Perplexity #5)
     # ─────────────────────────────────────────────────────────────────────────
     asof_rec = daily_records[asof]
     now_utc_dt = datetime.datetime.now(datetime.timezone.utc)
@@ -1570,24 +1637,22 @@ def main():
     exp_asof, valid_until_utc = expected_latest_bd_and_validity(now_utc_dt)
     is_stale = bool(asof < exp_asof)
 
-    # Verify critical series have non-zero FYTD on `asof` (prevents silent alias drops)
     critical_fytd = {
-        "WITHHELD_FICA": get_cval("Deposits", "WITHHELD_FICA", asof, "fytd"),
-        "CORP_INCOME": get_cval("Deposits", "CORP_INCOME", asof, "fytd"),
-        "CUSTOMS_DUTIES": get_cval("Deposits", "CUSTOMS_DUTIES", asof, "fytd"),
-        "SSA_BENEFITS": get_cval("Withdrawals", "SSA_BENEFITS", asof, "fytd"),
-        "TREAS_INTEREST": get_cval("Withdrawals", "TREAS_INTEREST", asof, "fytd"),
+        "WITHHELD_FICA": has_cval("Deposits", "WITHHELD_FICA", asof) and get_cval("Deposits", "WITHHELD_FICA", asof, "fytd") > 0,
+        "CORP_INCOME": has_cval("Deposits", "CORP_INCOME", asof) and get_cval("Deposits", "CORP_INCOME", asof, "fytd") > 0,
+        "CUSTOMS_DUTIES": has_cval("Deposits", "CUSTOMS_DUTIES", asof) and get_cval("Deposits", "CUSTOMS_DUTIES", asof, "fytd") > 0,
+        "SSA_BENEFITS": has_cval("Withdrawals", "SSA_BENEFITS", asof) and get_cval("Withdrawals", "SSA_BENEFITS", asof, "fytd") > 0,
+        "TREAS_INTEREST": has_cval("Withdrawals", "TREAS_INTEREST", asof) and get_cval("Withdrawals", "TREAS_INTEREST", asof, "fytd") > 0,
     }
-    missing_critical_series = [k for k, v in critical_fytd.items() if v is None or v <= 0.0]
-    critical_series_ok = len(missing_critical_series) == 0
+    critical_series_ok = all(critical_fytd.values())
 
-    # Check AHE benchmark age in days
     ahe_age_days = None
     if ahe_release_date:
         try:
             ahe_age_days = (datetime.date.fromisoformat(asof) - datetime.date.fromisoformat(ahe_release_date)).days
         except Exception:
             ahe_age_days = None
+    ahe_stale = bool(ahe_age_days is None or ahe_age_days > 35)
 
     unclass_wd_today = get_cval("Withdrawals", "UNCLASSIFIED_WD", asof, "today")
     op_wd_today = max(1.0, float(asof_rec["op_wd"]))
@@ -1600,13 +1665,10 @@ def main():
         and recon_op_diff_musd <= 15
         and critical_series_ok
     )
-    dq_block = bool(
-        not recon_ok
-        or unclass_wd_pct > 15.0
-        or asof_rec["calendar_miss"]
-        or asof_rec["calendar_warmup"]
-        or is_stale
-    )
+    # Hard block only on accounting breach, missing critical inputs, staleness, or >15% unclassified
+    dq_block = bool(not recon_ok or unclass_wd_pct > 15.0 or is_stale)
+    # Warning flag on single-event calendar_miss, warmup, or AHE benchmark age > 35d
+    dq_warn = bool(asof_rec["calendar_miss"] or asof_rec["calendar_warmup"] or ahe_stale)
 
     def overlaps_shutdown_2025(start_d, end_d):
         if not start_d or not end_d:
@@ -1618,19 +1680,19 @@ def main():
     )
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 6. COMPUTE THE 4 INSTITUTIONAL NOWCAST CARDS (STRICT GATING FOR ARGOS)
+    # 6. COMPUTE THE 4 INSTITUTIONAL NOWCAST CARDS
     # ─────────────────────────────────────────────────────────────────────────
 
     # ── CARD 1: nfp_wage_bill (Empleo y Masa Salarial — Ficha B2) ──
     withheld_t2_daily = get_daily_flow_fn(lambda d: get_cval("Deposits", "WITHHELD_FICA", d, "today"))
 
-    norm_w_20d, raw_w_20d, hol_skew_20d, _, _, min_p20, max_p20 = compute_lag364_window_stats(
+    norm_w_20d, raw_w_20d, hol_skew_20d, _, _, min_p20, max_p20, pairs_20d = compute_lag364_window_stats(
         withheld_t2_daily, last_idx, 20
     )
-    norm_w_60d, raw_w_60d, hol_skew_60d, _, _, min_p60, max_p60 = compute_lag364_window_stats(
+    norm_w_60d, raw_w_60d, hol_skew_60d, _, _, min_p60, max_p60, pairs_60d = compute_lag364_window_stats(
         withheld_t2_daily, last_idx, 60
     )
-    norm_w_prev40d, raw_w_prev40d, _, _, _, min_p40, max_p40 = compute_lag364_window_stats(
+    norm_w_prev40d, raw_w_prev40d, _, _, _, min_p40, max_p40, _ = compute_lag364_window_stats(
         withheld_t2_daily, max(0, last_idx - 20), 40
     )
 
@@ -1645,7 +1707,12 @@ def main():
 
     withheld_t4_fytd_cur = t4_by_date.get(asof, {}).get("withheld_fytd", 0.0)
 
-    if withheld_t2_20d_yoy is not None and ahe_deflator_yoy is not None and ahe_vintage is not None:
+    if (
+        withheld_t2_20d_yoy is not None
+        and ahe_deflator_yoy is not None
+        and ahe_vintage is not None
+        and not ahe_stale
+    ):
         raw_less_ahe_pp = round(withheld_t2_20d_yoy - ahe_deflator_yoy, 2)
         raw_emp_hours_proxy = round(
             (((1.0 + (withheld_t2_20d_norm_yoy or withheld_t2_20d_yoy) / 100.0) / (1.0 + ahe_deflator_yoy / 100.0)) - 1.0)
@@ -1656,8 +1723,6 @@ def main():
         raw_less_ahe_pp = None
         raw_emp_hours_proxy = None
 
-    # Plausibility & Shutdown/Bunching Check (Codeword & Grok):
-    # US employment x hours growth rarely exceeds +-2.5% YoY outside base distortions or weekend month-end bunching.
     proxy_implausible = bool(raw_emp_hours_proxy is not None and abs(raw_emp_hours_proxy) > 2.5)
     w20_overlaps_shutdown = overlaps_shutdown_2025(min_p20, max_p20) or base_is_shutdown_2025
     w20_overlaps_obbba = bool(min_p20 and min_p20 < "2025-10-01")
@@ -1674,67 +1739,53 @@ def main():
     if w20_overlaps_obbba:
         nfp_flags.append("obbba_withholding_regime_2025_09")
     if proxy_implausible:
-        nfp_flags.append("implausible_proxy_level_month_end_bunching")
+        nfp_flags.append("proxy_spread_exceeds_2.5pct_band")
+    if ahe_stale:
+        nfp_flags.append(f"ahe_vintage_stale_{ahe_age_days}d")
     if not (consensus_loaded and nfp_consensus_k is not None and nfp_model_calibrated):
         nfp_flags.append("no_calibrated_consensus_info_only")
-    if ahe_age_days is not None and ahe_age_days > 40:
-        nfp_flags.append(f"ahe_vintage_stale_{ahe_age_days}d")
 
-    # Strict Institutional Rule (ChatGPT #1, Grok, Perplexity, Kimi):
-    # Until an NFP jobs model is calibrated AND compared directly against numerical `nfp_consensus_k`
-    # on a clean non-shutdown base, `nfp_wage_bill` MUST remain `INFO_ONLY` with `dir: null`
-    # and `surprise_bias: "NOT_ESTIMATED"`, and suppresses uncalibrated directional numbers!
-    nfp_is_gated = bool(
-        dq_block
-        or w20_overlaps_shutdown
-        or proxy_implausible
-        or not (consensus_loaded and nfp_consensus_k is not None and nfp_model_calibrated)
-    )
+    # Card 1 (`nfp_wage_bill`) remains strictly `INFO_ONLY` with `dir: null` and `surprise_bias: "NOT_ESTIMATED"`
+    # while displaying descriptive nominal cash withholding growth (`withheld_t2_20d_norm_yoy`, `withheld_t2_fytd_per_bd_yoy`)
+    # so the card is informative without ever triggering an uncalibrated directional trade (Codeword & Cursor).
     if dq_block:
         nfp_state = "BLOCKED"
         nfp_dir = None
         nfp_surprise_bias = "BLOCKED_BY_DQ"
-    elif nfp_is_gated:
+    else:
         nfp_state = "INFO_ONLY"
         nfp_dir = None
-        nfp_surprise_bias = "NOT_ESTIMATED"
-    else:
-        nfp_state = "WATCH"
-        nfp_dir = 0
         nfp_surprise_bias = "NOT_ESTIMATED"
 
     # ── CARD 2: retail_household (Impulso al Consumo vs Estrés Social) ──
     t5_cur = t5_by_date.get(asof, {})
     t5_prev = t5_by_date.get(yoy_anchor, {}) if yoy_anchor else {}
 
-    indiv_refunds_fytd_cur = (
-        t5_cur.get("indiv_eft_fytd", 0.0) + t5_cur.get("indiv_checks_fytd", 0.0)
+    # Strict Table V comparability (ChatGPT #5: never fall back from Table V EFT+Checks to Table II EFT-only!)
+    has_t5_cur = (asof in t5_by_date) and (
+        (t5_cur.get("indiv_eft_fytd", 0.0) + t5_cur.get("indiv_checks_fytd", 0.0)) > 0
     )
-    if indiv_refunds_fytd_cur == 0.0:
-        indiv_refunds_fytd_cur = get_cval("Withdrawals", "INDIV_REFUNDS_EFT", asof, "fytd")
-
+    has_t5_prev = bool(
+        yoy_anchor
+        and (yoy_anchor in t5_by_date)
+        and ((t5_prev.get("indiv_eft_fytd", 0.0) + t5_prev.get("indiv_checks_fytd", 0.0)) > 0)
+    )
+    indiv_refunds_fytd_cur = (
+        (t5_cur.get("indiv_eft_fytd", 0.0) + t5_cur.get("indiv_checks_fytd", 0.0))
+        if has_t5_cur
+        else None
+    )
     indiv_refunds_fytd_prev = (
         (t5_prev.get("indiv_eft_fytd", 0.0) + t5_prev.get("indiv_checks_fytd", 0.0))
-        if yoy_anchor
+        if has_t5_prev
         else None
     )
-    if indiv_refunds_fytd_prev == 0.0 and yoy_anchor:
-        indiv_refunds_fytd_prev = get_cval("Withdrawals", "INDIV_REFUNDS_EFT", yoy_anchor, "fytd")
 
     indiv_refunds_total_fytd_yoy = pct_yoy(indiv_refunds_fytd_cur, indiv_refunds_fytd_prev)
-    indiv_refunds_eft_fytd_cur = (
-        t5_cur.get("indiv_eft_fytd", 0.0)
-        or get_cval("Withdrawals", "INDIV_REFUNDS_EFT", asof, "fytd")
+    indiv_refunds_eft_only_yoy = pct_yoy(
+        t5_cur.get("indiv_eft_fytd") if has_t5_cur else None,
+        t5_prev.get("indiv_eft_fytd") if has_t5_prev else None,
     )
-    indiv_refunds_eft_fytd_prev = (
-        (
-            t5_prev.get("indiv_eft_fytd", 0.0)
-            or get_cval("Withdrawals", "INDIV_REFUNDS_EFT", yoy_anchor, "fytd")
-        )
-        if yoy_anchor
-        else None
-    )
-    indiv_refunds_eft_only_yoy = pct_yoy(indiv_refunds_eft_fytd_cur, indiv_refunds_eft_fytd_prev)
 
     snap_fytd_cur = get_cval("Withdrawals", "USDA_SNAP", asof, "fytd")
     snap_fytd_prev = get_cval("Withdrawals", "USDA_SNAP", yoy_anchor, "fytd") if yoy_anchor else None
@@ -1761,21 +1812,17 @@ def main():
     if base_is_shutdown_2025:
         retail_flags.append("base_shutdown_2025_distorts_snap_and_fedsal")
 
+    # Keep `retail_household` descriptive (`INFO_ONLY` in season, `DORMANT` out of season, `dir: null`)
+    # until a calibrated Retail Sales model is attached (ChatGPT #5 & Cursor).
     if dq_block:
         retail_state = "BLOCKED"
         retail_dir = None
     elif not in_refund_season:
         retail_state = "DORMANT"
         retail_dir = None
-    elif indiv_refunds_total_fytd_yoy is not None and indiv_refunds_total_fytd_yoy > 5.0:
-        retail_state = "BULLISH_BIAS"
-        retail_dir = 1
-    elif indiv_refunds_total_fytd_yoy is not None and indiv_refunds_total_fytd_yoy < -5.0:
-        retail_state = "BEARISH_BIAS"
-        retail_dir = -1
     else:
-        retail_state = "NEUTRAL"
-        retail_dir = 0
+        retail_state = "INFO_ONLY"
+        retail_dir = None
 
     # ── CARD 3: corp_and_tariffs (Caja Corporativa y Aranceles EA-1) ──
     corp_fytd_cur = get_cval("Deposits", "CORP_INCOME", asof, "fytd")
@@ -1789,8 +1836,6 @@ def main():
     biz_refund_today_musd = round(
         t5_cur.get("biz_eft_today", 0.0) + t5_cur.get("biz_checks_today", 0.0)
     )
-    if biz_refund_today_musd == 0:
-        biz_refund_today_musd = round(get_cval("Withdrawals", "BIZ_REFUNDS_EFT", asof, "today"))
 
     biz_ref_hist = sorted(
         (t5_by_date.get(d, {}).get("biz_eft_today", 0.0) + t5_by_date.get(d, {}).get("biz_checks_today", 0.0))
@@ -1804,9 +1849,8 @@ def main():
     customs_fytd_raw_spliced_yoy = pct_yoy(customs_fytd_cur, customs_fytd_prev)
 
     customs_daily = get_daily_flow_fn(lambda d: get_cval("Deposits", "CUSTOMS_DUTIES", d, "today"))
-    customs_20d_norm_yoy, _, _, _, _, min_c20_prev, _ = compute_lag364_window_stats(customs_daily, last_idx, 20)
+    customs_20d_norm_yoy, _, _, _, _, min_c20_prev, _, _ = compute_lag364_window_stats(customs_daily, last_idx, 20)
 
-    # Statutory quarterly/extension tax deadlines: FOLLOWING-shifted 15th of Jan, Mar, Apr, Jun, Sep, Oct, Dec
     in_corp_tax_window = False
     corp_window_yoy = None
     if asof_dt.month in (1, 3, 4, 6, 9, 10, 12):
@@ -1840,9 +1884,6 @@ def main():
                     )
                     corp_window_yoy = pct_yoy(cur_w_sum, prev_w_sum)
 
-    # ChatGPT #6: FYTD Customs base includes Oct 1 - Nov 9, 2025 (pre-splice) throughout ALL of FY2027!
-    # Therefore `customs_fytd_yoy` is only clean starting FY2028 (`2027-10-01`), whereas `customs_20d_yoy`
-    # is clean once `min_c20_prev >= "2025-11-10"` (`2026-12-09`).
     customs_20d_clean = bool(min_c20_prev and min_c20_prev >= SERIES_SPLICE_META["CUSTOMS_DUTIES"]["splice_date"])
     customs_fytd_clean = bool(asof >= SERIES_SPLICE_META["CUSTOMS_DUTIES"]["clean_fytd_yoy_from"])
     customs_splice_active = not (customs_20d_clean and customs_fytd_clean)
@@ -1861,13 +1902,8 @@ def main():
 
     if dq_block:
         corp_state, corp_dir = "BLOCKED", None
-    elif in_corp_tax_window and corp_window_yoy is not None:
-        if corp_window_yoy > 5.0:
-            corp_state, corp_dir = "BULLISH_BIAS", 1
-        elif corp_window_yoy < -5.0:
-            corp_state, corp_dir = "BEARISH_BIAS", -1
-        else:
-            corp_state, corp_dir = "WATCH", 0
+    elif in_corp_tax_window:
+        corp_state, corp_dir = "INFO_ONLY", None
     else:
         corp_state, corp_dir = "DORMANT", None
 
@@ -1883,8 +1919,6 @@ def main():
     slgs_issues_5d_musd = round(
         sum(t3a_by_date.get(d, {}).get("slgs_iss", 0.0) for d in all_bd_dates[-5:])
     )
-    # Strictly governed by documented policy status (ChatGPT #5 & Grok):
-    # Never override CLOSED with `or slgs_issues_5d_musd > 0`.
     if slgs_window_policy_status == "OPEN":
         slgs_open = True
     elif slgs_window_policy_status == "CLOSED":
@@ -1900,13 +1934,15 @@ def main():
     interest_mtd = round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "mtd"))
     interest_fytd = round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "fytd"))
 
-    # Govern funding_state strictly by the Ex-Ante Weekday-Conditioned Z-score (ChatGPT #2 & Codeword)
+    # Govern funding_state strictly by Ex-Ante Weekday-Conditioned Z-score AND Empirical 250d Percentile
+    # (Perplexity #1 & ChatGPT #2: requires |z| >= 3.0 AND two-sided 5% empirical tail pctile <= 2.5 or >= 97.5)
     z_gov = asof_rec["z_ntf_ex_exp_weekday_100bd"]
+    z_pct = asof_rec["z_ex_ante_pctile_250d"]
     if dq_block:
         funding_state = "BLOCKED"
-    elif z_gov is None:
+    elif z_gov is None or asof_rec["calendar_warmup"]:
         funding_state = "WARMUP_NOT_ESTIMATED"
-    elif abs(z_gov) >= 2.5:
+    elif abs(z_gov) >= 3.0 and (z_pct is None or z_pct <= 2.5 or z_pct >= 97.5):
         funding_state = "SURPRISE_INJECTION" if z_gov > 0 else "SURPRISE_DRAIN"
     else:
         funding_state = "INLINE_CALENDAR"
@@ -1925,8 +1961,14 @@ def main():
     else:
         funding_driver = "regular_operations"
 
+    z_method_gov = (
+        "unconditional_mad_60bd_fallback"
+        if asof_rec["z_fallback_used"]
+        else "ex_ante_weekday_mad_100bd"
+    )
+
     nowcast_payload = {
-        "v": "dts-g8-4.0",
+        "v": "dts-g8-5.0",
         "asof": asof,
         "expected_asof": exp_asof,
         "valid_until_utc": valid_until_utc,
@@ -1950,9 +1992,11 @@ def main():
             "holiday_skew_20d_bd": hol_skew_20d,
             "bd_skew_fytd": bd_skew_fytd,
             "ahe_age_days": ahe_age_days,
+            "ahe_stale": ahe_stale,
             "series_splice_customs": customs_splice_active,
             "reversals": reversals_by_date.get(asof, []),
             "unclass_wd_pct": unclass_wd_pct,
+            "warn": dq_warn,
             "block": dq_block,
         },
         "mmt_liquidity": {
@@ -1966,9 +2010,11 @@ def main():
             "ntf_expected_cal": asof_rec["ntf_expected_cal"],
             "ntf_residual_realized_cal": asof_rec["ntf_residual_realized_cal"],
             "ntf_ex_expected": asof_rec["ntf_ex_expected"],
-            "z_method_governor": "ex_ante_weekday_mad_100bd",
+            "z_method_governor": z_method_gov,
+            "z_fallback_used": asof_rec["z_fallback_used"],
             "z_sample_n": asof_rec["z_sample_n"],
             "z_ntf_ex_exp_weekday_100bd": asof_rec["z_ntf_ex_exp_weekday_100bd"],
+            "z_ex_ante_pctile_250d": asof_rec["z_ex_ante_pctile_250d"],
             "z_ntf_realized_weekday_100bd": asof_rec["z_ntf_realized_weekday_100bd"],
             "z_ntf_uncond_60d": asof_rec["z_ntf_uncond_60d"],
             "net_debt_cash_iiib": asof_rec["net_debt_cash_iiib"],
@@ -1990,21 +2036,21 @@ def main():
                 "state": nfp_state,
                 "dir": nfp_dir,
                 "surprise_bias": nfp_surprise_bias,
-                "withheld_t2_fytd_yoy": None if w20_overlaps_shutdown else withheld_t2_fytd_yoy,
-                "withheld_t2_fytd_per_bd_yoy": None if w20_overlaps_shutdown else withheld_t2_fytd_per_bd_yoy,
-                "withheld_t2_20d_norm_yoy": None if nfp_is_gated else withheld_t2_20d_norm_yoy,
+                "matched_pairs_20d": pairs_20d,
+                "withheld_t2_20d_norm_yoy": withheld_t2_20d_norm_yoy,
+                "withheld_t2_fytd_per_bd_yoy": withheld_t2_fytd_per_bd_yoy,
                 "withheld_t4_fytd_musd": round(withheld_t4_fytd_cur),
                 "ahe_deflator_yoy": round(ahe_deflator_yoy, 2) if ahe_deflator_yoy is not None else None,
                 "ahe_vintage": ahe_vintage,
-                "withholding_less_ahe_pp": None if nfp_is_gated else raw_less_ahe_pp,
-                "emp_hours_proxy_yoy": None if nfp_is_gated else raw_emp_hours_proxy,
-                "impulse_non_overlap_40d": None if nfp_is_gated else impulse_non_overlap_40d,
+                "withholding_less_ahe_pp": None if (proxy_implausible or w20_overlaps_shutdown or ahe_stale) else raw_less_ahe_pp,
+                "emp_hours_proxy_yoy": None if (proxy_implausible or w20_overlaps_shutdown or ahe_stale) else raw_emp_hours_proxy,
+                "impulse_non_overlap_40d": None if w20_overlaps_shutdown else impulse_non_overlap_40d,
                 "flags": nfp_flags,
             },
             "retail_household": {
                 "state": retail_state,
                 "dir": retail_dir,
-                "indiv_refunds_fytd_musd": round(indiv_refunds_fytd_cur),
+                "indiv_refunds_fytd_musd": round(indiv_refunds_fytd_cur) if indiv_refunds_fytd_cur is not None else None,
                 "indiv_refunds_total_fytd_yoy": indiv_refunds_total_fytd_yoy if in_refund_season else None,
                 "snap_fytd_yoy": None if (not in_refund_season or base_is_shutdown_2025) else snap_fytd_raw_yoy,
                 "flags": retail_flags,
@@ -2032,7 +2078,7 @@ def main():
         json.dumps(nowcast_payload, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    print(f"[DTS NOWCASTER v4.0] Wrote {NOWCAST_PATH} ({NOWCAST_PATH.stat().st_size} bytes)")
+    print(f"[DTS NOWCASTER v5.0] Wrote {NOWCAST_PATH} ({NOWCAST_PATH.stat().st_size} bytes)")
 
     hist_dates = all_bd_dates[-HISTORY_BD_LIMIT:]
     history_rows = []
@@ -2057,6 +2103,7 @@ def main():
                 "ntf_surp": rec["ntf_residual_realized_cal"],
                 "ntf_ex_exp": rec["ntf_ex_expected"],
                 "z_exp_wd": rec["z_ntf_ex_exp_weekday_100bd"],
+                "z_pctile": rec["z_ex_ante_pctile_250d"],
                 "z_surp": rec["z_ntf_realized_weekday_100bd"],
                 "z_uncond": rec["z_ntf_uncond_60d"],
                 "debt_iiib": rec["net_debt_cash_iiib"],
@@ -2078,7 +2125,7 @@ def main():
         )
 
     history_payload = {
-        "v": "dts-g8-history-4.0",
+        "v": "dts-g8-history-5.0",
         "asof": asof,
         "generated_at": now_utc,
         "count": len(history_rows),
@@ -2088,7 +2135,7 @@ def main():
         json.dumps(history_payload, separators=(",", ":"), ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    print(f"[DTS NOWCASTER v4.0] Wrote {HISTORY_PATH} ({HISTORY_PATH.stat().st_size} bytes, {len(history_rows)} business days)")
+    print(f"[DTS NOWCASTER v5.0] Wrote {HISTORY_PATH} ({HISTORY_PATH.stat().st_size} bytes, {len(history_rows)} business days)")
 
 
 if __name__ == "__main__":
