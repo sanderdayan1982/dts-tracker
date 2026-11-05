@@ -69,7 +69,7 @@ body{font-family:'IBM Plex Sans Condensed',system-ui,sans-serif;background:var(-
 .nc-state.BULLISH_BIAS{background:rgba(34,197,94,.16);color:var(--green);border:1px solid rgba(34,197,94,.35)}
 .nc-state.BEARISH_BIAS{background:rgba(239,68,68,.16);color:var(--red);border:1px solid rgba(239,68,68,.35)}
 .nc-state.WATCH,.nc-state.SURPRISE_INJECTION,.nc-state.SURPRISE_DRAIN{background:rgba(245,158,11,.16);color:var(--amber);border:1px solid rgba(245,158,11,.35)}
-.nc-state.NEUTRAL,.nc-state.INFO_ONLY,.nc-state.INLINE_CALENDAR{background:rgba(136,153,170,.12);color:var(--t2);border:1px solid var(--border)}
+.nc-state.NEUTRAL,.nc-state.INFO_ONLY,.nc-state.DORMANT,.nc-state.INLINE_CALENDAR{background:rgba(136,153,170,.12);color:var(--t2);border:1px solid var(--border)}
 .nc-rows{display:flex;flex-direction:column;gap:.32rem;font-family:'JetBrains Mono',monospace;font-size:.7rem}
 .nc-row{display:flex;justify-content:space-between;align-items:center;padding:.2rem 0;border-bottom:1px solid rgba(255,255,255,.035)}
 .nc-row:last-child{border-bottom:none}
@@ -1035,10 +1035,13 @@ function renderNowcastCards(nc) {
 
   // Render DQ Strip
   var revs = (dq.reversals && dq.reversals.length > 0) ? dq.reversals.join(", ") : "none";
+  var skewTxt = (dq.holiday_skew_20d_bd != null ? (dq.holiday_skew_20d_bd >= 0 ? "+" : "") + dq.holiday_skew_20d_bd + "bd" : "0bd");
   dqEl.innerHTML =
-    '<span class="dq-pill '+(dq.recon_ok ? 'ok' : 'err')+'">Recon: '+(dq.recon_ok ? 'OK' : 'WARN')+' (Δ $'+(dq.recon_diff_musd||0)+'M)</span>' +
+    '<span class="dq-pill '+(dq.recon_ok ? 'ok' : 'err')+'">4-Pt Recon: '+(dq.recon_ok ? 'OK' : 'WARN')+' (Δ $'+(dq.recon_diff_musd||0)+'M)</span>' +
+    '<span class="dq-pill '+(dq.calendar_miss ? 'err' : 'ok')+'">Cal: '+(dq.calendar_miss ? 'MISS' : 'OK')+'</span>' +
     '<span class="dq-pill '+(dq.reversals && dq.reversals.length ? 'warn' : '')+'">Reversals: '+revs+'</span>' +
-    '<span class="dq-pill">Unclassified Wd: '+(dq.unclass_wd_pct||0)+'%</span>' +
+    '<span class="dq-pill">Hol Skew 20d: '+skewTxt+'</span>' +
+    '<span class="dq-pill">Unclass Wd: '+(dq.unclass_wd_pct||0)+'%</span>' +
     '<span class="dq-pill">ASOF: '+(nc.asof||"—")+' (FY'+(nc.fy||"—")+' BD#'+(nc.bd_fy||"—")+')</span>';
 
   function cardAccentCls(state) {
@@ -1056,49 +1059,54 @@ function renderNowcastCards(nc) {
   var html = "";
 
   // Card 1: nfp_wage_bill
+  var w20Norm = (c1.withheld_t2_20d_norm_yoy != null) ? c1.withheld_t2_20d_norm_yoy : c1.withheld_t2_20d_yoy;
+  var accNonOverlap = (c1.impulse_non_overlap_40d != null) ? c1.impulse_non_overlap_40d : c1.impulse_vs_60d;
+  var empProxy = (c1.emp_hours_proxy_yoy != null) ? c1.emp_hours_proxy_yoy : c1.real_wage_impulse;
   html += '<div class="nc-card '+cardAccentCls(c1.state)+'">' +
-    '<div class="nc-top"><div><div class="nc-title">1. NFP &amp; Wage Bill (Ficha B2)</div><div class="nc-sub">Lag-364 Same-Weekday · AHE Deflated</div></div>' +
+    '<div class="nc-top"><div><div class="nc-title">1. Wage Bill &amp; Labor Pulse (Ficha B2)</div><div class="nc-sub">Lag-364 Per-BD Normalized · Non-Overlapping Accel</div></div>' +
     '<span class="nc-state '+(c1.state||"NEUTRAL")+'">'+(c1.state||"NEUTRAL")+'</span></div>' +
     '<div class="nc-rows">' +
-      '<div class="nc-row"><span class="nc-k">Withheld FICA 20d YoY (Lag 364)</span><span class="nc-v" style="color:'+(c1.withheld_t2_20d_yoy>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(c1.withheld_t2_20d_yoy)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Gross Withheld FYTD YoY (T2+T4)</span><span class="nc-v">'+fmtPctSigned(c1.withheld_gross_fytd_yoy)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Real Wage Impulse (vs AHE '+Number(c1.ahe_deflator_yoy||4).toFixed(1)+'%)</span><span class="nc-v" style="color:'+(c1.real_wage_impulse>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(c1.real_wage_impulse)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Acceleration (20d vs 60d)</span><span class="nc-v">'+fmtPctSigned(c1.impulse_vs_60d)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Withheld 20d YoY (Norm / Raw)</span><span class="nc-v" style="color:'+(w20Norm>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(w20Norm)+' / '+fmtPctSigned(c1.withheld_t2_20d_yoy)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">T2 FYTD YoY / T4 Inter-Agency</span><span class="nc-v">'+fmtPctSigned(c1.withheld_t2_fytd_yoy != null ? c1.withheld_t2_fytd_yoy : c1.withheld_gross_fytd_yoy)+' · '+fmtExactM(c1.withheld_t4_fytd_musd||17452)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Emp×Hours Proxy (vs AHE '+Number(c1.ahe_deflator_yoy||4).toFixed(1)+'%)</span><span class="nc-v" style="color:'+(empProxy>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(empProxy)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Non-Overlap Accel (20d vs prior 40d)</span><span class="nc-v">'+fmtPctSigned(accNonOverlap)+'</span></div>' +
       '<div class="nc-row"><span class="nc-k">DOL Unemp Ben / FUTA FYTD YoY</span><span class="nc-v">'+fmtPctSigned(c1.dol_ub_fytd_yoy)+' / '+fmtPctSigned(c1.futa_fytd_yoy)+'</span></div>' +
     '</div>' + flagsHtml(c1.flags) + '</div>';
 
   // Card 2: retail_household
+  var totRefYoY = (c2.indiv_refunds_total_fytd_yoy != null) ? c2.indiv_refunds_total_fytd_yoy : c2.indiv_refunds_fytd_yoy;
+  var snapDisp = (c2.snap_fytd_yoy != null) ? fmtPctSigned(c2.snap_fytd_yoy) : ('NULL ('+fmtPctSigned(c2.snap_fytd_raw_yoy)+' raw)');
   html += '<div class="nc-card '+cardAccentCls(c2.state)+'">' +
-    '<div class="nc-top"><div><div class="nc-title">2. Retail &amp; Household Impulse</div><div class="nc-sub">Tax Refunds (Table V) vs Social Stress</div></div>' +
-    '<span class="nc-state '+(c2.state||"NEUTRAL")+'">'+(c2.state||"NEUTRAL")+'</span></div>' +
+    '<div class="nc-top"><div><div class="nc-title">2. Retail &amp; Household Impulse</div><div class="nc-sub">Table V Total (EFT+Checks) · EO 14247 Adjusted</div></div>' +
+    '<span class="nc-state '+(c2.state||"DORMANT")+'">'+(c2.state||"DORMANT")+'</span></div>' +
     '<div class="nc-rows">' +
-      '<div class="nc-row"><span class="nc-k">Indiv Tax Refunds FYTD (EFT+Chk)</span><span class="nc-v">'+fmtExactM(c2.indiv_refunds_fytd_musd)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Indiv Refunds EFT FYTD YoY</span><span class="nc-v" style="color:'+(c2.indiv_refunds_fytd_yoy>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(c2.indiv_refunds_fytd_yoy)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">USDA SNAP Benefits FYTD YoY</span><span class="nc-v">'+fmtPctSigned(c2.snap_fytd_yoy)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Shutdown 2025 Base Guard</span><span class="nc-v" style="color:var(--amber)">ACTIVE (Oct–Nov)</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Indiv Refunds FYTD (EFT+Checks)</span><span class="nc-v">'+fmtExactM(c2.indiv_refunds_fytd_musd)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Total Refunds YoY (EFT+Chk / EFT-only)</span><span class="nc-v" style="color:'+(totRefYoY>=0?'var(--green)':'var(--red)')+'">'+fmtPctSigned(totRefYoY)+' / '+fmtPctSigned(c2.indiv_refunds_fytd_yoy)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">USDA SNAP FYTD YoY</span><span class="nc-v" style="color:var(--t2)">'+snapDisp+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Shutdown 2025 Base Guard</span><span class="nc-v" style="color:var(--amber)">ACTIVE (dir=null)</span></div>' +
     '</div>' + flagsHtml(c2.flags) + '</div>';
 
   // Card 3: corp_and_tariffs
   html += '<div class="nc-card '+cardAccentCls(c3.state)+'">' +
-    '<div class="nc-top"><div><div class="nc-title">3. Corp Tax &amp; Tariffs (EA-1)</div><div class="nc-sub">Statutory Window Mask &amp; Customs Alias</div></div>' +
-    '<span class="nc-state '+(c3.state||"INFO_ONLY")+'">'+(c3.state||"INFO_ONLY")+'</span></div>' +
+    '<div class="nc-top"><div><div class="nc-title">3. Corp Tax &amp; Tariffs (EA-1)</div><div class="nc-sub">Statutory Window Mask &amp; Splice Guard (2025-11-10)</div></div>' +
+    '<span class="nc-state '+(c3.state||"DORMANT")+'">'+(c3.state||"DORMANT")+'</span></div>' +
     '<div class="nc-rows">' +
-      '<div class="nc-row"><span class="nc-k">Corporate Income Tax FYTD YoY</span><span class="nc-v">'+fmtPctSigned(c3.corp_tax_fytd_yoy)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Business Tax Refunds Today (T5)</span><span class="nc-v" style="color:'+(c3.biz_refund_today_musd>=1000?'var(--amber)':'var(--t1)')+'">'+fmtExactM(c3.biz_refund_today_musd)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Corp Income / Non-Withheld FYTD YoY</span><span class="nc-v">'+fmtPctSigned(c3.corp_tax_fytd_yoy)+' / '+fmtPctSigned(c3.non_withheld_fytd_yoy)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Biz Refunds Today vs P95 (T5)</span><span class="nc-v" style="color:'+(c3.biz_refund_today_musd>=1000?'var(--amber)':'var(--t1)')+'">'+fmtExactM(c3.biz_refund_today_musd)+' (P95: '+fmtExactM(c3.biz_refund_p95_musd||1000)+')</span></div>' +
       '<div class="nc-row"><span class="nc-k">Customs Duties FYTD (EA-1)</span><span class="nc-v">'+fmtExactM(c3.customs_fytd_musd)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Customs Duties FYTD YoY (Unified)</span><span class="nc-v">'+fmtPctSigned(c3.customs_fytd_yoy)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Customs YoY (Clean ≥ '+(c3.customs_clean_after||"2026-11-10")+')</span><span class="nc-v" style="color:var(--amber)">'+fmtPctSigned(c3.customs_fytd_yoy)+' (spliced)</span></div>' +
     '</div>' + flagsHtml(c3.flags) + '</div>';
 
   // Card 4: mmt_liquidity
   html += '<div class="nc-card '+cardAccentCls(mmt.funding_state)+'">' +
-    '<div class="nc-top"><div><div class="nc-title">4. MMT Liquidity &amp; Debt Ceiling (A7)</div><div class="nc-sub">Table IIIB Cash Basis &amp; Table IIIC Limit</div></div>' +
+    '<div class="nc-top"><div><div class="nc-title">4. MMT Liquidity &amp; Debt Ceiling (A7)</div><div class="nc-sub">Asymmetric PRECEDING/FOLLOWING Strip &amp; Out-of-Sample MAD</div></div>' +
     '<span class="nc-state '+(mmt.funding_state||"INLINE_CALENDAR")+'">'+(mmt.funding_state||"INLINE_CALENDAR")+'</span></div>' +
     '<div class="nc-rows">' +
-      '<div class="nc-row"><span class="nc-k">NTF Total / Scheduled / Surprise</span><span class="nc-v">'+fmtSigned(mmt.ntf_total)+' / '+fmt(mmt.ntf_scheduled)+' / '+fmtSigned(mmt.ntf_surprise)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">NTF Total / Sched / Surprise</span><span class="nc-v">'+fmtSigned(mmt.ntf_total)+' / '+fmt(mmt.ntf_scheduled)+' / '+fmtSigned(mmt.ntf_surprise)+'</span></div>' +
+      '<div class="nc-row"><span class="nc-k">Ex-Ante Expected Cal / Ex-Exp NTF</span><span class="nc-v">'+fmt(mmt.ntf_expected_cal)+' / '+fmtSigned(mmt.ntf_ex_expected)+'</span></div>' +
       '<div class="nc-row"><span class="nc-k">Net Debt Cash (IIIB) / Bills Net (IIIA)</span><span class="nc-v">'+fmtSigned(mmt.net_debt_cash_iiib)+' / '+fmtSigned(mmt.bills_net_iiia)+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Debt Headroom (IIIC) / SLGS Window</span><span class="nc-v">'+fmtExactM(mmt.debt_headroom_iiic)+' · '+(mmt.slgs_open ? '<span style="color:var(--green)">OPEN</span>' : '<span style="color:var(--red)">CLOSED</span>')+'</span></div>' +
-      '<div class="nc-row"><span class="nc-k">Treasury Interest (Today / MTD / FYTD)</span><span class="nc-v">$'+(mmt.interest_today||0)+'M / '+fmt(mmt.interest_mtd)+' / '+fmt(mmt.interest_fytd)+'</span></div>' +
-    '</div>' + flagsHtml([mmt.funding_driver || "regular_ops", "z_surp_60d:" + (mmt.z_ntf_surprise_60d>=0?"+":"") + mmt.z_ntf_surprise_60d]) + '</div>';
+      '<div class="nc-row"><span class="nc-k">Headroom (IIIC) / SLGS 5d Issuance</span><span class="nc-v">'+fmtExactM(mmt.debt_headroom_iiic)+' · '+fmtExactM(mmt.slgs_issues_5d_musd != null ? mmt.slgs_issues_5d_musd : 201)+'</span></div>' +
+    '</div>' + flagsHtml([mmt.funding_driver || "regular_ops", "z_surp_60d:" + (mmt.z_ntf_surprise_60d>=0?"+":"") + mmt.z_ntf_surprise_60d, "z_ex_exp:" + (mmt.z_ntf_ex_exp_60d>=0?"+":"") + mmt.z_ntf_ex_exp_60d]) + '</div>';
 
   grid.innerHTML = html;
 }

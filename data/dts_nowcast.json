@@ -1,12 +1,18 @@
 {
-  "v": "dts-g8-1.0",
+  "v": "dts-g8-2.0",
   "asof": "2026-11-03",
-  "generated_at": "2026-11-05T13:55:13Z",
+  "generated_at": "2026-11-05T14:51:22Z",
   "fy": 2027,
   "bd_fy": 23,
+  "sign_convention": "ntf>0 = net_fiscal_injection_nfa; tga_reserve_drain = -dtga",
   "dq": {
+    "status": "OK",
     "recon_ok": true,
     "recon_diff_musd": 1,
+    "calendar_miss": false,
+    "mad_floor_hit": false,
+    "holiday_skew_20d_bd": 0,
+    "series_splice_customs": true,
     "reversals": [
       "VA_BENEFITS:-8",
       "OPM_RET:-3"
@@ -19,10 +25,14 @@
     "tga_open": 930757,
     "dtga": 7451,
     "reserves_impact": -7451,
+    "tga_reserve_drain_musd": -7451,
     "ntf_total": 35925,
     "ntf_scheduled": 27135,
+    "ntf_expected_cal": 26486,
     "ntf_surprise": 8790,
-    "z_ntf_surprise_60d": 0.68,
+    "ntf_ex_expected": 9440,
+    "z_ntf_surprise_60d": 0.82,
+    "z_ntf_ex_exp_60d": 0.61,
     "net_debt_cash_iiib": 43376,
     "bills_net_iiia": 45420,
     "interest_today": 2,
@@ -30,6 +40,8 @@
     "interest_fytd": 45012,
     "cmb_today": 0,
     "debt_headroom_iiic": 753753,
+    "slgs_issues_today_musd": 201,
+    "slgs_issues_5d_musd": 1670,
     "slgs_open": true,
     "funding_state": "INLINE_CALENDAR",
     "funding_driver": "ssa_day3_and_bills"
@@ -39,10 +51,16 @@
       "state": "WATCH",
       "dir": 1,
       "withheld_t2_20d_yoy": 7.81,
+      "withheld_t2_20d_norm_yoy": 7.81,
+      "withheld_t2_fytd_yoy": 4.69,
       "withheld_gross_fytd_yoy": 5.1,
+      "withheld_t4_fytd_musd": 17452,
       "ahe_deflator_yoy": 4.0,
+      "ahe_vintage": "2026-09",
       "real_wage_impulse": 3.81,
-      "impulse_vs_60d": 5.21,
+      "emp_hours_proxy_yoy": 3.66,
+      "impulse_vs_60d": 0.34,
+      "impulse_non_overlap_40d": 3.02,
       "dol_ub_fytd_yoy": 0.4,
       "futa_fytd_yoy": 4.81,
       "flags": [
@@ -50,26 +68,33 @@
       ]
     },
     "retail_household": {
-      "state": "WATCH",
-      "dir": 1,
+      "state": "DORMANT",
+      "dir": null,
       "indiv_refunds_fytd_musd": 17260,
+      "indiv_refunds_total_fytd_yoy": 3.27,
       "indiv_refunds_fytd_yoy": 26.13,
-      "snap_fytd_yoy": -10.74,
+      "snap_fytd_yoy": null,
+      "snap_fytd_raw_yoy": -10.74,
       "flags": [
         "out_of_refund_season",
+        "irs_check_to_eft_shift_active",
         "base_shutdown_2025_distorts_snap_and_fedsal"
       ]
     },
     "corp_and_tariffs": {
-      "state": "INFO_ONLY",
-      "dir": 0,
+      "state": "DORMANT",
+      "dir": null,
       "corp_tax_fytd_yoy": 10.22,
+      "non_withheld_fytd_yoy": -36.5,
       "biz_refund_today_musd": 3300,
+      "biz_refund_p95_musd": 2854,
       "customs_fytd_musd": 27775,
       "customs_fytd_yoy": -19.88,
+      "customs_clean_after": "2026-11-10",
       "flags": [
         "outside_15th_corp_window",
         "biz_refund_shock_today",
+        "series_splice_2025_11_10",
         "tariff_regime_shift"
       ]
     }
