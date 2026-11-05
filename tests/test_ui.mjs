@@ -7,7 +7,9 @@ const fresh={generated_at:'2026-11-05T17:00:00Z',valid_until_utc:'2026-11-05T21:
 test('missing or expired timestamp blocks rather than implying neutral',()=>{
   assert.equal(expired({},now),true);assert.equal(expired(fresh,now),false);
   assert.equal(expired(fresh,Date.parse(fresh.valid_until_utc)),true);
-  assert.equal(cashBlocked({...fresh,v:'dts-g8-6.0',dq:{block:false,stale:false}},now),false);
+  const mmt={ntf_total:0,dtga:0,reserves_impact:0,tga_close:100,net_debt_cash_iiib:0};
+  assert.equal(cashBlocked({...fresh,v:'dts-g8-6.0',dq:{block:false,stale:false},mmt_liquidity:mmt},now),false);
+  assert.equal(cashBlocked({...fresh,v:'dts-g8-6.0',dq:{block:false,stale:false},mmt_liquidity:{...mmt,ntf_total:null}},now),true);
   assert.equal(cashBlocked({...fresh,dq:{block:false}},now),true);
 });
 test('expired radar cannot retain a positive signal',()=>{

@@ -7,7 +7,9 @@ export function expired(payload,now=Date.now()){
   return !Number.isFinite(until)||!Number.isFinite(created)||now>=until||created>now+300000;
 }
 export function cashBlocked(data,now=Date.now()){
-  return !data||data.v!=='dts-g8-6.0'||data.dq?.block!==false||data.dq?.stale!==false||expired(data,now);
+  const required=['ntf_total','dtga','reserves_impact','tga_close','net_debt_cash_iiib'];
+  return !data||data.v!=='dts-g8-6.0'||data.dq?.block!==false||data.dq?.stale!==false||expired(data,now)
+    ||!required.every(k=>numeric(data.mmt_liquidity?.[k]));
 }
 export function effectiveCard(card,radar,now=Date.now()){
   const result={...card};
@@ -17,7 +19,7 @@ export function effectiveCard(card,radar,now=Date.now()){
   }
   if(result.status!=='RESEARCH_ESTIMATE'){result.forecast=null;result.signal=null;result.direction_vs_previous=null;}
   const f=result.forecast;
-  if(f&&(!numeric(f.point)||!Array.isArray(f.range80)||!f.range80.every(numeric))){
+  if(f&&(!numeric(f.point)||!Array.isArray(f.range80)||f.range80.length!==2||!f.range80.every(numeric)||f.range80[0]>f.range80[1])){
     result.status='INVALID';result.forecast=null;result.signal=null;
   }
   return result;

@@ -108,7 +108,9 @@ def cash_contract(payload, now=None):
     generated = parse_time(payload.get("generated_at"))
     expired = until is None or now >= until
     future = generated is None or generated > now + dt.timedelta(minutes=5)
-    blocked = bool(dq.get("block", True) or dq.get("stale", True) or expired or future)
+    mmt = payload.setdefault("mmt_liquidity", {})
+    complete=all(finite(mmt.get(k)) for k in ("ntf_total","dtga","reserves_impact","tga_close","net_debt_cash_iiib"))
+    blocked = bool(dq.get("block", True) or dq.get("stale", True) or expired or future or not complete)
     payload["v"] = "dts-g8-6.0"
     payload["units"] = "USD_millions"
     payload["sign_convention"] = "ntf>0: net non-debt cash outflow; tga_reserve_contribution=-dtga (other factors unchanged)"
