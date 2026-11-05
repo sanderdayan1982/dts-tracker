@@ -3,7 +3,7 @@
   "asof": "2026-11-03",
   "expected_asof": "2026-11-03",
   "valid_until_utc": "2026-11-05T21:45:00Z",
-  "generated_at": "2026-11-05T19:23:07Z",
+  "generated_at": "2026-11-05T19:48:40Z",
   "fy": 2027,
   "bd_fy": 23,
   "bd_fy_prev": 23,
@@ -75,6 +75,9 @@
     "slgs_open": true,
     "funding_state": "INLINE_CALENDAR",
     "funding_driver": "ssa_day3_and_bills_plus_biz_refund_shock",
+    "ntf_5d": 193484,
+    "ntf_20d": 252826,
+    "ntf_60d": 564253,
     "probability_of_macro_surprise": null
   },
   "nowcast_cards": {
@@ -131,6 +134,31 @@
       ],
       "surprise_bias": "NOT_ESTIMATED"
     }
+  },
+  "fiscal_pulse_lag364": {
+    "withheld_20d_yoy_pct": 7.81,
+    "withheld_fytd_yoy_pct": 4.69,
+    "dol_benefits_20d_yoy_pct": -5.22,
+    "dol_benefits_fytd_yoy_pct": 0.4,
+    "indiv_refunds_fytd_yoy_pct": 3.27,
+    "biz_refunds_today_musd": 3300.0,
+    "customs_fytd_musd": 27775.0,
+    "customs_20d_yoy_pct": -20.24,
+    "basis": {
+      "rolling": "lag364_daily_mean_20_sessions",
+      "fytd": "official_cumulative_same_calendar_anchor",
+      "fytd_anchor": "2025-11-03"
+    },
+    "customs_20d_comparable": false,
+    "flags": [
+      "base_shutdown_2025_distorts_snap_and_fedsal",
+      "base_shutdown_2025_fedsal_distortion",
+      "customs_tariff_regime_unadjusted",
+      "irs_check_to_eft_shift_active",
+      "nominal_cash_not_macro_forecast",
+      "out_of_refund_season",
+      "series_splice_2025_11_10_fytd_suspended"
+    ]
   },
   "units": "USD_millions",
   "model_status": "DESCRIPTIVE_FISCAL_CASH_NOT_CONSENSUS_FORECAST"
