@@ -1,0 +1,77 @@
+{
+  "v": "dts-g8-1.0",
+  "asof": "2026-11-03",
+  "generated_at": "2026-11-05T13:55:13Z",
+  "fy": 2027,
+  "bd_fy": 23,
+  "dq": {
+    "recon_ok": true,
+    "recon_diff_musd": 1,
+    "reversals": [
+      "VA_BENEFITS:-8",
+      "OPM_RET:-3"
+    ],
+    "unclass_wd_pct": 2.89,
+    "block": false
+  },
+  "mmt_liquidity": {
+    "tga_close": 938208,
+    "tga_open": 930757,
+    "dtga": 7451,
+    "reserves_impact": -7451,
+    "ntf_total": 35925,
+    "ntf_scheduled": 27135,
+    "ntf_surprise": 8790,
+    "z_ntf_surprise_60d": 0.68,
+    "net_debt_cash_iiib": 43376,
+    "bills_net_iiia": 45420,
+    "interest_today": 2,
+    "interest_mtd": 33457,
+    "interest_fytd": 45012,
+    "cmb_today": 0,
+    "debt_headroom_iiic": 753753,
+    "slgs_open": true,
+    "funding_state": "INLINE_CALENDAR",
+    "funding_driver": "ssa_day3_and_bills"
+  },
+  "nowcast_cards": {
+    "nfp_wage_bill": {
+      "state": "WATCH",
+      "dir": 1,
+      "withheld_t2_20d_yoy": 7.81,
+      "withheld_gross_fytd_yoy": 5.1,
+      "ahe_deflator_yoy": 4.0,
+      "real_wage_impulse": 3.81,
+      "impulse_vs_60d": 5.21,
+      "dol_ub_fytd_yoy": 0.4,
+      "futa_fytd_yoy": 4.81,
+      "flags": [
+        "nominal_strong_check_ahe"
+      ]
+    },
+    "retail_household": {
+      "state": "WATCH",
+      "dir": 1,
+      "indiv_refunds_fytd_musd": 17260,
+      "indiv_refunds_fytd_yoy": 26.13,
+      "snap_fytd_yoy": -10.74,
+      "flags": [
+        "out_of_refund_season",
+        "base_shutdown_2025_distorts_snap_and_fedsal"
+      ]
+    },
+    "corp_and_tariffs": {
+      "state": "INFO_ONLY",
+      "dir": 0,
+      "corp_tax_fytd_yoy": 10.22,
+      "biz_refund_today_musd": 3300,
+      "customs_fytd_musd": 27775,
+      "customs_fytd_yoy": -19.88,
+      "flags": [
+        "outside_15th_corp_window",
+        "biz_refund_shock_today",
+        "tariff_regime_shift"
+      ]
+    }
+  }
+}
