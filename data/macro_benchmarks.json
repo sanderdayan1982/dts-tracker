@@ -4,7 +4,9 @@
   "ahe_release_date": "2026-10-02",
   "consensus_loaded": false,
   "nfp_consensus_k": null,
+  "nfp_model_calibrated": false,
   "slgs_window_policy_status": "OPEN",
+  "slgs_policy_asof": "2026-11-03",
   "slgs_policy_source": "31 CFR Part 344 / Bureau of the Fiscal Service SLGS Daily Rate Table",
   "updated_at": "2026-11-05",
   "source": "BLS CES Average Hourly Earnings YoY (%) & Fiscal Service SLGS Status"
