@@ -150,9 +150,11 @@ function guideHTML(){
 function render(){
   if(typeof document==='undefined')return;
   const openDetails=[...document.querySelectorAll('[data-card] details[open]')].map(el=>el.closest('[data-card]').dataset.card);
-  const openCash=[...document.querySelectorAll('#treasury details[open]')].map(el=>el.id);
+  const cashDetails=[...document.querySelectorAll('#treasury details')].map(el=>[el.id,el.open]);
+  const cashScroll=new Map([...document.querySelectorAll('#treasury [data-scroll-id]')].map(el=>[el.dataset.scrollId,el.scrollLeft]));
   renderHeader();$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily});
-  for(const id of openCash)document.getElementById(id)?.setAttribute('open','');
+  for(const [id,open] of cashDetails){const el=document.getElementById(id);if(el)el.open=open;}
+  for(const el of document.querySelectorAll('#treasury [data-scroll-id]'))el.scrollLeft=cashScroll.get(el.dataset.scrollId)??Math.max(0,el.scrollWidth-el.clientWidth);
   $('view').innerHTML=({radar:radarHTML,fiscal:cashHTML,liquidity:liquidityHTML,guide:guideHTML}[state.tab])();
   for(const id of openDetails)document.querySelector(`[data-card="${id}"] details`)?.setAttribute('open','');
 }
