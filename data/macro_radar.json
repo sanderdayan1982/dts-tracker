@@ -1,7 +1,7 @@
 {
   "schema": "macro-radar-1.0",
-  "generated_at": "2026-11-05T18:05:27Z",
-  "valid_until_utc": "2026-11-06T20:05:27Z",
+  "generated_at": "2026-11-05T18:22:28Z",
+  "valid_until_utc": "2026-11-06T20:22:28Z",
   "mode": "live_fetch",
   "cards": [
     {
@@ -12,7 +12,7 @@
       "unit": "thousand_jobs",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PAYEMS",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "de4f3decf96af686aba737cef199b17501258a96d8b105f250ad5b346b5320b1",
       "release_date": "2026-11-06",
       "status": "RESEARCH_ESTIMATE",
@@ -203,17 +203,40 @@
       "unit": "percent",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/UNRATE",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "f434e1ac677b83ac43c7f94a7bbdcfff36bd2be904b7d4ac3c4f96dfe96bde4e",
       "release_date": "2026-11-06",
-      "status": "DATA_GAP",
-      "forecast": null,
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 4.2,
+        "range80": [
+          4.1,
+          4.4
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.0800000000000001,
+          "baseline_mae": 0.0800000000000001,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
       "consensus": null,
       "surprise_bias": "NOT_ESTIMATED",
       "probability_above_consensus": null,
-      "direction_vs_previous": null,
-      "signal": null,
-      "flags": [],
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
       "history": [
         {
           "date": "2023-09-01",
@@ -372,7 +395,7 @@
       "unit": "thousand_claims",
       "frequency": "weekly",
       "source_url": "https://fred.stlouisfed.org/series/ICSA",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "13a82a437a2749acad9a5ca67d58eeebf61634568a26e47426d72e299597fdb3",
       "release_date": "2026-11-12",
       "status": "RESEARCH_ESTIMATE",
@@ -563,7 +586,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/RSAFS",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "d829c86ce02e96c1049c96dadda3897a6748daf443befa58875d8696133cb24e",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -754,17 +777,40 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "b99909e322c5c3653ec18960e5f05f41fae38fc9bbaa36a0732ae673ab810a67",
       "release_date": "2026-11-10",
-      "status": "DATA_GAP",
-      "forecast": null,
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.37274511777281766,
+        "range80": [
+          0.09270932885811489,
+          0.5933473508320869
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.2077721956399096,
+          "baseline_mae": 0.2077721956399096,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
       "consensus": null,
       "surprise_bias": "NOT_ESTIMATED",
       "probability_above_consensus": null,
-      "direction_vs_previous": null,
-      "signal": null,
-      "flags": [],
+      "direction_vs_previous": -1,
+      "signal": "COOLER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
       "history": [
         {
           "date": "2023-09-01",
@@ -868,7 +914,7 @@
         },
         {
           "date": "2025-11-01",
-          "value": 0.2522783697512576
+          "value": null
         },
         {
           "date": "2025-12-01",
@@ -923,17 +969,40 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPILFESL",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "f238deb0105212694d3700b84eaf6db7e4c89754644ef669f3abe2285b0fbf98",
       "release_date": "2026-11-10",
-      "status": "DATA_GAP",
-      "forecast": null,
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.30554590113418995,
+        "range80": [
+          0.18465964076294902,
+          0.4147719030987117
+        ],
+        "method": "ar1",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.08448717289804333,
+          "baseline_mae": 0.09865372801806697,
+          "improvement_pct": 14.359878136008453,
+          "beats_baseline": true,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
       "consensus": null,
       "surprise_bias": "NOT_ESTIMATED",
       "probability_above_consensus": null,
-      "direction_vs_previous": null,
-      "signal": null,
-      "flags": [],
+      "direction_vs_previous": -1,
+      "signal": "COOLER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
       "history": [
         {
           "date": "2023-09-01",
@@ -1037,7 +1106,7 @@
         },
         {
           "date": "2025-11-01",
-          "value": 0.18915434389168428
+          "value": null
         },
         {
           "date": "2025-12-01",
@@ -1092,7 +1161,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PCEPILFE",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "d604aece76c0467c84ab2a141e9265b236c15b8c2939cfbb5ae0dd51897bd25c",
       "release_date": "2026-11-25",
       "status": "RESEARCH_ESTIMATE",
@@ -1283,7 +1352,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/INDPRO",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "d42158196d41b82d1a53526d3511a35f7826cbb4ae2d8663b89ec8515bab07f8",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -1474,7 +1543,7 @@
       "unit": "thousand_homes_saar",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/HOUST",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "643e192d263a4690aaa4e13349d22d484a07dbf3a6d787da61cf0eb0aaaaae4b",
       "release_date": "2026-11-18",
       "status": "RESEARCH_ESTIMATE",
@@ -1665,7 +1734,7 @@
       "unit": "usd_billions",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/BOPGSTB",
-      "source_retrieved_at": "2026-11-05T18:05:27Z",
+      "source_retrieved_at": "2026-11-05T18:22:28Z",
       "source_sha256": "d0e6835a7e947727c75bada19f7208bc3a4327ec85efb57b6d4325c00f000268",
       "release_date": "2026-12-08",
       "status": "RESEARCH_ESTIMATE",
