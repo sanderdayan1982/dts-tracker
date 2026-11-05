@@ -1,0 +1,3704 @@
+{
+  "schema": "macro-radar-1.0",
+  "generated_at": "2026-11-05T18:33:22Z",
+  "valid_until_utc": "2026-11-06T20:33:22Z",
+  "mode": "live_fetch",
+  "cards": [
+    {
+      "id": "nfp",
+      "group": "labor",
+      "series_id": "PAYEMS",
+      "agency": "BLS",
+      "unit": "thousand_jobs",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/PAYEMS",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "de4f3decf96af686aba737cef199b17501258a96d8b105f250ad5b346b5320b1",
+      "release_date": "2026-11-06",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 50.666666666666664,
+        "range80": [
+          -90.76666666666668,
+          158.43333333333337
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 89.57777777777778,
+          "baseline_mae": 89.57777777777778,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": 159.0
+        },
+        {
+          "date": "2023-11-01",
+          "value": 127.0
+        },
+        {
+          "date": "2023-12-01",
+          "value": 154.0
+        },
+        {
+          "date": "2024-01-01",
+          "value": 175.0
+        },
+        {
+          "date": "2024-02-01",
+          "value": 206.0
+        },
+        {
+          "date": "2024-03-01",
+          "value": 228.0
+        },
+        {
+          "date": "2024-04-01",
+          "value": 64.0
+        },
+        {
+          "date": "2024-05-01",
+          "value": 78.0
+        },
+        {
+          "date": "2024-06-01",
+          "value": 87.0
+        },
+        {
+          "date": "2024-07-01",
+          "value": 53.0
+        },
+        {
+          "date": "2024-08-01",
+          "value": 9.0
+        },
+        {
+          "date": "2024-09-01",
+          "value": 155.0
+        },
+        {
+          "date": "2024-10-01",
+          "value": 33.0
+        },
+        {
+          "date": "2024-11-01",
+          "value": 134.0
+        },
+        {
+          "date": "2024-12-01",
+          "value": 237.0
+        },
+        {
+          "date": "2025-01-01",
+          "value": -48.0
+        },
+        {
+          "date": "2025-02-01",
+          "value": 42.0
+        },
+        {
+          "date": "2025-03-01",
+          "value": 67.0
+        },
+        {
+          "date": "2025-04-01",
+          "value": 108.0
+        },
+        {
+          "date": "2025-05-01",
+          "value": 13.0
+        },
+        {
+          "date": "2025-06-01",
+          "value": -20.0
+        },
+        {
+          "date": "2025-07-01",
+          "value": 64.0
+        },
+        {
+          "date": "2025-08-01",
+          "value": -70.0
+        },
+        {
+          "date": "2025-09-01",
+          "value": 76.0
+        },
+        {
+          "date": "2025-10-01",
+          "value": -140.0
+        },
+        {
+          "date": "2025-11-01",
+          "value": 41.0
+        },
+        {
+          "date": "2025-12-01",
+          "value": -17.0
+        },
+        {
+          "date": "2026-01-01",
+          "value": 160.0
+        },
+        {
+          "date": "2026-02-01",
+          "value": -156.0
+        },
+        {
+          "date": "2026-03-01",
+          "value": 214.0
+        },
+        {
+          "date": "2026-04-01",
+          "value": 148.0
+        },
+        {
+          "date": "2026-05-01",
+          "value": 63.0
+        },
+        {
+          "date": "2026-06-01",
+          "value": 31.0
+        },
+        {
+          "date": "2026-07-01",
+          "value": -10.0
+        },
+        {
+          "date": "2026-08-01",
+          "value": 133.0
+        },
+        {
+          "date": "2026-09-01",
+          "value": 29.0
+        }
+      ],
+      "last": 29.0,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "unemployment",
+      "group": "labor",
+      "series_id": "UNRATE",
+      "agency": "BLS",
+      "unit": "percent",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/UNRATE",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "f434e1ac677b83ac43c7f94a7bbdcfff36bd2be904b7d4ac3c4f96dfe96bde4e",
+      "release_date": "2026-11-06",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 4.2,
+        "range80": [
+          4.1,
+          4.4
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.0800000000000001,
+          "baseline_mae": 0.0800000000000001,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
+      "history": [
+        {
+          "date": "2023-09-01",
+          "value": 3.7
+        },
+        {
+          "date": "2023-10-01",
+          "value": 3.9
+        },
+        {
+          "date": "2023-11-01",
+          "value": 3.7
+        },
+        {
+          "date": "2023-12-01",
+          "value": 3.8
+        },
+        {
+          "date": "2024-01-01",
+          "value": 3.7
+        },
+        {
+          "date": "2024-02-01",
+          "value": 3.9
+        },
+        {
+          "date": "2024-03-01",
+          "value": 3.9
+        },
+        {
+          "date": "2024-04-01",
+          "value": 3.9
+        },
+        {
+          "date": "2024-05-01",
+          "value": 3.9
+        },
+        {
+          "date": "2024-06-01",
+          "value": 4.1
+        },
+        {
+          "date": "2024-07-01",
+          "value": 4.2
+        },
+        {
+          "date": "2024-08-01",
+          "value": 4.2
+        },
+        {
+          "date": "2024-09-01",
+          "value": 4.1
+        },
+        {
+          "date": "2024-10-01",
+          "value": 4.1
+        },
+        {
+          "date": "2024-11-01",
+          "value": 4.2
+        },
+        {
+          "date": "2024-12-01",
+          "value": 4.1
+        },
+        {
+          "date": "2025-01-01",
+          "value": 4.0
+        },
+        {
+          "date": "2025-02-01",
+          "value": 4.2
+        },
+        {
+          "date": "2025-03-01",
+          "value": 4.2
+        },
+        {
+          "date": "2025-04-01",
+          "value": 4.2
+        },
+        {
+          "date": "2025-05-01",
+          "value": 4.3
+        },
+        {
+          "date": "2025-06-01",
+          "value": 4.1
+        },
+        {
+          "date": "2025-07-01",
+          "value": 4.3
+        },
+        {
+          "date": "2025-08-01",
+          "value": 4.3
+        },
+        {
+          "date": "2025-09-01",
+          "value": 4.4
+        },
+        {
+          "date": "2025-11-01",
+          "value": 4.5
+        },
+        {
+          "date": "2025-12-01",
+          "value": 4.4
+        },
+        {
+          "date": "2026-01-01",
+          "value": 4.3
+        },
+        {
+          "date": "2026-02-01",
+          "value": 4.4
+        },
+        {
+          "date": "2026-03-01",
+          "value": 4.3
+        },
+        {
+          "date": "2026-04-01",
+          "value": 4.3
+        },
+        {
+          "date": "2026-05-01",
+          "value": 4.3
+        },
+        {
+          "date": "2026-06-01",
+          "value": 4.2
+        },
+        {
+          "date": "2026-07-01",
+          "value": 4.1
+        },
+        {
+          "date": "2026-08-01",
+          "value": 4.1
+        },
+        {
+          "date": "2026-09-01",
+          "value": 4.2
+        }
+      ],
+      "last": 4.2,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "claims",
+      "group": "labor",
+      "series_id": "ICSA",
+      "agency": "DOL",
+      "unit": "thousand_claims",
+      "frequency": "weekly",
+      "source_url": "https://fred.stlouisfed.org/series/ICSA",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "13a82a437a2749acad9a5ca67d58eeebf61634568a26e47426d72e299597fdb3",
+      "release_date": "2026-11-12",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 198.20884830365992,
+        "range80": [
+          184.34694669983014,
+          201.35659002539836
+        ],
+        "method": "ar1",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 8.215953520710384,
+          "baseline_mae": 6.233333333333333,
+          "improvement_pct": -31.806740973963386,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": 1,
+      "signal": "WEAKER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2026-02-28",
+          "value": 214.0
+        },
+        {
+          "date": "2026-03-07",
+          "value": 213.0
+        },
+        {
+          "date": "2026-03-14",
+          "value": 205.0
+        },
+        {
+          "date": "2026-03-21",
+          "value": 211.0
+        },
+        {
+          "date": "2026-03-28",
+          "value": 203.0
+        },
+        {
+          "date": "2026-04-04",
+          "value": 218.0
+        },
+        {
+          "date": "2026-04-11",
+          "value": 208.0
+        },
+        {
+          "date": "2026-04-18",
+          "value": 215.0
+        },
+        {
+          "date": "2026-04-25",
+          "value": 190.0
+        },
+        {
+          "date": "2026-05-02",
+          "value": 199.0
+        },
+        {
+          "date": "2026-05-09",
+          "value": 212.0
+        },
+        {
+          "date": "2026-05-16",
+          "value": 210.0
+        },
+        {
+          "date": "2026-05-23",
+          "value": 212.0
+        },
+        {
+          "date": "2026-05-30",
+          "value": 225.0
+        },
+        {
+          "date": "2026-06-06",
+          "value": 230.0
+        },
+        {
+          "date": "2026-06-13",
+          "value": 227.0
+        },
+        {
+          "date": "2026-06-20",
+          "value": 216.0
+        },
+        {
+          "date": "2026-06-27",
+          "value": 217.0
+        },
+        {
+          "date": "2026-07-04",
+          "value": 217.0
+        },
+        {
+          "date": "2026-07-11",
+          "value": 209.0
+        },
+        {
+          "date": "2026-07-18",
+          "value": 189.0
+        },
+        {
+          "date": "2026-07-25",
+          "value": 198.0
+        },
+        {
+          "date": "2026-08-01",
+          "value": 200.0
+        },
+        {
+          "date": "2026-08-08",
+          "value": 212.0
+        },
+        {
+          "date": "2026-08-15",
+          "value": 207.0
+        },
+        {
+          "date": "2026-08-22",
+          "value": 204.0
+        },
+        {
+          "date": "2026-08-29",
+          "value": 207.0
+        },
+        {
+          "date": "2026-09-05",
+          "value": 207.0
+        },
+        {
+          "date": "2026-09-12",
+          "value": 198.0
+        },
+        {
+          "date": "2026-09-19",
+          "value": 198.0
+        },
+        {
+          "date": "2026-09-26",
+          "value": 199.0
+        },
+        {
+          "date": "2026-10-03",
+          "value": 198.0
+        },
+        {
+          "date": "2026-10-10",
+          "value": 200.0
+        },
+        {
+          "date": "2026-10-17",
+          "value": 195.0
+        },
+        {
+          "date": "2026-10-24",
+          "value": 195.0
+        },
+        {
+          "date": "2026-10-31",
+          "value": 189.0
+        }
+      ],
+      "last": 189.0,
+      "observed_period": "2026-10-31",
+      "reference_period": "2026-11-07"
+    },
+    {
+      "id": "retail",
+      "group": "growth",
+      "series_id": "RSAFS",
+      "agency": "Census",
+      "unit": "percent_mom",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/RSAFS",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "d829c86ce02e96c1049c96dadda3897a6748daf443befa58875d8696133cb24e",
+      "release_date": "2026-11-17",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.4467285642682197,
+        "range80": [
+          -0.5161246792726933,
+          1.1731330878178183
+        ],
+        "method": "ar1",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.5858142628900974,
+          "baseline_mae": 0.6765426426563803,
+          "improvement_pct": 13.410592924349384,
+          "beats_baseline": true,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": -1,
+      "signal": "WEAKER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": -0.48890173686030325
+        },
+        {
+          "date": "2023-11-01",
+          "value": -0.2090399287227762
+        },
+        {
+          "date": "2023-12-01",
+          "value": 0.08163032566599338
+        },
+        {
+          "date": "2024-01-01",
+          "value": -0.9537260687624394
+        },
+        {
+          "date": "2024-02-01",
+          "value": 0.6083844735559341
+        },
+        {
+          "date": "2024-03-01",
+          "value": -0.04408527566839293
+        },
+        {
+          "date": "2024-04-01",
+          "value": 0.07977986777616408
+        },
+        {
+          "date": "2024-05-01",
+          "value": 0.4212929678216959
+        },
+        {
+          "date": "2024-06-01",
+          "value": -0.2424890550415726
+        },
+        {
+          "date": "2024-07-01",
+          "value": 1.1443757131703869
+        },
+        {
+          "date": "2024-08-01",
+          "value": -0.4444365275167672
+        },
+        {
+          "date": "2024-09-01",
+          "value": 0.7957737658573327
+        },
+        {
+          "date": "2024-10-01",
+          "value": 0.8584256033609128
+        },
+        {
+          "date": "2024-11-01",
+          "value": 0.5721552108511441
+        },
+        {
+          "date": "2024-12-01",
+          "value": 0.8874026737289542
+        },
+        {
+          "date": "2025-01-01",
+          "value": -0.6845968597588348
+        },
+        {
+          "date": "2025-02-01",
+          "value": -0.47827112121539006
+        },
+        {
+          "date": "2025-03-01",
+          "value": 1.6055059288768714
+        },
+        {
+          "date": "2025-04-01",
+          "value": 0.10277078085643154
+        },
+        {
+          "date": "2025-05-01",
+          "value": -1.434438015483186
+        },
+        {
+          "date": "2025-06-01",
+          "value": 0.9329120276357905
+        },
+        {
+          "date": "2025-07-01",
+          "value": 0.924578288525657
+        },
+        {
+          "date": "2025-08-01",
+          "value": 0.30460560233718237
+        },
+        {
+          "date": "2025-09-01",
+          "value": 0.07724080427522484
+        },
+        {
+          "date": "2025-10-01",
+          "value": -0.02254090175020096
+        },
+        {
+          "date": "2025-11-01",
+          "value": 0.6653919148389642
+        },
+        {
+          "date": "2025-12-01",
+          "value": 0.11496159205504064
+        },
+        {
+          "date": "2026-01-01",
+          "value": -0.6235628603468379
+        },
+        {
+          "date": "2026-02-01",
+          "value": 0.8689767190037889
+        },
+        {
+          "date": "2026-03-01",
+          "value": 1.658429372322412
+        },
+        {
+          "date": "2026-04-01",
+          "value": 0.5864943726552774
+        },
+        {
+          "date": "2026-05-01",
+          "value": 1.0351958293791652
+        },
+        {
+          "date": "2026-06-01",
+          "value": 0.20275766835518017
+        },
+        {
+          "date": "2026-07-01",
+          "value": -0.40701434578891416
+        },
+        {
+          "date": "2026-08-01",
+          "value": 1.288780200434303
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.7708413925190838
+        }
+      ],
+      "last": 0.7708413925190838,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "cpi",
+      "group": "inflation",
+      "series_id": "CPIAUCSL",
+      "agency": "BLS",
+      "unit": "percent_mom",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "b99909e322c5c3653ec18960e5f05f41fae38fc9bbaa36a0732ae673ab810a67",
+      "release_date": "2026-11-10",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.37274511777281766,
+        "range80": [
+          0.09270932885811489,
+          0.5933473508320869
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.2077721956399096,
+          "baseline_mae": 0.2077721956399096,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": -1,
+      "signal": "COOLER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
+      "history": [
+        {
+          "date": "2023-09-01",
+          "value": 0.3900915440960384
+        },
+        {
+          "date": "2023-10-01",
+          "value": 0.13668493471667986
+        },
+        {
+          "date": "2023-11-01",
+          "value": 0.14689823722116024
+        },
+        {
+          "date": "2023-12-01",
+          "value": 0.1924399963653789
+        },
+        {
+          "date": "2024-01-01",
+          "value": 0.30996854969052023
+        },
+        {
+          "date": "2024-02-01",
+          "value": 0.40975401843086345
+        },
+        {
+          "date": "2024-03-01",
+          "value": 0.4431338373525273
+        },
+        {
+          "date": "2024-04-01",
+          "value": 0.21706766556210955
+        },
+        {
+          "date": "2024-05-01",
+          "value": 0.04855873210594108
+        },
+        {
+          "date": "2024-06-01",
+          "value": -0.041829647960411886
+        },
+        {
+          "date": "2024-07-01",
+          "value": 0.16770805381991494
+        },
+        {
+          "date": "2024-08-01",
+          "value": 0.1572221743858515
+        },
+        {
+          "date": "2024-09-01",
+          "value": 0.2133336729690294
+        },
+        {
+          "date": "2024-10-01",
+          "value": 0.2856398459641696
+        },
+        {
+          "date": "2024-11-01",
+          "value": 0.28419261732848256
+        },
+        {
+          "date": "2024-12-01",
+          "value": 0.3399383308901438
+        },
+        {
+          "date": "2025-01-01",
+          "value": 0.42726162139017365
+        },
+        {
+          "date": "2025-02-01",
+          "value": 0.22510589068882592
+        },
+        {
+          "date": "2025-03-01",
+          "value": 0.03315826188146076
+        },
+        {
+          "date": "2025-04-01",
+          "value": 0.16167112278562268
+        },
+        {
+          "date": "2025-05-01",
+          "value": 0.09928130327003792
+        },
+        {
+          "date": "2025-06-01",
+          "value": 0.2541949971929469
+        },
+        {
+          "date": "2025-07-01",
+          "value": 0.22835098853577485
+        },
+        {
+          "date": "2025-08-01",
+          "value": 0.3482644202266627
+        },
+        {
+          "date": "2025-09-01",
+          "value": 0.2950901819104068
+        },
+        {
+          "date": "2025-11-01",
+          "value": null
+        },
+        {
+          "date": "2025-12-01",
+          "value": 0.297788428704604
+        },
+        {
+          "date": "2026-01-01",
+          "value": 0.170842649932057
+        },
+        {
+          "date": "2026-02-01",
+          "value": 0.26700307420970404
+        },
+        {
+          "date": "2026-03-01",
+          "value": 0.8651438343614481
+        },
+        {
+          "date": "2026-04-01",
+          "value": 0.6400377846336402
+        },
+        {
+          "date": "2026-05-01",
+          "value": 0.47291422864139676
+        },
+        {
+          "date": "2026-06-01",
+          "value": -0.42248165303806484
+        },
+        {
+          "date": "2026-07-01",
+          "value": 0.07366914435544825
+        },
+        {
+          "date": "2026-08-01",
+          "value": 0.3960181843858157
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.6485480245771891
+        }
+      ],
+      "last": 0.6485480245771891,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "core_cpi",
+      "group": "inflation",
+      "series_id": "CPILFESL",
+      "agency": "BLS",
+      "unit": "percent_mom",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/CPILFESL",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "f238deb0105212694d3700b84eaf6db7e4c89754644ef669f3abe2285b0fbf98",
+      "release_date": "2026-11-10",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.30554590113418995,
+        "range80": [
+          0.18465964076294902,
+          0.4147719030987117
+        ],
+        "method": "ar1",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.08448717289804333,
+          "baseline_mae": 0.09865372801806697,
+          "improvement_pct": 14.359878136008453,
+          "beats_baseline": true,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": -1,
+      "signal": "COOLER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
+        "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
+      ],
+      "history": [
+        {
+          "date": "2023-09-01",
+          "value": 0.3097745332385715
+        },
+        {
+          "date": "2023-10-01",
+          "value": 0.29561504352111356
+        },
+        {
+          "date": "2023-11-01",
+          "value": 0.30020195404181216
+        },
+        {
+          "date": "2023-12-01",
+          "value": 0.25704883607775564
+        },
+        {
+          "date": "2024-01-01",
+          "value": 0.3588818467727739
+        },
+        {
+          "date": "2024-02-01",
+          "value": 0.39609441363710474
+        },
+        {
+          "date": "2024-03-01",
+          "value": 0.3891445158509699
+        },
+        {
+          "date": "2024-04-01",
+          "value": 0.27052450819466944
+        },
+        {
+          "date": "2024-05-01",
+          "value": 0.14040654936740005
+        },
+        {
+          "date": "2024-06-01",
+          "value": 0.09273959037392476
+        },
+        {
+          "date": "2024-07-01",
+          "value": 0.17274411884795615
+        },
+        {
+          "date": "2024-08-01",
+          "value": 0.25396626324700744
+        },
+        {
+          "date": "2024-09-01",
+          "value": 0.30711493354182995
+        },
+        {
+          "date": "2024-10-01",
+          "value": 0.3114750009353573
+        },
+        {
+          "date": "2024-11-01",
+          "value": 0.28781808405158316
+        },
+        {
+          "date": "2024-12-01",
+          "value": 0.18657583749928097
+        },
+        {
+          "date": "2025-01-01",
+          "value": 0.4265929177532435
+        },
+        {
+          "date": "2025-02-01",
+          "value": 0.2547452855180321
+        },
+        {
+          "date": "2025-03-01",
+          "value": 0.06913185749619633
+        },
+        {
+          "date": "2025-04-01",
+          "value": 0.23857041972428217
+        },
+        {
+          "date": "2025-05-01",
+          "value": 0.13048792067804627
+        },
+        {
+          "date": "2025-06-01",
+          "value": 0.23402152998077685
+        },
+        {
+          "date": "2025-07-01",
+          "value": 0.3125209822436803
+        },
+        {
+          "date": "2025-08-01",
+          "value": 0.3097218588179462
+        },
+        {
+          "date": "2025-09-01",
+          "value": 0.2177737336973129
+        },
+        {
+          "date": "2025-11-01",
+          "value": null
+        },
+        {
+          "date": "2025-12-01",
+          "value": 0.2329002576704653
+        },
+        {
+          "date": "2026-01-01",
+          "value": 0.2950448142634121
+        },
+        {
+          "date": "2026-02-01",
+          "value": 0.21605021740240815
+        },
+        {
+          "date": "2026-03-01",
+          "value": 0.19579505385114437
+        },
+        {
+          "date": "2026-04-01",
+          "value": 0.376460730477457
+        },
+        {
+          "date": "2026-05-01",
+          "value": 0.20809544962627768
+        },
+        {
+          "date": "2026-06-01",
+          "value": -0.016660666843182348
+        },
+        {
+          "date": "2026-07-01",
+          "value": 0.2154345141564873
+        },
+        {
+          "date": "2026-08-01",
+          "value": 0.2897956881014574
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.3348481932704761
+        }
+      ],
+      "last": 0.3348481932704761,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "core_pce",
+      "group": "inflation",
+      "series_id": "PCEPILFE",
+      "agency": "BEA",
+      "unit": "percent_mom",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/PCEPILFE",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "d604aece76c0467c84ab2a141e9265b236c15b8c2939cfbb5ae0dd51897bd25c",
+      "release_date": "2026-11-25",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.23874544287235308,
+        "range80": [
+          0.08837579625609937,
+          0.36654524562392676
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.07884507970309422,
+          "baseline_mae": 0.07884507970309422,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": -1,
+      "signal": "COOLER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": 0.22323473799072957
+        },
+        {
+          "date": "2023-11-01",
+          "value": 0.16954646321092337
+        },
+        {
+          "date": "2023-12-01",
+          "value": 0.14021987139596348
+        },
+        {
+          "date": "2024-01-01",
+          "value": 0.42007059174440364
+        },
+        {
+          "date": "2024-02-01",
+          "value": 0.3044529335566537
+        },
+        {
+          "date": "2024-03-01",
+          "value": 0.3668668256971319
+        },
+        {
+          "date": "2024-04-01",
+          "value": 0.19341725675321442
+        },
+        {
+          "date": "2024-05-01",
+          "value": 0.12596930929555938
+        },
+        {
+          "date": "2024-06-01",
+          "value": 0.21322484191950153
+        },
+        {
+          "date": "2024-07-01",
+          "value": 0.1671191110893755
+        },
+        {
+          "date": "2024-08-01",
+          "value": 0.21404388306531796
+        },
+        {
+          "date": "2024-09-01",
+          "value": 0.2655621878426162
+        },
+        {
+          "date": "2024-10-01",
+          "value": 0.2867279000826173
+        },
+        {
+          "date": "2024-11-01",
+          "value": 0.1397234606189901
+        },
+        {
+          "date": "2024-12-01",
+          "value": 0.1685633402963127
+        },
+        {
+          "date": "2025-01-01",
+          "value": 0.33092320327219316
+        },
+        {
+          "date": "2025-02-01",
+          "value": 0.315386529062911
+        },
+        {
+          "date": "2025-03-01",
+          "value": 0.11359818242908659
+        },
+        {
+          "date": "2025-04-01",
+          "value": 0.30365019497538004
+        },
+        {
+          "date": "2025-05-01",
+          "value": 0.23421815748383423
+        },
+        {
+          "date": "2025-06-01",
+          "value": 0.25036163347056384
+        },
+        {
+          "date": "2025-07-01",
+          "value": 0.18234720493448542
+        },
+        {
+          "date": "2025-08-01",
+          "value": 0.2239579623782184
+        },
+        {
+          "date": "2025-09-01",
+          "value": 0.23214313914374785
+        },
+        {
+          "date": "2025-10-01",
+          "value": 0.1772490940601834
+        },
+        {
+          "date": "2025-11-01",
+          "value": 0.15570322022568917
+        },
+        {
+          "date": "2025-12-01",
+          "value": 0.31563326868870867
+        },
+        {
+          "date": "2026-01-01",
+          "value": 0.39525691699604515
+        },
+        {
+          "date": "2026-02-01",
+          "value": 0.33600997895064655
+        },
+        {
+          "date": "2026-03-01",
+          "value": 0.25563126937631075
+        },
+        {
+          "date": "2026-04-01",
+          "value": 0.2828799503991286
+        },
+        {
+          "date": "2026-05-01",
+          "value": 0.30990378299005084
+        },
+        {
+          "date": "2026-06-01",
+          "value": 0.13328607969429473
+        },
+        {
+          "date": "2026-07-01",
+          "value": 0.1377251498434262
+        },
+        {
+          "date": "2026-08-01",
+          "value": 0.26200940467775435
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.31650177409587865
+        }
+      ],
+      "last": 0.31650177409587865,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "production",
+      "group": "growth",
+      "series_id": "INDPRO",
+      "agency": "Federal Reserve",
+      "unit": "percent_mom",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/INDPRO",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "d42158196d41b82d1a53526d3511a35f7826cbb4ae2d8663b89ec8515bab07f8",
+      "release_date": "2026-11-17",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 0.15364079885830784,
+        "range80": [
+          -0.32377837578988744,
+          0.9849669749870694
+        ],
+        "method": "ar1",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 0.41837555260249726,
+          "baseline_mae": 0.437910382265347,
+          "improvement_pct": 4.460919506359828,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": -1,
+      "signal": "WEAKER",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": -0.5466184787138562
+        },
+        {
+          "date": "2023-11-01",
+          "value": 0.39315648922202406
+        },
+        {
+          "date": "2023-12-01",
+          "value": -0.25856624619908786
+        },
+        {
+          "date": "2024-01-01",
+          "value": -1.3725223179007373
+        },
+        {
+          "date": "2024-02-01",
+          "value": 1.0710293956096573
+        },
+        {
+          "date": "2024-03-01",
+          "value": 0.17200977214937296
+        },
+        {
+          "date": "2024-04-01",
+          "value": -0.2131249533384838
+        },
+        {
+          "date": "2024-05-01",
+          "value": 0.6180955554181189
+        },
+        {
+          "date": "2024-06-01",
+          "value": 0.030734759029571457
+        },
+        {
+          "date": "2024-07-01",
+          "value": -0.9101631415148637
+        },
+        {
+          "date": "2024-08-01",
+          "value": 0.45531064048562886
+        },
+        {
+          "date": "2024-09-01",
+          "value": -0.619829156166074
+        },
+        {
+          "date": "2024-10-01",
+          "value": -0.33955057890919793
+        },
+        {
+          "date": "2024-11-01",
+          "value": -0.17794399288223461
+        },
+        {
+          "date": "2024-12-01",
+          "value": 1.0421733766397212
+        },
+        {
+          "date": "2025-01-01",
+          "value": -0.261743314132834
+        },
+        {
+          "date": "2025-02-01",
+          "value": 1.033931046612846
+        },
+        {
+          "date": "2025-03-01",
+          "value": -0.05825955273676131
+        },
+        {
+          "date": "2025-04-01",
+          "value": 0.08659902375682815
+        },
+        {
+          "date": "2025-05-01",
+          "value": -0.16058871982903566
+        },
+        {
+          "date": "2025-06-01",
+          "value": 0.5080943490598289
+        },
+        {
+          "date": "2025-07-01",
+          "value": 0.4094463359233913
+        },
+        {
+          "date": "2025-08-01",
+          "value": -0.26429426659076993
+        },
+        {
+          "date": "2025-09-01",
+          "value": 0.04260775185560561
+        },
+        {
+          "date": "2025-10-01",
+          "value": -0.44114175551797086
+        },
+        {
+          "date": "2025-11-01",
+          "value": -0.18286990155058636
+        },
+        {
+          "date": "2025-12-01",
+          "value": 0.45499354675238024
+        },
+        {
+          "date": "2026-01-01",
+          "value": -0.44859750468254633
+        },
+        {
+          "date": "2026-02-01",
+          "value": 0.8575913411481562
+        },
+        {
+          "date": "2026-03-01",
+          "value": -0.16848976451666609
+        },
+        {
+          "date": "2026-04-01",
+          "value": 0.8288313792100155
+        },
+        {
+          "date": "2026-05-01",
+          "value": 0.14272233097543108
+        },
+        {
+          "date": "2026-06-01",
+          "value": 0.23149590355440175
+        },
+        {
+          "date": "2026-07-01",
+          "value": 0.23270947251872176
+        },
+        {
+          "date": "2026-08-01",
+          "value": 0.06375931922877331
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.662558198988239
+        }
+      ],
+      "last": 0.662558198988239,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "housing",
+      "group": "growth",
+      "series_id": "HOUST",
+      "agency": "Census / HUD",
+      "unit": "thousand_homes_saar",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/HOUST",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "643e192d263a4690aaa4e13349d22d484a07dbf3a6d787da61cf0eb0aaaaae4b",
+      "release_date": "2026-11-18",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": 1221.0,
+        "range80": [
+          1080.0,
+          1362.8000000000002
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 90.66666666666667,
+          "baseline_mae": 90.66666666666667,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": 1380.0
+        },
+        {
+          "date": "2023-11-01",
+          "value": 1522.0
+        },
+        {
+          "date": "2023-12-01",
+          "value": 1504.0
+        },
+        {
+          "date": "2024-01-01",
+          "value": 1378.0
+        },
+        {
+          "date": "2024-02-01",
+          "value": 1555.0
+        },
+        {
+          "date": "2024-03-01",
+          "value": 1297.0
+        },
+        {
+          "date": "2024-04-01",
+          "value": 1379.0
+        },
+        {
+          "date": "2024-05-01",
+          "value": 1329.0
+        },
+        {
+          "date": "2024-06-01",
+          "value": 1318.0
+        },
+        {
+          "date": "2024-07-01",
+          "value": 1269.0
+        },
+        {
+          "date": "2024-08-01",
+          "value": 1394.0
+        },
+        {
+          "date": "2024-09-01",
+          "value": 1357.0
+        },
+        {
+          "date": "2024-10-01",
+          "value": 1370.0
+        },
+        {
+          "date": "2024-11-01",
+          "value": 1300.0
+        },
+        {
+          "date": "2024-12-01",
+          "value": 1494.0
+        },
+        {
+          "date": "2025-01-01",
+          "value": 1353.0
+        },
+        {
+          "date": "2025-02-01",
+          "value": 1491.0
+        },
+        {
+          "date": "2025-03-01",
+          "value": 1346.0
+        },
+        {
+          "date": "2025-04-01",
+          "value": 1400.0
+        },
+        {
+          "date": "2025-05-01",
+          "value": 1289.0
+        },
+        {
+          "date": "2025-06-01",
+          "value": 1379.0
+        },
+        {
+          "date": "2025-07-01",
+          "value": 1432.0
+        },
+        {
+          "date": "2025-08-01",
+          "value": 1291.0
+        },
+        {
+          "date": "2025-09-01",
+          "value": 1319.0
+        },
+        {
+          "date": "2025-10-01",
+          "value": 1273.0
+        },
+        {
+          "date": "2025-11-01",
+          "value": 1319.0
+        },
+        {
+          "date": "2025-12-01",
+          "value": 1378.0
+        },
+        {
+          "date": "2026-01-01",
+          "value": 1385.0
+        },
+        {
+          "date": "2026-02-01",
+          "value": 1346.0
+        },
+        {
+          "date": "2026-03-01",
+          "value": 1522.0
+        },
+        {
+          "date": "2026-04-01",
+          "value": 1414.0
+        },
+        {
+          "date": "2026-05-01",
+          "value": 1182.0
+        },
+        {
+          "date": "2026-06-01",
+          "value": 1439.0
+        },
+        {
+          "date": "2026-07-01",
+          "value": 1369.0
+        },
+        {
+          "date": "2026-08-01",
+          "value": 1288.0
+        },
+        {
+          "date": "2026-09-01",
+          "value": 1221.0
+        }
+      ],
+      "last": 1221.0,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    },
+    {
+      "id": "trade",
+      "group": "growth",
+      "series_id": "BOPGSTB",
+      "agency": "BEA / Census",
+      "unit": "usd_billions",
+      "frequency": "monthly",
+      "source_url": "https://fred.stlouisfed.org/series/BOPGSTB",
+      "source_retrieved_at": "2026-11-05T18:33:22Z",
+      "source_sha256": "d0e6835a7e947727c75bada19f7208bc3a4327ec85efb57b6d4325c00f000268",
+      "release_date": "2026-12-08",
+      "status": "RESEARCH_ESTIMATE",
+      "forecast": {
+        "point": -105.047,
+        "range80": [
+          -126.8135,
+          -88.9674
+        ],
+        "method": "baseline",
+        "validation": {
+          "kind": "chronological_latest_vintage_holdout",
+          "selection_n": 30,
+          "holdout_n": 30,
+          "mae": 12.740666666666668,
+          "baseline_mae": 12.740666666666668,
+          "improvement_pct": 0.0,
+          "beats_baseline": false,
+          "first_release_verified": false
+        },
+        "probability_above_consensus": null
+      },
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
+      "probability_above_consensus": null,
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
+      "flags": [
+        "LATEST_REVISED_DATA",
+        "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS"
+      ],
+      "history": [
+        {
+          "date": "2023-10-01",
+          "value": -64.158
+        },
+        {
+          "date": "2023-11-01",
+          "value": -64.263
+        },
+        {
+          "date": "2023-12-01",
+          "value": -61.283
+        },
+        {
+          "date": "2024-01-01",
+          "value": -63.925000000000004
+        },
+        {
+          "date": "2024-02-01",
+          "value": -63.253
+        },
+        {
+          "date": "2024-03-01",
+          "value": -61.925000000000004
+        },
+        {
+          "date": "2024-04-01",
+          "value": -70.87
+        },
+        {
+          "date": "2024-05-01",
+          "value": -70.299
+        },
+        {
+          "date": "2024-06-01",
+          "value": -71.34400000000001
+        },
+        {
+          "date": "2024-07-01",
+          "value": -77.0
+        },
+        {
+          "date": "2024-08-01",
+          "value": -71.161
+        },
+        {
+          "date": "2024-09-01",
+          "value": -83.301
+        },
+        {
+          "date": "2024-10-01",
+          "value": -75.788
+        },
+        {
+          "date": "2024-11-01",
+          "value": -79.756
+        },
+        {
+          "date": "2024-12-01",
+          "value": -96.849
+        },
+        {
+          "date": "2025-01-01",
+          "value": -124.70400000000001
+        },
+        {
+          "date": "2025-02-01",
+          "value": -117.069
+        },
+        {
+          "date": "2025-03-01",
+          "value": -132.983
+        },
+        {
+          "date": "2025-04-01",
+          "value": -60.341
+        },
+        {
+          "date": "2025-05-01",
+          "value": -66.748
+        },
+        {
+          "date": "2025-06-01",
+          "value": -58.697
+        },
+        {
+          "date": "2025-07-01",
+          "value": -75.062
+        },
+        {
+          "date": "2025-08-01",
+          "value": -59.642
+        },
+        {
+          "date": "2025-09-01",
+          "value": -59.392
+        },
+        {
+          "date": "2025-10-01",
+          "value": -37.376
+        },
+        {
+          "date": "2025-11-01",
+          "value": -63.868
+        },
+        {
+          "date": "2025-12-01",
+          "value": -76.078
+        },
+        {
+          "date": "2026-01-01",
+          "value": -52.67
+        },
+        {
+          "date": "2026-02-01",
+          "value": -52.5
+        },
+        {
+          "date": "2026-03-01",
+          "value": -53.657000000000004
+        },
+        {
+          "date": "2026-04-01",
+          "value": -52.883
+        },
+        {
+          "date": "2026-05-01",
+          "value": -75.752
+        },
+        {
+          "date": "2026-06-01",
+          "value": -71.182
+        },
+        {
+          "date": "2026-07-01",
+          "value": -92.82600000000001
+        },
+        {
+          "date": "2026-08-01",
+          "value": -105.73700000000001
+        },
+        {
+          "date": "2026-09-01",
+          "value": -105.047
+        }
+      ],
+      "last": -105.047,
+      "observed_period": "2026-09-01",
+      "reference_period": "2026-10"
+    }
+  ],
+  "context": [
+    {
+      "id": "reserves",
+      "series_id": "WRESBAL",
+      "source_url": "https://fred.stlouisfed.org/series/WRESBAL",
+      "unit": "usd_billions",
+      "frequency": "weekly",
+      "basis": "weekly_average",
+      "status": "OK",
+      "observed_at": "2026-10-28",
+      "value": 2893.77,
+      "change": -68.837,
+      "history": [
+        {
+          "date": "2025-09-10",
+          "value": 3160.774
+        },
+        {
+          "date": "2025-09-17",
+          "value": 3073.355
+        },
+        {
+          "date": "2025-09-24",
+          "value": 3002.218
+        },
+        {
+          "date": "2025-10-01",
+          "value": 2966.094
+        },
+        {
+          "date": "2025-10-08",
+          "value": 2998.471
+        },
+        {
+          "date": "2025-10-15",
+          "value": 3019.0280000000002
+        },
+        {
+          "date": "2025-10-22",
+          "value": 2933.0370000000003
+        },
+        {
+          "date": "2025-10-29",
+          "value": 2848.021
+        },
+        {
+          "date": "2025-11-05",
+          "value": 2862.569
+        },
+        {
+          "date": "2025-11-12",
+          "value": 2855.03
+        },
+        {
+          "date": "2025-11-19",
+          "value": 2888.643
+        },
+        {
+          "date": "2025-11-26",
+          "value": 2896.5860000000002
+        },
+        {
+          "date": "2025-12-03",
+          "value": 2858.284
+        },
+        {
+          "date": "2025-12-10",
+          "value": 2932.112
+        },
+        {
+          "date": "2025-12-17",
+          "value": 2959.044
+        },
+        {
+          "date": "2025-12-24",
+          "value": 2955.581
+        },
+        {
+          "date": "2025-12-31",
+          "value": 2957.41
+        },
+        {
+          "date": "2026-01-07",
+          "value": 2996.379
+        },
+        {
+          "date": "2026-01-14",
+          "value": 3049.63
+        },
+        {
+          "date": "2026-01-21",
+          "value": 2954.9030000000002
+        },
+        {
+          "date": "2026-01-28",
+          "value": 2901.6
+        },
+        {
+          "date": "2026-02-04",
+          "value": 2925.17
+        },
+        {
+          "date": "2026-02-11",
+          "value": 2939.5570000000002
+        },
+        {
+          "date": "2026-02-18",
+          "value": 2949.804
+        },
+        {
+          "date": "2026-02-25",
+          "value": 2965.765
+        },
+        {
+          "date": "2026-03-04",
+          "value": 3015.531
+        },
+        {
+          "date": "2026-03-11",
+          "value": 3037.665
+        },
+        {
+          "date": "2026-03-18",
+          "value": 3019.995
+        },
+        {
+          "date": "2026-03-25",
+          "value": 2993.955
+        },
+        {
+          "date": "2026-04-01",
+          "value": 3026.708
+        },
+        {
+          "date": "2026-04-08",
+          "value": 3116.247
+        },
+        {
+          "date": "2026-04-15",
+          "value": 3129.588
+        },
+        {
+          "date": "2026-04-22",
+          "value": 2901.8250000000003
+        },
+        {
+          "date": "2026-04-29",
+          "value": 2918.599
+        },
+        {
+          "date": "2026-05-06",
+          "value": 3032.588
+        },
+        {
+          "date": "2026-05-13",
+          "value": 3102.81
+        },
+        {
+          "date": "2026-05-20",
+          "value": 3129.562
+        },
+        {
+          "date": "2026-05-27",
+          "value": 3066.56
+        },
+        {
+          "date": "2026-06-03",
+          "value": 3013.902
+        },
+        {
+          "date": "2026-06-10",
+          "value": 3080.723
+        },
+        {
+          "date": "2026-06-17",
+          "value": 3033.444
+        },
+        {
+          "date": "2026-06-24",
+          "value": 2951.416
+        },
+        {
+          "date": "2026-07-01",
+          "value": 2966.897
+        },
+        {
+          "date": "2026-07-08",
+          "value": 3098.911
+        },
+        {
+          "date": "2026-07-15",
+          "value": 3142.721
+        },
+        {
+          "date": "2026-07-22",
+          "value": 3062.149
+        },
+        {
+          "date": "2026-07-29",
+          "value": 2984.57
+        },
+        {
+          "date": "2026-08-05",
+          "value": 2993.349
+        },
+        {
+          "date": "2026-08-12",
+          "value": 2944.059
+        },
+        {
+          "date": "2026-08-19",
+          "value": 2935.2870000000003
+        },
+        {
+          "date": "2026-08-26",
+          "value": 2924.936
+        },
+        {
+          "date": "2026-09-02",
+          "value": 2894.531
+        },
+        {
+          "date": "2026-09-09",
+          "value": 2991.31
+        },
+        {
+          "date": "2026-09-16",
+          "value": 3013.794
+        },
+        {
+          "date": "2026-09-23",
+          "value": 2930.193
+        },
+        {
+          "date": "2026-09-30",
+          "value": 2948.09
+        },
+        {
+          "date": "2026-10-07",
+          "value": 3029.659
+        },
+        {
+          "date": "2026-10-14",
+          "value": 3022.14
+        },
+        {
+          "date": "2026-10-21",
+          "value": 2962.607
+        },
+        {
+          "date": "2026-10-28",
+          "value": 2893.77
+        }
+      ]
+    },
+    {
+      "id": "fed_assets",
+      "series_id": "WALCL",
+      "source_url": "https://fred.stlouisfed.org/series/WALCL",
+      "unit": "usd_billions",
+      "frequency": "weekly",
+      "basis": "wednesday_level",
+      "status": "OK",
+      "observed_at": "2026-10-28",
+      "value": 6745.635,
+      "change": -7.969,
+      "history": [
+        {
+          "date": "2025-09-10",
+          "value": 6605.962
+        },
+        {
+          "date": "2025-09-17",
+          "value": 6608.597
+        },
+        {
+          "date": "2025-09-24",
+          "value": 6608.395
+        },
+        {
+          "date": "2025-10-01",
+          "value": 6587.119
+        },
+        {
+          "date": "2025-10-08",
+          "value": 6590.8150000000005
+        },
+        {
+          "date": "2025-10-15",
+          "value": 6596.454
+        },
+        {
+          "date": "2025-10-22",
+          "value": 6589.533
+        },
+        {
+          "date": "2025-10-29",
+          "value": 6587.034000000001
+        },
+        {
+          "date": "2025-11-05",
+          "value": 6572.732
+        },
+        {
+          "date": "2025-11-12",
+          "value": 6580.462
+        },
+        {
+          "date": "2025-11-19",
+          "value": 6555.283
+        },
+        {
+          "date": "2025-11-26",
+          "value": 6552.419
+        },
+        {
+          "date": "2025-12-03",
+          "value": 6535.781
+        },
+        {
+          "date": "2025-12-10",
+          "value": 6539.303
+        },
+        {
+          "date": "2025-12-17",
+          "value": 6556.861
+        },
+        {
+          "date": "2025-12-24",
+          "value": 6581.231
+        },
+        {
+          "date": "2025-12-31",
+          "value": 6640.618
+        },
+        {
+          "date": "2026-01-07",
+          "value": 6573.602
+        },
+        {
+          "date": "2026-01-14",
+          "value": 6581.7
+        },
+        {
+          "date": "2026-01-21",
+          "value": 6584.58
+        },
+        {
+          "date": "2026-01-28",
+          "value": 6587.568
+        },
+        {
+          "date": "2026-02-04",
+          "value": 6605.909000000001
+        },
+        {
+          "date": "2026-02-11",
+          "value": 6622.3820000000005
+        },
+        {
+          "date": "2026-02-18",
+          "value": 6613.395
+        },
+        {
+          "date": "2026-02-25",
+          "value": 6613.7970000000005
+        },
+        {
+          "date": "2026-03-04",
+          "value": 6628.894
+        },
+        {
+          "date": "2026-03-11",
+          "value": 6646.344
+        },
+        {
+          "date": "2026-03-18",
+          "value": 6655.939
+        },
+        {
+          "date": "2026-03-25",
+          "value": 6657.161
+        },
+        {
+          "date": "2026-04-01",
+          "value": 6675.344
+        },
+        {
+          "date": "2026-04-08",
+          "value": 6693.871
+        },
+        {
+          "date": "2026-04-15",
+          "value": 6705.696
+        },
+        {
+          "date": "2026-04-22",
+          "value": 6707.419
+        },
+        {
+          "date": "2026-04-29",
+          "value": 6699.95
+        },
+        {
+          "date": "2026-05-06",
+          "value": 6709.505
+        },
+        {
+          "date": "2026-05-13",
+          "value": 6728.502
+        },
+        {
+          "date": "2026-05-20",
+          "value": 6713.643
+        },
+        {
+          "date": "2026-05-27",
+          "value": 6704.383
+        },
+        {
+          "date": "2026-06-03",
+          "value": 6711.495
+        },
+        {
+          "date": "2026-06-10",
+          "value": 6725.397
+        },
+        {
+          "date": "2026-06-17",
+          "value": 6736.424
+        },
+        {
+          "date": "2026-06-24",
+          "value": 6735.645
+        },
+        {
+          "date": "2026-07-01",
+          "value": 6724.564
+        },
+        {
+          "date": "2026-07-08",
+          "value": 6735.609
+        },
+        {
+          "date": "2026-07-15",
+          "value": 6743.028
+        },
+        {
+          "date": "2026-07-22",
+          "value": 6747.378
+        },
+        {
+          "date": "2026-07-29",
+          "value": 6738.1900000000005
+        },
+        {
+          "date": "2026-08-05",
+          "value": 6748.567
+        },
+        {
+          "date": "2026-08-12",
+          "value": 6759.955
+        },
+        {
+          "date": "2026-08-19",
+          "value": 6745.6990000000005
+        },
+        {
+          "date": "2026-08-26",
+          "value": 6730.912
+        },
+        {
+          "date": "2026-09-02",
+          "value": 6737.204
+        },
+        {
+          "date": "2026-09-09",
+          "value": 6740.619
+        },
+        {
+          "date": "2026-09-16",
+          "value": 6746.548
+        },
+        {
+          "date": "2026-09-23",
+          "value": 6747.704
+        },
+        {
+          "date": "2026-09-30",
+          "value": 6743.031
+        },
+        {
+          "date": "2026-10-07",
+          "value": 6747.56
+        },
+        {
+          "date": "2026-10-14",
+          "value": 6755.639
+        },
+        {
+          "date": "2026-10-21",
+          "value": 6753.604
+        },
+        {
+          "date": "2026-10-28",
+          "value": 6745.635
+        }
+      ]
+    },
+    {
+      "id": "bank_credit",
+      "series_id": "TOTBKCR",
+      "source_url": "https://fred.stlouisfed.org/series/TOTBKCR",
+      "unit": "usd_billions",
+      "frequency": "weekly",
+      "basis": "weekly_sa",
+      "status": "OK",
+      "observed_at": "2026-10-21",
+      "value": 20014.2343,
+      "change": 28.85750000000189,
+      "history": [
+        {
+          "date": "2025-09-03",
+          "value": 18699.4949
+        },
+        {
+          "date": "2025-09-10",
+          "value": 18725.1785
+        },
+        {
+          "date": "2025-09-17",
+          "value": 18735.4884
+        },
+        {
+          "date": "2025-09-24",
+          "value": 18758.4085
+        },
+        {
+          "date": "2025-10-01",
+          "value": 18782.9184
+        },
+        {
+          "date": "2025-10-08",
+          "value": 18791.2907
+        },
+        {
+          "date": "2025-10-15",
+          "value": 18826.3065
+        },
+        {
+          "date": "2025-10-22",
+          "value": 18850.6519
+        },
+        {
+          "date": "2025-10-29",
+          "value": 18839.8427
+        },
+        {
+          "date": "2025-11-05",
+          "value": 18867.7891
+        },
+        {
+          "date": "2025-11-12",
+          "value": 18896.4335
+        },
+        {
+          "date": "2025-11-19",
+          "value": 18922.6175
+        },
+        {
+          "date": "2025-11-26",
+          "value": 18937.472
+        },
+        {
+          "date": "2025-12-03",
+          "value": 18910.5332
+        },
+        {
+          "date": "2025-12-10",
+          "value": 18927.6533
+        },
+        {
+          "date": "2025-12-17",
+          "value": 18943.2771
+        },
+        {
+          "date": "2025-12-24",
+          "value": 18968.409
+        },
+        {
+          "date": "2025-12-31",
+          "value": 18964.2829
+        },
+        {
+          "date": "2026-01-07",
+          "value": 19021.6213
+        },
+        {
+          "date": "2026-01-14",
+          "value": 19070.7068
+        },
+        {
+          "date": "2026-01-21",
+          "value": 19130.857
+        },
+        {
+          "date": "2026-01-28",
+          "value": 19145.95
+        },
+        {
+          "date": "2026-02-04",
+          "value": 19185.032
+        },
+        {
+          "date": "2026-02-11",
+          "value": 19241.8798
+        },
+        {
+          "date": "2026-02-18",
+          "value": 19266.8543
+        },
+        {
+          "date": "2026-02-25",
+          "value": 19270.894
+        },
+        {
+          "date": "2026-03-04",
+          "value": 19310.4475
+        },
+        {
+          "date": "2026-03-11",
+          "value": 19342.6035
+        },
+        {
+          "date": "2026-03-18",
+          "value": 19352.4128
+        },
+        {
+          "date": "2026-03-25",
+          "value": 19378.859
+        },
+        {
+          "date": "2026-04-01",
+          "value": 19423.6549
+        },
+        {
+          "date": "2026-04-08",
+          "value": 19450.9764
+        },
+        {
+          "date": "2026-04-15",
+          "value": 19468.2854
+        },
+        {
+          "date": "2026-04-22",
+          "value": 19459.5965
+        },
+        {
+          "date": "2026-04-29",
+          "value": 19465.83
+        },
+        {
+          "date": "2026-05-06",
+          "value": 19503.2283
+        },
+        {
+          "date": "2026-05-13",
+          "value": 19539.0675
+        },
+        {
+          "date": "2026-05-20",
+          "value": 19574.7662
+        },
+        {
+          "date": "2026-05-27",
+          "value": 19596.0216
+        },
+        {
+          "date": "2026-06-03",
+          "value": 19588.1281
+        },
+        {
+          "date": "2026-06-10",
+          "value": 19646.069
+        },
+        {
+          "date": "2026-06-17",
+          "value": 19660.3214
+        },
+        {
+          "date": "2026-06-24",
+          "value": 19684.2237
+        },
+        {
+          "date": "2026-07-01",
+          "value": 19656.153
+        },
+        {
+          "date": "2026-07-08",
+          "value": 19681.337
+        },
+        {
+          "date": "2026-07-15",
+          "value": 19774.8811
+        },
+        {
+          "date": "2026-07-22",
+          "value": 19749.5362
+        },
+        {
+          "date": "2026-07-29",
+          "value": 19779.0668
+        },
+        {
+          "date": "2026-08-05",
+          "value": 19795.1278
+        },
+        {
+          "date": "2026-08-12",
+          "value": 19806.453
+        },
+        {
+          "date": "2026-08-19",
+          "value": 19842.9047
+        },
+        {
+          "date": "2026-08-26",
+          "value": 19846.3838
+        },
+        {
+          "date": "2026-09-02",
+          "value": 19849.3567
+        },
+        {
+          "date": "2026-09-09",
+          "value": 19883.1718
+        },
+        {
+          "date": "2026-09-16",
+          "value": 19894.3478
+        },
+        {
+          "date": "2026-09-23",
+          "value": 19871.2223
+        },
+        {
+          "date": "2026-09-30",
+          "value": 19893.6169
+        },
+        {
+          "date": "2026-10-07",
+          "value": 19939.3956
+        },
+        {
+          "date": "2026-10-14",
+          "value": 19985.3768
+        },
+        {
+          "date": "2026-10-21",
+          "value": 20014.2343
+        }
+      ]
+    },
+    {
+      "id": "rrp",
+      "series_id": "RRPONTSYD",
+      "source_url": "https://fred.stlouisfed.org/series/RRPONTSYD",
+      "unit": "usd_billions",
+      "frequency": "daily",
+      "basis": "daily_operation",
+      "status": "OK",
+      "observed_at": "2026-11-04",
+      "value": 0.225,
+      "change": -0.20199999999999999,
+      "history": [
+        {
+          "date": "2026-08-11",
+          "value": 1.25
+        },
+        {
+          "date": "2026-08-12",
+          "value": 0.725
+        },
+        {
+          "date": "2026-08-13",
+          "value": 0.45
+        },
+        {
+          "date": "2026-08-14",
+          "value": 0.25
+        },
+        {
+          "date": "2026-08-17",
+          "value": 0.255
+        },
+        {
+          "date": "2026-08-18",
+          "value": 0.155
+        },
+        {
+          "date": "2026-08-19",
+          "value": 0.317
+        },
+        {
+          "date": "2026-08-20",
+          "value": 0.225
+        },
+        {
+          "date": "2026-08-21",
+          "value": 0.2
+        },
+        {
+          "date": "2026-08-24",
+          "value": 0.38
+        },
+        {
+          "date": "2026-08-25",
+          "value": 0.405
+        },
+        {
+          "date": "2026-08-26",
+          "value": 0.702
+        },
+        {
+          "date": "2026-08-27",
+          "value": 0.456
+        },
+        {
+          "date": "2026-08-28",
+          "value": 0.175
+        },
+        {
+          "date": "2026-08-31",
+          "value": 6.726
+        },
+        {
+          "date": "2026-09-01",
+          "value": 0.725
+        },
+        {
+          "date": "2026-09-02",
+          "value": 0.525
+        },
+        {
+          "date": "2026-09-03",
+          "value": 0.702
+        },
+        {
+          "date": "2026-09-04",
+          "value": 0.675
+        },
+        {
+          "date": "2026-09-08",
+          "value": 0.626
+        },
+        {
+          "date": "2026-09-09",
+          "value": 0.432
+        },
+        {
+          "date": "2026-09-10",
+          "value": 4.736
+        },
+        {
+          "date": "2026-09-11",
+          "value": 5.255
+        },
+        {
+          "date": "2026-09-14",
+          "value": 1.42
+        },
+        {
+          "date": "2026-09-15",
+          "value": 0.7
+        },
+        {
+          "date": "2026-09-16",
+          "value": 5.375
+        },
+        {
+          "date": "2026-09-17",
+          "value": 0.276
+        },
+        {
+          "date": "2026-09-18",
+          "value": 0.576
+        },
+        {
+          "date": "2026-09-21",
+          "value": 0.582
+        },
+        {
+          "date": "2026-09-22",
+          "value": 0.453
+        },
+        {
+          "date": "2026-09-23",
+          "value": 0.461
+        },
+        {
+          "date": "2026-09-24",
+          "value": 0.63
+        },
+        {
+          "date": "2026-09-25",
+          "value": 0.576
+        },
+        {
+          "date": "2026-09-28",
+          "value": 0.851
+        },
+        {
+          "date": "2026-09-29",
+          "value": 11.446
+        },
+        {
+          "date": "2026-09-30",
+          "value": 11.539
+        },
+        {
+          "date": "2026-10-01",
+          "value": 0.35
+        },
+        {
+          "date": "2026-10-02",
+          "value": 1.501
+        },
+        {
+          "date": "2026-10-05",
+          "value": 1.004
+        },
+        {
+          "date": "2026-10-06",
+          "value": 0.414
+        },
+        {
+          "date": "2026-10-07",
+          "value": 2.338
+        },
+        {
+          "date": "2026-10-08",
+          "value": 0.335
+        },
+        {
+          "date": "2026-10-09",
+          "value": 0.3
+        },
+        {
+          "date": "2026-10-13",
+          "value": 0.275
+        },
+        {
+          "date": "2026-10-14",
+          "value": 0.201
+        },
+        {
+          "date": "2026-10-15",
+          "value": 1.201
+        },
+        {
+          "date": "2026-10-16",
+          "value": 0.1
+        },
+        {
+          "date": "2026-10-19",
+          "value": 0.33
+        },
+        {
+          "date": "2026-10-20",
+          "value": 0.227
+        },
+        {
+          "date": "2026-10-21",
+          "value": 0.237
+        },
+        {
+          "date": "2026-10-22",
+          "value": 0.351
+        },
+        {
+          "date": "2026-10-23",
+          "value": 0.2
+        },
+        {
+          "date": "2026-10-26",
+          "value": 0.2
+        },
+        {
+          "date": "2026-10-27",
+          "value": 0.226
+        },
+        {
+          "date": "2026-10-28",
+          "value": 0.176
+        },
+        {
+          "date": "2026-10-29",
+          "value": 0.353
+        },
+        {
+          "date": "2026-10-30",
+          "value": 4.375
+        },
+        {
+          "date": "2026-11-02",
+          "value": 5.087
+        },
+        {
+          "date": "2026-11-03",
+          "value": 0.427
+        },
+        {
+          "date": "2026-11-04",
+          "value": 0.225
+        }
+      ]
+    },
+    {
+      "id": "two_year",
+      "series_id": "DGS2",
+      "source_url": "https://fred.stlouisfed.org/series/DGS2",
+      "unit": "percent",
+      "frequency": "daily",
+      "basis": "constant_maturity",
+      "status": "OK",
+      "observed_at": "2026-11-03",
+      "value": 4.61,
+      "change": 0.020000000000000462,
+      "history": [
+        {
+          "date": "2026-08-10",
+          "value": 4.25
+        },
+        {
+          "date": "2026-08-11",
+          "value": 4.22
+        },
+        {
+          "date": "2026-08-12",
+          "value": 4.2
+        },
+        {
+          "date": "2026-08-13",
+          "value": 4.15
+        },
+        {
+          "date": "2026-08-14",
+          "value": 4.17
+        },
+        {
+          "date": "2026-08-17",
+          "value": 4.19
+        },
+        {
+          "date": "2026-08-18",
+          "value": 4.19
+        },
+        {
+          "date": "2026-08-19",
+          "value": 4.19
+        },
+        {
+          "date": "2026-08-20",
+          "value": 4.19
+        },
+        {
+          "date": "2026-08-21",
+          "value": 4.24
+        },
+        {
+          "date": "2026-08-24",
+          "value": 4.24
+        },
+        {
+          "date": "2026-08-25",
+          "value": 4.17
+        },
+        {
+          "date": "2026-08-26",
+          "value": 4.19
+        },
+        {
+          "date": "2026-08-27",
+          "value": 4.2
+        },
+        {
+          "date": "2026-08-28",
+          "value": 4.34
+        },
+        {
+          "date": "2026-08-31",
+          "value": 4.34
+        },
+        {
+          "date": "2026-09-01",
+          "value": 4.39
+        },
+        {
+          "date": "2026-09-02",
+          "value": 4.39
+        },
+        {
+          "date": "2026-09-03",
+          "value": 4.34
+        },
+        {
+          "date": "2026-09-04",
+          "value": 4.37
+        },
+        {
+          "date": "2026-09-08",
+          "value": 4.39
+        },
+        {
+          "date": "2026-09-09",
+          "value": 4.43
+        },
+        {
+          "date": "2026-09-10",
+          "value": 4.56
+        },
+        {
+          "date": "2026-09-11",
+          "value": 4.63
+        },
+        {
+          "date": "2026-09-14",
+          "value": 4.65
+        },
+        {
+          "date": "2026-09-15",
+          "value": 4.67
+        },
+        {
+          "date": "2026-09-16",
+          "value": 4.74
+        },
+        {
+          "date": "2026-09-17",
+          "value": 4.67
+        },
+        {
+          "date": "2026-09-18",
+          "value": 4.76
+        },
+        {
+          "date": "2026-09-21",
+          "value": 4.76
+        },
+        {
+          "date": "2026-09-22",
+          "value": 4.71
+        },
+        {
+          "date": "2026-09-23",
+          "value": 4.85
+        },
+        {
+          "date": "2026-09-24",
+          "value": 4.87
+        },
+        {
+          "date": "2026-09-25",
+          "value": 4.81
+        },
+        {
+          "date": "2026-09-28",
+          "value": 4.92
+        },
+        {
+          "date": "2026-09-29",
+          "value": 4.89
+        },
+        {
+          "date": "2026-09-30",
+          "value": 4.88
+        },
+        {
+          "date": "2026-10-01",
+          "value": 4.78
+        },
+        {
+          "date": "2026-10-02",
+          "value": 4.83
+        },
+        {
+          "date": "2026-10-05",
+          "value": 4.84
+        },
+        {
+          "date": "2026-10-06",
+          "value": 4.79
+        },
+        {
+          "date": "2026-10-07",
+          "value": 4.77
+        },
+        {
+          "date": "2026-10-08",
+          "value": 4.75
+        },
+        {
+          "date": "2026-10-09",
+          "value": 4.8
+        },
+        {
+          "date": "2026-10-13",
+          "value": 4.79
+        },
+        {
+          "date": "2026-10-14",
+          "value": 4.82
+        },
+        {
+          "date": "2026-10-15",
+          "value": 4.77
+        },
+        {
+          "date": "2026-10-16",
+          "value": 4.74
+        },
+        {
+          "date": "2026-10-19",
+          "value": 4.77
+        },
+        {
+          "date": "2026-10-20",
+          "value": 4.79
+        },
+        {
+          "date": "2026-10-21",
+          "value": 4.81
+        },
+        {
+          "date": "2026-10-22",
+          "value": 4.65
+        },
+        {
+          "date": "2026-10-23",
+          "value": 4.69
+        },
+        {
+          "date": "2026-10-26",
+          "value": 4.68
+        },
+        {
+          "date": "2026-10-27",
+          "value": 4.7
+        },
+        {
+          "date": "2026-10-28",
+          "value": 4.67
+        },
+        {
+          "date": "2026-10-29",
+          "value": 4.61
+        },
+        {
+          "date": "2026-10-30",
+          "value": 4.56
+        },
+        {
+          "date": "2026-11-02",
+          "value": 4.59
+        },
+        {
+          "date": "2026-11-03",
+          "value": 4.61
+        }
+      ]
+    },
+    {
+      "id": "ten_year",
+      "series_id": "DGS10",
+      "source_url": "https://fred.stlouisfed.org/series/DGS10",
+      "unit": "percent",
+      "frequency": "daily",
+      "basis": "constant_maturity",
+      "status": "OK",
+      "observed_at": "2026-11-03",
+      "value": 4.95,
+      "change": 0.040000000000000036,
+      "history": [
+        {
+          "date": "2026-08-10",
+          "value": 4.72
+        },
+        {
+          "date": "2026-08-11",
+          "value": 4.7
+        },
+        {
+          "date": "2026-08-12",
+          "value": 4.68
+        },
+        {
+          "date": "2026-08-13",
+          "value": 4.63
+        },
+        {
+          "date": "2026-08-14",
+          "value": 4.68
+        },
+        {
+          "date": "2026-08-17",
+          "value": 4.72
+        },
+        {
+          "date": "2026-08-18",
+          "value": 4.71
+        },
+        {
+          "date": "2026-08-19",
+          "value": 4.65
+        },
+        {
+          "date": "2026-08-20",
+          "value": 4.69
+        },
+        {
+          "date": "2026-08-21",
+          "value": 4.74
+        },
+        {
+          "date": "2026-08-24",
+          "value": 4.7
+        },
+        {
+          "date": "2026-08-25",
+          "value": 4.64
+        },
+        {
+          "date": "2026-08-26",
+          "value": 4.66
+        },
+        {
+          "date": "2026-08-27",
+          "value": 4.67
+        },
+        {
+          "date": "2026-08-28",
+          "value": 4.73
+        },
+        {
+          "date": "2026-08-31",
+          "value": 4.75
+        },
+        {
+          "date": "2026-09-01",
+          "value": 4.79
+        },
+        {
+          "date": "2026-09-02",
+          "value": 4.79
+        },
+        {
+          "date": "2026-09-03",
+          "value": 4.77
+        },
+        {
+          "date": "2026-09-04",
+          "value": 4.78
+        },
+        {
+          "date": "2026-09-08",
+          "value": 4.8
+        },
+        {
+          "date": "2026-09-09",
+          "value": 4.83
+        },
+        {
+          "date": "2026-09-10",
+          "value": 4.95
+        },
+        {
+          "date": "2026-09-11",
+          "value": 4.96
+        },
+        {
+          "date": "2026-09-14",
+          "value": 4.97
+        },
+        {
+          "date": "2026-09-15",
+          "value": 5.0
+        },
+        {
+          "date": "2026-09-16",
+          "value": 5.01
+        },
+        {
+          "date": "2026-09-17",
+          "value": 4.94
+        },
+        {
+          "date": "2026-09-18",
+          "value": 5.01
+        },
+        {
+          "date": "2026-09-21",
+          "value": 4.96
+        },
+        {
+          "date": "2026-09-22",
+          "value": 4.96
+        },
+        {
+          "date": "2026-09-23",
+          "value": 5.11
+        },
+        {
+          "date": "2026-09-24",
+          "value": 5.18
+        },
+        {
+          "date": "2026-09-25",
+          "value": 5.17
+        },
+        {
+          "date": "2026-09-28",
+          "value": 5.24
+        },
+        {
+          "date": "2026-09-29",
+          "value": 5.26
+        },
+        {
+          "date": "2026-09-30",
+          "value": 5.29
+        },
+        {
+          "date": "2026-10-01",
+          "value": 5.24
+        },
+        {
+          "date": "2026-10-02",
+          "value": 5.28
+        },
+        {
+          "date": "2026-10-05",
+          "value": 5.31
+        },
+        {
+          "date": "2026-10-06",
+          "value": 5.27
+        },
+        {
+          "date": "2026-10-07",
+          "value": 5.28
+        },
+        {
+          "date": "2026-10-08",
+          "value": 5.22
+        },
+        {
+          "date": "2026-10-09",
+          "value": 5.24
+        },
+        {
+          "date": "2026-10-13",
+          "value": 5.21
+        },
+        {
+          "date": "2026-10-14",
+          "value": 5.19
+        },
+        {
+          "date": "2026-10-15",
+          "value": 5.1
+        },
+        {
+          "date": "2026-10-16",
+          "value": 5.09
+        },
+        {
+          "date": "2026-10-19",
+          "value": 5.15
+        },
+        {
+          "date": "2026-10-20",
+          "value": 5.12
+        },
+        {
+          "date": "2026-10-21",
+          "value": 5.13
+        },
+        {
+          "date": "2026-10-22",
+          "value": 4.96
+        },
+        {
+          "date": "2026-10-23",
+          "value": 5.0
+        },
+        {
+          "date": "2026-10-26",
+          "value": 5.0
+        },
+        {
+          "date": "2026-10-27",
+          "value": 4.99
+        },
+        {
+          "date": "2026-10-28",
+          "value": 5.05
+        },
+        {
+          "date": "2026-10-29",
+          "value": 4.98
+        },
+        {
+          "date": "2026-10-30",
+          "value": 4.94
+        },
+        {
+          "date": "2026-11-02",
+          "value": 4.91
+        },
+        {
+          "date": "2026-11-03",
+          "value": 4.95
+        }
+      ]
+    },
+    {
+      "id": "financial_stress",
+      "series_id": "STLFSI4",
+      "source_url": "https://fred.stlouisfed.org/series/STLFSI4",
+      "unit": "standard_deviations",
+      "frequency": "weekly",
+      "basis": "st_louis_fed_index",
+      "status": "OK",
+      "observed_at": "2026-10-30",
+      "value": -0.5224,
+      "change": 0.06180000000000008,
+      "history": [
+        {
+          "date": "2025-09-12",
+          "value": -0.5514
+        },
+        {
+          "date": "2025-09-19",
+          "value": -0.5875
+        },
+        {
+          "date": "2025-09-26",
+          "value": -0.5344
+        },
+        {
+          "date": "2025-10-03",
+          "value": -0.4888
+        },
+        {
+          "date": "2025-10-10",
+          "value": -0.4801
+        },
+        {
+          "date": "2025-10-17",
+          "value": -0.3558
+        },
+        {
+          "date": "2025-10-24",
+          "value": -0.5012
+        },
+        {
+          "date": "2025-10-31",
+          "value": -0.4581
+        },
+        {
+          "date": "2025-11-07",
+          "value": -0.3108
+        },
+        {
+          "date": "2025-11-14",
+          "value": -0.5006
+        },
+        {
+          "date": "2025-11-21",
+          "value": -0.1244
+        },
+        {
+          "date": "2025-11-28",
+          "value": -0.381
+        },
+        {
+          "date": "2025-12-05",
+          "value": -0.4205
+        },
+        {
+          "date": "2025-12-12",
+          "value": -0.3529
+        },
+        {
+          "date": "2025-12-19",
+          "value": -0.3286
+        },
+        {
+          "date": "2025-12-26",
+          "value": -0.5703
+        },
+        {
+          "date": "2026-01-02",
+          "value": -0.5548
+        },
+        {
+          "date": "2026-01-09",
+          "value": -0.6541
+        },
+        {
+          "date": "2026-01-16",
+          "value": -0.6412
+        },
+        {
+          "date": "2026-01-23",
+          "value": -0.7054
+        },
+        {
+          "date": "2026-01-30",
+          "value": -0.6667
+        },
+        {
+          "date": "2026-02-06",
+          "value": -0.6481
+        },
+        {
+          "date": "2026-02-13",
+          "value": -0.6034
+        },
+        {
+          "date": "2026-02-20",
+          "value": -0.4761
+        },
+        {
+          "date": "2026-02-27",
+          "value": -0.4315
+        },
+        {
+          "date": "2026-03-06",
+          "value": -0.4254
+        },
+        {
+          "date": "2026-03-13",
+          "value": -0.2973
+        },
+        {
+          "date": "2026-03-20",
+          "value": -0.3623
+        },
+        {
+          "date": "2026-03-27",
+          "value": -0.1767
+        },
+        {
+          "date": "2026-04-03",
+          "value": -0.2258
+        },
+        {
+          "date": "2026-04-10",
+          "value": -0.634
+        },
+        {
+          "date": "2026-04-17",
+          "value": -0.7447
+        },
+        {
+          "date": "2026-04-24",
+          "value": -0.6698
+        },
+        {
+          "date": "2026-05-01",
+          "value": -0.6667
+        },
+        {
+          "date": "2026-05-08",
+          "value": -0.7551
+        },
+        {
+          "date": "2026-05-15",
+          "value": -0.7365
+        },
+        {
+          "date": "2026-05-22",
+          "value": -0.7573
+        },
+        {
+          "date": "2026-05-29",
+          "value": -0.6737
+        },
+        {
+          "date": "2026-06-05",
+          "value": -0.8626
+        },
+        {
+          "date": "2026-06-12",
+          "value": -0.7649
+        },
+        {
+          "date": "2026-06-19",
+          "value": -0.9475
+        },
+        {
+          "date": "2026-06-26",
+          "value": -0.6403
+        },
+        {
+          "date": "2026-07-03",
+          "value": -0.7206
+        },
+        {
+          "date": "2026-07-10",
+          "value": -0.8813
+        },
+        {
+          "date": "2026-07-17",
+          "value": -0.6979
+        },
+        {
+          "date": "2026-07-24",
+          "value": -0.8253
+        },
+        {
+          "date": "2026-07-31",
+          "value": -0.5027
+        },
+        {
+          "date": "2026-08-07",
+          "value": -0.7664
+        },
+        {
+          "date": "2026-08-14",
+          "value": -0.8259
+        },
+        {
+          "date": "2026-08-21",
+          "value": -0.8086
+        },
+        {
+          "date": "2026-08-28",
+          "value": -0.8492
+        },
+        {
+          "date": "2026-09-04",
+          "value": -0.7889
+        },
+        {
+          "date": "2026-09-11",
+          "value": -0.8474
+        },
+        {
+          "date": "2026-09-18",
+          "value": -0.6996
+        },
+        {
+          "date": "2026-09-25",
+          "value": -0.8059
+        },
+        {
+          "date": "2026-10-02",
+          "value": -0.4612
+        },
+        {
+          "date": "2026-10-09",
+          "value": -0.7203
+        },
+        {
+          "date": "2026-10-16",
+          "value": -0.634
+        },
+        {
+          "date": "2026-10-23",
+          "value": -0.5842
+        },
+        {
+          "date": "2026-10-30",
+          "value": -0.5224
+        }
+      ]
+    }
+  ],
+  "dts_asof": "2026-11-03",
+  "dts_status": "OK",
+  "research_policy": "NO_AUTOTRADE_NO_SURPRISE_PROBABILITY_BEFORE_FIRST_RELEASE_VALIDATION"
+}

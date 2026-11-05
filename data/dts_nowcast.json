@@ -1,19 +1,29 @@
 {
-  "v": "dts-g8-5.0",
+  "v": "dts-g8-6.0",
   "asof": "2026-11-03",
   "expected_asof": "2026-11-03",
   "valid_until_utc": "2026-11-05T21:45:00Z",
-  "generated_at": "2026-11-05T17:34:20Z",
+  "generated_at": "2026-11-05T18:33:22Z",
   "fy": 2027,
   "bd_fy": 23,
   "bd_fy_prev": 23,
   "bd_skew_fytd": 0,
-  "sign_convention": "ntf>0 = net_fiscal_injection_nfa; tga_reserve_drain = -dtga",
+  "sign_convention": "ntf>0: net non-debt cash outflow; tga_reserve_contribution=-dtga (other factors unchanged)",
   "dq": {
     "status": "OK",
     "stale": false,
     "recon_ok": true,
     "inputs_complete": true,
+    "endpoint_dates": {
+      "I": "2026-11-03",
+      "II": "2026-11-03",
+      "IIIA": "2026-11-03",
+      "IIIB": "2026-11-03",
+      "IIIC": "2026-11-03",
+      "IV": "2026-11-03",
+      "V": "2026-11-03"
+    },
+    "endpoints_complete": true,
     "critical_series_ok": true,
     "recon_diff_musd": 1,
     "recon_op_diff_musd": 4,
@@ -48,7 +58,7 @@
     "z_fallback_used": false,
     "z_sample_n": 18,
     "z_ntf_ex_exp_weekday_100bd": 0.8,
-    "z_ex_ante_pctile_250d": 75.3,
+    "z_ex_ante_pctile_250d": 75.7,
     "z_ntf_realized_weekday_100bd": 0.47,
     "z_ntf_uncond_60d": 0.5,
     "net_debt_cash_iiib": 43376,
@@ -61,9 +71,11 @@
     "slgs_issues_today_musd": 201,
     "slgs_issues_5d_musd": 1670,
     "slgs_window_policy_status": "OPEN",
+    "slgs_policy_asof": "2026-11-03",
     "slgs_open": true,
     "funding_state": "INLINE_CALENDAR",
-    "funding_driver": "ssa_day3_and_bills_plus_biz_refund_shock"
+    "funding_driver": "ssa_day3_and_bills_plus_biz_refund_shock",
+    "probability_of_macro_surprise": null
   },
   "nowcast_cards": {
     "nfp_wage_bill": {
@@ -95,7 +107,8 @@
         "out_of_refund_season",
         "irs_check_to_eft_shift_active",
         "base_shutdown_2025_distorts_snap_and_fedsal"
-      ]
+      ],
+      "surprise_bias": "NOT_ESTIMATED"
     },
     "corp_and_tariffs": {
       "state": "DORMANT",
@@ -104,7 +117,7 @@
       "corp_tax_fytd_yoy": null,
       "non_withheld_fytd_yoy": null,
       "biz_refund_today_musd": 3300,
-      "biz_refund_p95_musd": 2854,
+      "biz_refund_p95_musd": 2690,
       "customs_fytd_musd": 27775,
       "customs_20d_yoy": null,
       "customs_fytd_yoy": null,
@@ -115,7 +128,10 @@
         "outside_15th_tax_window",
         "biz_refund_shock_today",
         "series_splice_2025_11_10_fytd_suspended"
-      ]
+      ],
+      "surprise_bias": "NOT_ESTIMATED"
     }
-  }
+  },
+  "units": "USD_millions",
+  "model_status": "DESCRIPTIVE_FISCAL_CASH_NOT_CONSENSUS_FORECAST"
 }
