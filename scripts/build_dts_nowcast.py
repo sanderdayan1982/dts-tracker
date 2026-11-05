@@ -20,6 +20,7 @@ import urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
 from treasury_book import build_book
+from argos_dts import fiscal_pulse, ntf_persistence
 from institutional_core import (atomic_json, business_day, cash_contract, finite,
                                 lag364_stats, settlement)
 
@@ -1305,6 +1306,7 @@ def main():
         rec = t5_by_date.setdefault(
             d,
             {
+                "present": set(),
                 "biz_checks_today": 0.0,
                 "biz_checks_fytd": 0.0,
                 "biz_eft_today": 0.0,
@@ -1315,6 +1317,11 @@ def main():
                 "indiv_eft_fytd": 0.0,
             },
         )
+        kind = "biz" if "business" in label else "indiv" if "individual" in label else None
+        channel = "checks" if "check" in label else "eft" if "eft" in label else None
+        if kind and channel:
+            for period, amount in (("today", today_v), ("fytd", fytd_v)):
+                if amount is not None: rec["present"].add(f"{kind}_{channel}_{period}")
         if "business" in label:
             if "check" in label:
                 rec["biz_checks_today"] += t_v
@@ -1999,6 +2006,15 @@ def main():
             },
         },
     }
+
+    # Publish raw descriptive fiscal metrics even when predictive seasonal cards are dormant.
+    nowcast_payload["fiscal_pulse_lag364"] = fiscal_pulse(
+        all_bd_dates, asof, yoy_anchor, nullable_cval, t5_by_date, customs_20d_clean,
+        [flag for flag in nfp_flags + retail_flags + corp_flags
+         if "shutdown" in flag or "splice" in flag or "refund_season" in flag or "check_to_eft" in flag]
+        + ["nominal_cash_not_macro_forecast", "customs_tariff_regime_unadjusted"])
+    for n in (5, 20, 60):
+        nowcast_payload["mmt_liquidity"][f"ntf_{n}d"] = ntf_persistence(daily_records, all_bd_dates, n)
 
     nowcast_payload = cash_contract(nowcast_payload, now_utc_dt)
     atomic_json(NOWCAST_PATH, nowcast_payload)

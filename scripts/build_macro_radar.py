@@ -20,6 +20,7 @@ import statistics as stats
 import time
 import urllib.request
 from pathlib import Path
+from argos_dts import dts_summary, attach_dts_drivers
 from institutional_core import atomic_json, cash_contract, finite, iso, parse_time, utcnow
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -279,6 +280,8 @@ def main(offline=False):
     dts_path=DATA/"dts_nowcast.json"
     dts=json.loads(dts_path.read_text()) if dts_path.exists() else {}
     dts=cash_contract(dts,now)
+    summary=dts_summary(dts,now)
+    attach_dts_drivers(cards,summary)
     valid_until=now+dt.timedelta(hours=26)
     for card in cards:
         if card.get("consensus"):
@@ -296,14 +299,15 @@ def main(offline=False):
                 path=archive/f"{c['id']}-{c['reference_period']}.json"
                 if not path.exists(): atomic_json(path,{"issued_at":iso(now),"card":c},compact=True)
     # Compact contract for ARGOS. Explicit directions refer to previous data, never surprise odds.
-    compact={"v":1,"at":iso(now),"expires":iso(valid_until),"dts":{"at":dts.get("asof"),
-             "blocked":dts["dq"]["block"],"expires":dts.get("valid_until_utc"),"ntf":None if dts["dq"]["block"] else dts.get("mmt_liquidity",{}).get("ntf_total"),
-             "reserve_contribution":None if dts["dq"]["block"] else dts.get("mmt_liquidity",{}).get("reserves_impact")},
+    compact={"v":1,"at":iso(now),"expires":iso(valid_until),"dts":summary,
              "basis":"research_vs_previous_not_consensus","probabilities":None,"events":[]}
     for c in cards:
         f=c.get("forecast")
         compact["events"].append({"id":c["id"],"period":c.get("reference_period"),"unit":c["unit"],"status":c["status"],
                                   "point":round(f["point"],3) if f else None,"signal":c["signal"],"consensus":c["consensus"]["value"] if c["consensus"] else None})
+    for event, card in zip(compact["events"], cards):
+        if "dts_driver" in card:
+            event["dts_driver"]=card["dts_driver"]
     atomic_json(DATA/"argos_summary.json",compact,compact=True)
     atomic_json(DATA/"dts_nowcast.json",dts)
     return payload

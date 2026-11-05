@@ -72,3 +72,20 @@ test('partial first fiscal year cannot masquerade as a full prior-year comparato
  assert.equal(comparableFiscal({rows:[row('2025-11-01',2026),row('2026-10-01',2027)]},2027,'2026-10-01'),null);
  const c=comparableFiscal({rows:[row('2025-10-01',2026),row('2026-10-01',2027)]},2027,'2026-10-01');assert.equal(c.sessions,1);
 });
+
+import {fiscalDriverText} from '../assets/app.mjs';
+import {treasuryHTML} from '../assets/treasury.mjs';
+test('DTS radar line is bilingual, coherent and expires independently of FRED',()=>{
+ const d={...fresh,v:'dts-g8-6.0',asof:'2026-11-03',dq:{block:false,stale:false},mmt_liquidity:{ntf_total:1,dtga:1,reserves_impact:-1,tga_close:100,net_debt_cash_iiib:2}};
+ const c={id:'nfp',dts_driver:'Withheld: +7.8%',dts_driver_es:'Retenciones: +7,8%',dts_driver_asof:d.asof,dts_driver_expires:fresh.valid_until_utc,dts_driver_status:'AVAILABLE'};
+ assert.equal(fiscalDriverText(c,d,'en',now),'Withheld: +7.8%');assert.equal(fiscalDriverText(c,d,'es',now),'Retenciones: +7,8%');
+ assert.match(fiscalDriverText(c,d,'en',Date.parse(fresh.valid_until_utc)),/blocked/);
+ assert.match(fiscalDriverText({...c,dts_driver_asof:'2026-11-02'},d,'en',now),/blocked/);
+ assert.equal(fiscalDriverText({id:'cpi'},d,'en',now),null);
+});
+test('daily net flow chart fills the available panel width',()=>{
+ const p={open:100,D:20,W:10,net:10,recon:0,ok:true,I:5,R:2,op_D:15,op_W:8};
+ const book={...fresh,schema:'treasury-book-1.0',asof:'2026-11-03',rows:[{d:'2026-11-03',fy:2027,tga:110,ntf:-7,z:0,periods:{today:p,mtd:p,fytd:p},components:{}}],components:[]};
+ const html=treasuryHTML(book,{asof:book.asof,dq:{block:false}},{ntfWidth:1174});
+ assert.match(html,/viewBox="0 0 1174 220"/);assert.match(html,/viewBox="0 0 300 220"/);
+});

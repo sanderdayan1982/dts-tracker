@@ -40,6 +40,12 @@ export function sharedConsensus(entry,card,now=Date.now()){
     &&Number.isFinite(captured)&&Number.isFinite(release)&&captured<=now&&now<release&&now-captured<=7*86400000?entry:null;
 }
 
+export function fiscalDriverText(card,dts,lang='en',now=Date.now()){
+  if(!['nfp','claims','retail','trade'].includes(card.id))return null;
+  const ready=!cashBlocked(dts,now)&&card.dts_driver_asof===dts.asof&&Date.parse(card.dts_driver_expires)>now&&card.dts_driver_status==='AVAILABLE';
+  return ready?(lang==='es'?card.dts_driver_es:card.dts_driver)??(lang==='es'?'DTS no disponible':'DTS unavailable'):(lang==='es'?'DTS no disponible / bloqueado':'DTS unavailable / blocked');
+}
+
 const RAW='https://raw.githubusercontent.com/sanderdayan1982/dts-tracker/main/data/';
 const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,history:null,loading:true,error:false,consensus:{},edit:null,book:null,cashMode:'today',cashYear:null,cashDate:null,cashDays:90,cashDaily:false};
 const $=id=>document.getElementById(id);
@@ -96,6 +102,7 @@ function cardHTML(c){
   const desc=targets[c.id]?.[state.lang]??[c.id,'',''];const f=c.forecast;const con=consensusFor(c);
   const cls=c.signal==='HOTTER'?'hot':c.signal==='WEAKER'?'weak':'';
   const validation=f?.validation;
+  const fiscalLine=fiscalDriverText(c,state.data,state.lang);
   let fiscalEvidence='';
   if(c.id==='nfp'&&!cashBlocked(state.data)){
     const w=state.data?.nowcast_cards?.nfp_wage_bill;
@@ -105,6 +112,7 @@ function cardHTML(c){
   if(con&&f){const diff=f.point-con.value;const within=con.value>=f.range80[0]&&con.value<=f.range80[1];gap=`<p><strong>${e(t('gap'))}: ${signed(diff)}</strong><br>${e(t(within?'gapSmall':'gapLarge'))}</p>`;}
   return `<article class="card" data-card="${e(c.id)}"><div class="card-top"><div><h3>${e(desc[0])}</h3><div class="meta">${e(c.agency??'')} · ${e(c.reference_period??'—')}</div></div>${pill(t(f?'research':'blocked'),f?'amber':'red')}</div>
   <div class="reading ${cls}">${e(t(signal(c.signal)))}</div><div class="numbers"><div><div class="label">${e(t('previous'))}</div><div class="big">${n(c.last)}</div></div><div><div class="label">${e(t('estimate'))}</div><div class="big estimate">${n(f?.point)}</div></div></div><div class="unit">${e(unit(c))}</div>
+  ${fiscalLine?`<p class="unit" data-dts-driver="${e(c.id)}">DTS · ${e(fiscalLine)}${c.dts_driver_asof?' · '+e(c.dts_driver_asof):''}</p>`:''}
   <div class="range">${e(t('range'))}<strong>${f?n(f.range80[0])+' → '+n(f.range80[1]):'—'}</strong></div>
   ${spark(c.history)}<p class="explain">${e(desc[1])}</p><div class="consensus"><span>${e(t('consensus'))}<br><strong>${con?n(con.value):e(t('missingConsensus'))}</strong></span><button class="linkbutton" data-consensus="${e(c.id)}">${e(t('enter'))}</button></div>${gap}
   <details><summary>${e(t('evidence'))}</summary><p>${e(desc[2])}</p>${fiscalEvidence}
@@ -152,7 +160,7 @@ function render(){
   const openDetails=[...document.querySelectorAll('[data-card] details[open]')].map(el=>el.closest('[data-card]').dataset.card);
   const cashDetails=[...document.querySelectorAll('#treasury details')].map(el=>[el.id,el.open]);
   const cashScroll=new Map([...document.querySelectorAll('#treasury [data-scroll-id]')].map(el=>[el.dataset.scrollId,el.scrollLeft]));
-  renderHeader();$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily});
+  renderHeader();$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily,ntfWidth:Math.max(300,$('treasury').clientWidth-46)});
   for(const [id,open] of cashDetails){const el=document.getElementById(id);if(el)el.open=open;}
   for(const el of document.querySelectorAll('#treasury [data-scroll-id]'))el.scrollLeft=cashScroll.get(el.dataset.scrollId)??Math.max(0,el.scrollWidth-el.clientWidth);
   $('view').innerHTML=({radar:radarHTML,fiscal:cashHTML,liquidity:liquidityHTML,guide:guideHTML}[state.tab])();
@@ -171,6 +179,7 @@ function init(){
   try{state.lang=localStorage.getItem('dts-v6-language')??'es';if(!copy[state.lang])state.lang='es';state.consensus=JSON.parse(localStorage.getItem('dts-v6-consensus')??'{}');}catch{}
   for(const lang of ['en','es'])$('lang'+(lang==='en'?'En':'Es')).addEventListener('click',()=>{state.lang=lang;try{localStorage.setItem('dts-v6-language',lang);}catch{}render();});
   $('refresh').addEventListener('click',load);
+  let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);});
   document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.tab){state.tab=b.dataset.tab;render();}if(b.dataset.filter){state.filter=b.dataset.filter;render();}if(b.dataset.days){state.days=Number(b.dataset.days);render();}if(b.dataset.consensus)editConsensus(b.dataset.consensus);if(b.dataset.cashMode){state.cashMode=b.dataset.cashMode;state.cashDaily=false;if(state.cashMode==='fytd')state.cashDays='fy';render();}if(b.dataset.cashDaily){state.cashDaily=b.dataset.cashDaily==='yes';render();}if(b.dataset.download==='treasury')download(state.book,'treasury-cash-ledger.json');if(b.dataset.download==='history')download(state.history,'dts-history.json');});
   document.addEventListener('change',ev=>{if(ev.target.id==='cashYear'){state.cashYear=Number(ev.target.value);state.cashDate=null;render();}if(ev.target.id==='cashDate'){state.cashDate=ev.target.value;render();}if(ev.target.id==='cashWindow'){state.cashDays=ev.target.value;render();}});
   const inspectBar=ev=>{const bar=ev.target.closest('[data-cash-bar]');if(bar){const box=document.getElementById('readout-'+bar.dataset.chartId);if(box)box.textContent=bar.dataset.cashBar;}};
