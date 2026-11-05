@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-          fetch-depth: 1
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -46,7 +46,14 @@ jobs:
           git add data/
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'data: refresh official macro radar [skip netlify]'
-          git push origin "HEAD:$TARGET_BRANCH"
+          # A code deployment may land while sources are downloading.
+          # Rebase this data-only commit onto the current branch; never force-push.
+          for attempt in 1 2 3; do
+            git fetch origin "$TARGET_BRANCH"
+            git rebase "origin/$TARGET_BRANCH"
+            if git push origin "HEAD:$TARGET_BRANCH"; then exit 0; fi
+          done
+          exit 1
       - name: Surface failed refresh
         if: steps.dts.outcome == 'failure' || steps.macro.outcome == 'failure'
         run: exit 1
