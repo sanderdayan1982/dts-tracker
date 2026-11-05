@@ -47,6 +47,15 @@ def build_book(t1, t2, t3b, daily, contract, t3c=None):
         for mode in ('today','mtd','fytd'):
             p=r['periods'][mode];debt=t3b.get(day,{})
             i=number(debt.get('cash_issues_'+mode));red=number(debt.get('cash_redemp_'+mode))
+            # Table II repeats the official cash totals from IIIB. Some IIIB
+            # API vintages expose adjustments but no named aggregate row.
+            i2=t2.get('Deposits',{}).get('PUBLIC_DEBT_CASH_ISSUES_T2',{}).get(day,{})
+            r2=t2.get('Withdrawals',{}).get('PUBLIC_DEBT_CASH_REDEMP_T2',{}).get(day,{})
+            if i is None and mode in i2.get('present',set()): i=number(i2.get(mode))
+            if red is None and mode in r2.get('present',set()): red=number(r2.get(mode))
+            if mode=='today' and rec.get('inputs_complete'):
+                if i is None: i=number(rec.get('I'))
+                if red is None: red=number(rec.get('R'))
             p['I']=i;p['R']=red
             p['op_D']=number(p['D']-i) if finite(p['D']) and finite(i) else None
             p['op_W']=number(p['W']-red) if finite(p['W']) and finite(red) else None

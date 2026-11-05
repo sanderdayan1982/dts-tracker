@@ -19,4 +19,8 @@ class TreasuryBookTests(unittest.TestCase):
  def test_breakdown_zero_missing_distinct_and_threshold_provenance(self):
   d='2026-11-03';book=build_book({d:self.source()},{'Deposits':{'WITHHELD_FICA':{d:{'today':0,'present':{'today'}}}}},{},{},{'asof':d})
   r=book['rows'][0];self.assertEqual(r['components']['WITHHELD_FICA'],[0,None,None]);self.assertIsNone(r['periods']['today']['I']);self.assertIsNone(r['ntf']);self.assertEqual(book['legacy_thresholds']['bands'],[1,2])
+ def test_cash_debt_totals_fallback_to_table_ii_not_truncated_sums(self):
+  d='2026-11-03';t2={'Deposits':{'PUBLIC_DEBT_CASH_ISSUES_T2':{d:{'fytd':70,'present':{'fytd'}}}},'Withdrawals':{'PUBLIC_DEBT_CASH_REDEMP_T2':{d:{'fytd':50,'present':{'fytd'}}}}}
+  r=build_book({d:self.source()},t2,{},{},{'asof':d})['rows'][0]['periods']['fytd']
+  self.assertEqual(r['I'],70);self.assertEqual(r['R'],50);self.assertEqual(r['op_D'],30);self.assertEqual(r['op_W'],10)
 if __name__=='__main__':unittest.main()
