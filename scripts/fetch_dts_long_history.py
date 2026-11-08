@@ -10,7 +10,8 @@ import csv, gzip, io, json, sys, time, urllib.parse, urllib.request, datetime as
 from pathlib import Path
 
 BASE = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts"
-OUT = Path(__file__).resolve().parent.parent / "data" / "bridge" / "raw"
+import os
+OUT = Path(os.environ.get("DTS_RAW_DIR", "/tmp/dts_raw"))  # raw pages are not committed; dts_bridge.py --rebuild compacts them
 START = sys.argv[1] if len(sys.argv) > 1 else "2014-01-01"
 
 def pages(endpoint, fields):

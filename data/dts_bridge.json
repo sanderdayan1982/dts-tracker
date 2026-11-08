@@ -1,0 +1,1125 @@
+{
+  "schema": "dts-bridge-1.0",
+  "generated_at": "2026-11-08T01:10:38Z",
+  "valid_until_utc": "2026-11-10T03:10:38Z",
+  "dts_asof": "2026-11-05",
+  "vintage": "latest_revised_targets_point_in_time_dts",
+  "policy": {
+    "edge_rule": "improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0",
+    "covid_excluded": [
+      "2020-03",
+      "2021-12"
+    ],
+    "rolling_window_months": 96,
+    "min_train_months": 36,
+    "ridge_lambda": 1.0,
+    "first_release_verified": false,
+    "probabilities": null
+  },
+  "models": {
+    "nfp": {
+      "series_id": "PAYEMS",
+      "unit": "thousand_jobs",
+      "features": [
+        "baseline_3m",
+        "withheld_growth_surprise_pp"
+      ],
+      "driver_en": "Withheld income/FICA taxes, 20 sessions, Lag-364 growth vs its own 12-month average",
+      "driver_es": "Retenciones IRPF/FICA, 20 sesiones, crecimiento Lag 364 frente a su media de 12 meses",
+      "status": "PRELIMINARY",
+      "edge": "NONE",
+      "validation": {
+        "n": 71,
+        "first": "2019-02",
+        "last": "2026-10",
+        "mae_bridge": 98.26662572464204,
+        "mae_baseline": 101.91549295774648,
+        "improvement_pct": 3.580287086103029,
+        "dm_stat": -0.604092874182776,
+        "dm_p_one_sided": 0.27289094842211603,
+        "recent_n": 24,
+        "recent_improvement_pct": 1.6794624784203016,
+        "direction_hit_rate_vs_baseline_pct": 52.11267605633803,
+        "dts_added_value": {
+          "n": 71,
+          "mae_ablation": 98.63389890996349,
+          "improvement_pct": 0.37235999933117325,
+          "dm_stat": -0.8729767114465692,
+          "dm_p_one_sided": 0.19133788577663385
+        },
+        "edge": "NONE",
+        "residual_p10": -145.55622942087223,
+        "residual_p90": 78.9224185239967
+      },
+      "history": [
+        {
+          "period": "2023-11",
+          "actual": 127.0,
+          "bridge": 193.8265,
+          "baseline": 177.6667
+        },
+        {
+          "period": "2023-12",
+          "actual": 154.0,
+          "bridge": 180.9144,
+          "baseline": 147.3333
+        },
+        {
+          "period": "2024-01",
+          "actual": 175.0,
+          "bridge": 176.8109,
+          "baseline": 146.6667
+        },
+        {
+          "period": "2024-02",
+          "actual": 206.0,
+          "bridge": 178.547,
+          "baseline": 152.0
+        },
+        {
+          "period": "2024-03",
+          "actual": 228.0,
+          "bridge": 192.1191,
+          "baseline": 178.3333
+        },
+        {
+          "period": "2024-04",
+          "actual": 64.0,
+          "bridge": 205.3963,
+          "baseline": 203.0
+        },
+        {
+          "period": "2024-05",
+          "actual": 78.0,
+          "bridge": 188.7363,
+          "baseline": 166.0
+        },
+        {
+          "period": "2024-06",
+          "actual": 87.0,
+          "bridge": 162.54,
+          "baseline": 123.3333
+        },
+        {
+          "period": "2024-07",
+          "actual": 53.0,
+          "bridge": 138.9937,
+          "baseline": 76.3333
+        },
+        {
+          "period": "2024-08",
+          "actual": 9.0,
+          "bridge": 130.0936,
+          "baseline": 72.6667
+        },
+        {
+          "period": "2024-09",
+          "actual": 155.0,
+          "bridge": 116.6115,
+          "baseline": 49.6667
+        },
+        {
+          "period": "2024-10",
+          "actual": 33.0,
+          "bridge": 126.9412,
+          "baseline": 72.3333
+        },
+        {
+          "period": "2024-11",
+          "actual": 134.0,
+          "bridge": 119.6275,
+          "baseline": 65.6667
+        },
+        {
+          "period": "2024-12",
+          "actual": 237.0,
+          "bridge": 144.3652,
+          "baseline": 107.3333
+        },
+        {
+          "period": "2025-01",
+          "actual": -48.0,
+          "bridge": 158.2499,
+          "baseline": 134.6667
+        },
+        {
+          "period": "2025-02",
+          "actual": 42.0,
+          "bridge": 144.9409,
+          "baseline": 107.6667
+        },
+        {
+          "period": "2025-03",
+          "actual": 67.0,
+          "bridge": 123.5346,
+          "baseline": 77.0
+        },
+        {
+          "period": "2025-04",
+          "actual": 108.0,
+          "bridge": 97.9088,
+          "baseline": 20.3333
+        },
+        {
+          "period": "2025-05",
+          "actual": 13.0,
+          "bridge": 116.95,
+          "baseline": 72.3333
+        },
+        {
+          "period": "2025-06",
+          "actual": -20.0,
+          "bridge": 111.8388,
+          "baseline": 62.6667
+        },
+        {
+          "period": "2025-07",
+          "actual": 64.0,
+          "bridge": 91.4729,
+          "baseline": 33.6667
+        },
+        {
+          "period": "2025-08",
+          "actual": -70.0,
+          "bridge": 79.7162,
+          "baseline": 19.0
+        },
+        {
+          "period": "2025-09",
+          "actual": 76.0,
+          "bridge": 67.8738,
+          "baseline": -8.6667
+        },
+        {
+          "period": "2025-10",
+          "actual": -140.0,
+          "bridge": 78.6444,
+          "baseline": 23.3333
+        },
+        {
+          "period": "2025-11",
+          "actual": 41.0,
+          "bridge": 38.3784,
+          "baseline": -44.6667
+        },
+        {
+          "period": "2025-12",
+          "actual": -17.0,
+          "bridge": 55.5072,
+          "baseline": -7.6667
+        },
+        {
+          "period": "2026-01",
+          "actual": 160.0,
+          "bridge": 31.0945,
+          "baseline": -38.6667
+        },
+        {
+          "period": "2026-02",
+          "actual": -156.0,
+          "bridge": 93.8807,
+          "baseline": 61.3333
+        },
+        {
+          "period": "2026-03",
+          "actual": 214.0,
+          "bridge": 56.0349,
+          "baseline": -4.3333
+        },
+        {
+          "period": "2026-04",
+          "actual": 148.0,
+          "bridge": 99.0487,
+          "baseline": 72.6667
+        },
+        {
+          "period": "2026-05",
+          "actual": 63.0,
+          "bridge": 101.6348,
+          "baseline": 68.6667
+        },
+        {
+          "period": "2026-06",
+          "actual": 31.0,
+          "bridge": 151.7904,
+          "baseline": 141.6667
+        },
+        {
+          "period": "2026-07",
+          "actual": -10.0,
+          "bridge": 107.1213,
+          "baseline": 80.6667
+        },
+        {
+          "period": "2026-08",
+          "actual": 186.0,
+          "bridge": 73.1225,
+          "baseline": 28.0
+        },
+        {
+          "period": "2026-09",
+          "actual": 60.0,
+          "bridge": 101.36,
+          "baseline": 69.0
+        },
+        {
+          "period": "2026-10",
+          "actual": 165.0,
+          "bridge": 99.7899,
+          "baseline": 78.6667
+        }
+      ],
+      "reference_period": "2026-11",
+      "dts_cutoff_used": "2026-11-05",
+      "dts_cutoff_scheduled": "2026-12-02",
+      "dts_sessions_missing": 17,
+      "point": 138.64924745297506,
+      "baseline": 137.0,
+      "range80": [
+        -6.906981967897167,
+        217.57166597697176
+      ],
+      "coefficients": {
+        "intercept": 55.53215303674813,
+        "slopes": {
+          "baseline_3m": 0.6327351211457902,
+          "withheld_growth_surprise_pp": -1.1549837196886115
+        }
+      },
+      "feature_values": {
+        "baseline_3m": 137.0,
+        "withheld_growth_surprise_pp": 3.0888895834031005
+      },
+      "dts_contribution": -3.5676171807463186,
+      "dts_direction": "DOWN"
+    },
+    "claims": {
+      "series_id": "ICSA",
+      "unit": "thousand_claims",
+      "features": [
+        "prior_week_log_change",
+        "dol_ui_growth_change_pp"
+      ],
+      "driver_en": "DOL unemployment-benefit payments, 5 sessions, change in Lag-364 growth",
+      "driver_es": "Pagos de prestaciones por desempleo DOL, 5 sesiones, cambio del crecimiento Lag 364",
+      "status": "PRELIMINARY",
+      "edge": "NONE",
+      "validation": {
+        "n": 376,
+        "first": "2017-10-28",
+        "last": "2026-10-31",
+        "mae_bridge": 7.095958773913721,
+        "mae_baseline": 7.164893617021277,
+        "improvement_pct": 0.9621195623029322,
+        "dm_stat": -0.8969524458224102,
+        "dm_p_one_sided": 0.1848721464016983,
+        "recent_n": 24,
+        "recent_improvement_pct": -2.4545366748487396,
+        "direction_hit_rate_vs_baseline_pct": 51.59574468085106,
+        "dts_added_value": {
+          "n": 376,
+          "mae_ablation": 7.056634102633298,
+          "improvement_pct": -0.5572723583010752,
+          "dm_stat": 1.9863481737433697,
+          "dm_p_one_sided": 0.9765026614932644
+        },
+        "edge": "NONE",
+        "residual_p10": -8.651075369312153,
+        "residual_p90": 10.098391829201006
+      },
+      "history": [
+        {
+          "period": "2026-02-28",
+          "actual": 214.0,
+          "bridge": 210.273,
+          "baseline": 211.0
+        },
+        {
+          "period": "2026-03-07",
+          "actual": 213.0,
+          "bridge": 213.2397,
+          "baseline": 214.0
+        },
+        {
+          "period": "2026-03-14",
+          "actual": 205.0,
+          "bridge": 213.0764,
+          "baseline": 213.0
+        },
+        {
+          "period": "2026-03-21",
+          "actual": 211.0,
+          "bridge": 206.505,
+          "baseline": 205.0
+        },
+        {
+          "period": "2026-03-28",
+          "actual": 203.0,
+          "bridge": 209.6452,
+          "baseline": 211.0
+        },
+        {
+          "period": "2026-04-04",
+          "actual": 218.0,
+          "bridge": 204.5124,
+          "baseline": 203.0
+        },
+        {
+          "period": "2026-04-11",
+          "actual": 208.0,
+          "bridge": 214.7145,
+          "baseline": 218.0
+        },
+        {
+          "period": "2026-04-18",
+          "actual": 215.0,
+          "bridge": 209.9382,
+          "baseline": 208.0
+        },
+        {
+          "period": "2026-04-25",
+          "actual": 190.0,
+          "bridge": 213.4309,
+          "baseline": 215.0
+        },
+        {
+          "period": "2026-05-02",
+          "actual": 199.0,
+          "bridge": 195.0578,
+          "baseline": 190.0
+        },
+        {
+          "period": "2026-05-09",
+          "actual": 212.0,
+          "bridge": 196.8617,
+          "baseline": 199.0
+        },
+        {
+          "period": "2026-05-16",
+          "actual": 210.0,
+          "bridge": 208.7106,
+          "baseline": 212.0
+        },
+        {
+          "period": "2026-05-23",
+          "actual": 212.0,
+          "bridge": 210.3753,
+          "baseline": 210.0
+        },
+        {
+          "period": "2026-05-30",
+          "actual": 225.0,
+          "bridge": 211.5532,
+          "baseline": 212.0
+        },
+        {
+          "period": "2026-06-06",
+          "actual": 230.0,
+          "bridge": 222.2113,
+          "baseline": 225.0
+        },
+        {
+          "period": "2026-06-13",
+          "actual": 227.0,
+          "bridge": 228.8895,
+          "baseline": 230.0
+        },
+        {
+          "period": "2026-06-20",
+          "actual": 216.0,
+          "bridge": 227.5747,
+          "baseline": 227.0
+        },
+        {
+          "period": "2026-06-27",
+          "actual": 217.0,
+          "bridge": 218.2637,
+          "baseline": 216.0
+        },
+        {
+          "period": "2026-07-04",
+          "actual": 217.0,
+          "bridge": 216.7371,
+          "baseline": 217.0
+        },
+        {
+          "period": "2026-07-11",
+          "actual": 209.0,
+          "bridge": 216.9607,
+          "baseline": 217.0
+        },
+        {
+          "period": "2026-07-18",
+          "actual": 189.0,
+          "bridge": 210.5132,
+          "baseline": 209.0
+        },
+        {
+          "period": "2026-07-25",
+          "actual": 198.0,
+          "bridge": 192.7535,
+          "baseline": 189.0
+        },
+        {
+          "period": "2026-08-01",
+          "actual": 200.0,
+          "bridge": 196.0166,
+          "baseline": 198.0
+        },
+        {
+          "period": "2026-08-08",
+          "actual": 212.0,
+          "bridge": 199.5919,
+          "baseline": 200.0
+        },
+        {
+          "period": "2026-08-15",
+          "actual": 207.0,
+          "bridge": 209.3922,
+          "baseline": 212.0
+        },
+        {
+          "period": "2026-08-22",
+          "actual": 204.0,
+          "bridge": 207.8349,
+          "baseline": 207.0
+        },
+        {
+          "period": "2026-08-29",
+          "actual": 207.0,
+          "bridge": 204.462,
+          "baseline": 204.0
+        },
+        {
+          "period": "2026-09-05",
+          "actual": 207.0,
+          "bridge": 206.2247,
+          "baseline": 207.0
+        },
+        {
+          "period": "2026-09-12",
+          "actual": 198.0,
+          "bridge": 207.2258,
+          "baseline": 207.0
+        },
+        {
+          "period": "2026-09-19",
+          "actual": 198.0,
+          "bridge": 199.4299,
+          "baseline": 198.0
+        },
+        {
+          "period": "2026-09-26",
+          "actual": 199.0,
+          "bridge": 197.8234,
+          "baseline": 198.0
+        },
+        {
+          "period": "2026-10-03",
+          "actual": 198.0,
+          "bridge": 198.6523,
+          "baseline": 199.0
+        },
+        {
+          "period": "2026-10-10",
+          "actual": 200.0,
+          "bridge": 198.039,
+          "baseline": 198.0
+        },
+        {
+          "period": "2026-10-17",
+          "actual": 195.0,
+          "bridge": 199.3806,
+          "baseline": 200.0
+        },
+        {
+          "period": "2026-10-24",
+          "actual": 195.0,
+          "bridge": 195.8026,
+          "baseline": 195.0
+        },
+        {
+          "period": "2026-10-31",
+          "actual": 189.0,
+          "bridge": 194.8382,
+          "baseline": 195.0
+        }
+      ],
+      "reference_period": "2026-11-07",
+      "dts_cutoff_used": "2026-11-05",
+      "dts_cutoff_scheduled": "2026-11-10",
+      "dts_sessions_missing": 3,
+      "point": 190.0164414343621,
+      "baseline": 189.0,
+      "range80": [
+        181.36536606504995,
+        200.1148332635631
+      ],
+      "coefficients": {
+        "intercept": -0.0008519433696274903,
+        "slopes": {
+          "prior_week_log_change": -0.19965867308073687,
+          "dol_ui_growth_change_pp": 3.364259602297853e-05
+        }
+      },
+      "feature_values": {
+        "prior_week_log_change": -0.031252543504104426,
+        "dol_ui_growth_change_pp": -0.7226188702830538
+      },
+      "dts_contribution": -0.004619503054613006,
+      "dts_direction": "DOWN"
+    },
+    "retail": {
+      "series_id": "RSAFS",
+      "unit": "percent_mom",
+      "features": [
+        "baseline_3m",
+        "withheld_growth_surprise_pp",
+        "refund_impulse_pct_of_withholding"
+      ],
+      "driver_en": "Withholding growth surprise plus individual refund cash vs a year earlier",
+      "driver_es": "Sorpresa de retenciones más caja de devoluciones individuales frente al año anterior",
+      "status": "FINAL_INFORMATION_SET",
+      "edge": "NONE",
+      "validation": {
+        "n": 70,
+        "first": "2019-02",
+        "last": "2026-09",
+        "mae_bridge": 0.691598647598919,
+        "mae_baseline": 0.78138757376068,
+        "improvement_pct": 11.49095905500811,
+        "dm_stat": -1.7653897549079258,
+        "dm_p_one_sided": 0.03874914202066426,
+        "recent_n": 24,
+        "recent_improvement_pct": 13.435935556682121,
+        "direction_hit_rate_vs_baseline_pct": 71.42857142857143,
+        "dts_added_value": {
+          "n": 70,
+          "mae_ablation": 0.6947141954525796,
+          "improvement_pct": 0.44846468865242795,
+          "dm_stat": -0.3237202660458139,
+          "dm_p_one_sided": 0.3730749131449353
+        },
+        "edge": "NONE",
+        "residual_p10": -0.9125315205933007,
+        "residual_p90": 0.8374158241385324
+      },
+      "history": [
+        {
+          "period": "2023-10",
+          "actual": -0.4889,
+          "bridge": 0.2581,
+          "baseline": 0.3316
+        },
+        {
+          "period": "2023-11",
+          "actual": -0.209,
+          "bridge": 0.3692,
+          "baseline": 0.2231
+        },
+        {
+          "period": "2023-12",
+          "actual": 0.0816,
+          "bridge": 0.3034,
+          "baseline": -0.0597
+        },
+        {
+          "period": "2024-01",
+          "actual": -0.9537,
+          "bridge": 0.354,
+          "baseline": -0.2054
+        },
+        {
+          "period": "2024-02",
+          "actual": 0.6084,
+          "bridge": 0.5638,
+          "baseline": -0.3604
+        },
+        {
+          "period": "2024-03",
+          "actual": -0.0441,
+          "bridge": 0.5984,
+          "baseline": -0.0879
+        },
+        {
+          "period": "2024-04",
+          "actual": 0.0798,
+          "bridge": 0.4167,
+          "baseline": -0.1298
+        },
+        {
+          "period": "2024-05",
+          "actual": 0.4213,
+          "bridge": 0.2956,
+          "baseline": 0.2147
+        },
+        {
+          "period": "2024-06",
+          "actual": -0.2425,
+          "bridge": 0.5489,
+          "baseline": 0.1523
+        },
+        {
+          "period": "2024-07",
+          "actual": 1.1444,
+          "bridge": 0.278,
+          "baseline": 0.0862
+        },
+        {
+          "period": "2024-08",
+          "actual": -0.4444,
+          "bridge": 0.2747,
+          "baseline": 0.4411
+        },
+        {
+          "period": "2024-09",
+          "actual": 0.7958,
+          "bridge": 0.3829,
+          "baseline": 0.1525
+        },
+        {
+          "period": "2024-10",
+          "actual": 0.8584,
+          "bridge": 0.2484,
+          "baseline": 0.4986
+        },
+        {
+          "period": "2024-11",
+          "actual": 0.5722,
+          "bridge": 0.3889,
+          "baseline": 0.4033
+        },
+        {
+          "period": "2024-12",
+          "actual": 0.8874,
+          "bridge": 0.1619,
+          "baseline": 0.7421
+        },
+        {
+          "period": "2025-01",
+          "actual": -0.6846,
+          "bridge": 0.2301,
+          "baseline": 0.7727
+        },
+        {
+          "period": "2025-02",
+          "actual": -0.4783,
+          "bridge": 0.4321,
+          "baseline": 0.2583
+        },
+        {
+          "period": "2025-03",
+          "actual": 1.6055,
+          "bridge": 0.3631,
+          "baseline": -0.0918
+        },
+        {
+          "period": "2025-04",
+          "actual": 0.1028,
+          "bridge": 0.2929,
+          "baseline": 0.1475
+        },
+        {
+          "period": "2025-05",
+          "actual": -1.4344,
+          "bridge": 0.3063,
+          "baseline": 0.41
+        },
+        {
+          "period": "2025-06",
+          "actual": 0.9329,
+          "bridge": 0.3407,
+          "baseline": 0.0913
+        },
+        {
+          "period": "2025-07",
+          "actual": 0.9246,
+          "bridge": 0.3733,
+          "baseline": -0.1329
+        },
+        {
+          "period": "2025-08",
+          "actual": 0.3046,
+          "bridge": 0.3928,
+          "baseline": 0.141
+        },
+        {
+          "period": "2025-09",
+          "actual": 0.0772,
+          "bridge": 0.1592,
+          "baseline": 0.7207
+        },
+        {
+          "period": "2025-10",
+          "actual": -0.0225,
+          "bridge": 0.2218,
+          "baseline": 0.4355
+        },
+        {
+          "period": "2025-11",
+          "actual": 0.6654,
+          "bridge": 0.3422,
+          "baseline": 0.1198
+        },
+        {
+          "period": "2025-12",
+          "actual": 0.115,
+          "bridge": 0.335,
+          "baseline": 0.24
+        },
+        {
+          "period": "2026-01",
+          "actual": -0.6236,
+          "bridge": 0.4405,
+          "baseline": 0.2526
+        },
+        {
+          "period": "2026-02",
+          "actual": 0.869,
+          "bridge": 0.4035,
+          "baseline": 0.0523
+        },
+        {
+          "period": "2026-03",
+          "actual": 1.6584,
+          "bridge": 0.3811,
+          "baseline": 0.1201
+        },
+        {
+          "period": "2026-04",
+          "actual": 0.5865,
+          "bridge": 0.2704,
+          "baseline": 0.6346
+        },
+        {
+          "period": "2026-05",
+          "actual": 1.0352,
+          "bridge": 0.2268,
+          "baseline": 1.038
+        },
+        {
+          "period": "2026-06",
+          "actual": 0.2028,
+          "bridge": 0.1073,
+          "baseline": 1.0934
+        },
+        {
+          "period": "2026-07",
+          "actual": -0.407,
+          "bridge": 0.192,
+          "baseline": 0.6081
+        },
+        {
+          "period": "2026-08",
+          "actual": 1.2888,
+          "bridge": 0.373,
+          "baseline": 0.277
+        },
+        {
+          "period": "2026-09",
+          "actual": 0.7708,
+          "bridge": 0.3029,
+          "baseline": 0.3615
+        }
+      ],
+      "reference_period": "2026-10",
+      "dts_cutoff_used": "2026-10-30",
+      "dts_cutoff_scheduled": "2026-10-30",
+      "dts_sessions_missing": 0,
+      "point": 0.37433960204382954,
+      "baseline": 0.5508690823881576,
+      "range80": [
+        -0.5381919185494711,
+        1.211755426182362
+      ],
+      "coefficients": {
+        "intercept": 0.40488329359478525,
+        "slopes": {
+          "baseline_3m": -0.19987127881175407,
+          "withheld_growth_surprise_pp": 0.012381902480398806,
+          "refund_impulse_pct_of_withholding": 0.0255794817470991
+        }
+      },
+      "feature_values": {
+        "baseline_3m": 0.5508690823881576,
+        "withheld_growth_surprise_pp": 6.248776729139224,
+        "refund_impulse_pct_of_withholding": 0.08551667869829475
+      },
+      "dts_contribution": 0.07955921640382287,
+      "dts_direction": "UP"
+    },
+    "trade": {
+      "series_id": "BOPGSTB",
+      "unit": "usd_billions",
+      "features": [
+        "customs_growth_surprise_pp"
+      ],
+      "driver_en": "Customs duties, 15 sessions of the following month, Lag-364 growth vs its 12-month average",
+      "driver_es": "Aduanas, 15 sesiones del mes siguiente, crecimiento Lag 364 frente a su media de 12 meses",
+      "status": "PRELIMINARY",
+      "edge": "NONE",
+      "validation": {
+        "n": 71,
+        "first": "2019-01",
+        "last": "2026-09",
+        "mae_bridge": 7.700471371883482,
+        "mae_baseline": 7.666521126760563,
+        "improvement_pct": -0.44283769080624147,
+        "dm_stat": 0.16404004528929875,
+        "dm_p_one_sided": 0.5651501903979083,
+        "recent_n": 24,
+        "recent_improvement_pct": -0.8863539081154892,
+        "direction_hit_rate_vs_baseline_pct": 57.74647887323944,
+        "dts_added_value": {
+          "n": 71,
+          "mae_ablation": 7.666199142393001,
+          "improvement_pct": -0.4470563424443297,
+          "dm_stat": 0.17057497564424115,
+          "dm_p_one_sided": 0.5677210119694599
+        },
+        "edge": "NONE",
+        "residual_p10": -18.12230713519132,
+        "residual_p90": 9.722479656631858
+      },
+      "history": [
+        {
+          "period": "2023-10",
+          "actual": -64.158,
+          "bridge": -59.0068,
+          "baseline": -59.097
+        },
+        {
+          "period": "2023-11",
+          "actual": -64.263,
+          "bridge": -64.2367,
+          "baseline": -64.158
+        },
+        {
+          "period": "2023-12",
+          "actual": -61.283,
+          "bridge": -64.4793,
+          "baseline": -64.263
+        },
+        {
+          "period": "2024-01",
+          "actual": -63.925,
+          "bridge": -61.6216,
+          "baseline": -61.283
+        },
+        {
+          "period": "2024-02",
+          "actual": -63.253,
+          "bridge": -64.3092,
+          "baseline": -63.925
+        },
+        {
+          "period": "2024-03",
+          "actual": -61.925,
+          "bridge": -63.4551,
+          "baseline": -63.253
+        },
+        {
+          "period": "2024-04",
+          "actual": -70.87,
+          "bridge": -62.0314,
+          "baseline": -61.925
+        },
+        {
+          "period": "2024-05",
+          "actual": -70.299,
+          "bridge": -70.971,
+          "baseline": -70.87
+        },
+        {
+          "period": "2024-06",
+          "actual": -71.344,
+          "bridge": -70.5399,
+          "baseline": -70.299
+        },
+        {
+          "period": "2024-07",
+          "actual": -77.0,
+          "bridge": -71.8384,
+          "baseline": -71.344
+        },
+        {
+          "period": "2024-08",
+          "actual": -71.161,
+          "bridge": -77.3055,
+          "baseline": -77.0
+        },
+        {
+          "period": "2024-09",
+          "actual": -83.301,
+          "bridge": -71.4583,
+          "baseline": -71.161
+        },
+        {
+          "period": "2024-10",
+          "actual": -75.788,
+          "bridge": -83.5922,
+          "baseline": -83.301
+        },
+        {
+          "period": "2024-11",
+          "actual": -79.756,
+          "bridge": -76.2035,
+          "baseline": -75.788
+        },
+        {
+          "period": "2024-12",
+          "actual": -96.849,
+          "bridge": -76.3772,
+          "baseline": -79.756
+        },
+        {
+          "period": "2025-01",
+          "actual": -124.704,
+          "bridge": -97.4803,
+          "baseline": -96.849
+        },
+        {
+          "period": "2025-02",
+          "actual": -117.069,
+          "bridge": -124.432,
+          "baseline": -124.704
+        },
+        {
+          "period": "2025-03",
+          "actual": -132.983,
+          "bridge": -117.2102,
+          "baseline": -117.069
+        },
+        {
+          "period": "2025-04",
+          "actual": -60.341,
+          "bridge": -132.4028,
+          "baseline": -132.983
+        },
+        {
+          "period": "2025-05",
+          "actual": -66.748,
+          "bridge": -62.6009,
+          "baseline": -60.341
+        },
+        {
+          "period": "2025-06",
+          "actual": -58.697,
+          "bridge": -56.2676,
+          "baseline": -66.748
+        },
+        {
+          "period": "2025-07",
+          "actual": -75.062,
+          "bridge": -51.5179,
+          "baseline": -58.697
+        },
+        {
+          "period": "2025-08",
+          "actual": -59.642,
+          "bridge": -68.7361,
+          "baseline": -75.062
+        },
+        {
+          "period": "2025-09",
+          "actual": -59.392,
+          "bridge": -55.2096,
+          "baseline": -59.642
+        },
+        {
+          "period": "2025-10",
+          "actual": -37.376,
+          "bridge": -54.9059,
+          "baseline": -59.392
+        },
+        {
+          "period": "2025-11",
+          "actual": -63.868,
+          "bridge": -34.2889,
+          "baseline": -37.376
+        },
+        {
+          "period": "2025-12",
+          "actual": -76.078,
+          "bridge": -61.8835,
+          "baseline": -63.868
+        },
+        {
+          "period": "2026-01",
+          "actual": -52.67,
+          "bridge": -75.7438,
+          "baseline": -76.078
+        },
+        {
+          "period": "2026-02",
+          "actual": -52.5,
+          "bridge": -54.2237,
+          "baseline": -52.67
+        },
+        {
+          "period": "2026-03",
+          "actual": -53.657,
+          "bridge": -58.1607,
+          "baseline": -52.5
+        },
+        {
+          "period": "2026-04",
+          "actual": -52.883,
+          "bridge": -61.3874,
+          "baseline": -53.657
+        },
+        {
+          "period": "2026-05",
+          "actual": -75.752,
+          "bridge": -60.3218,
+          "baseline": -52.883
+        },
+        {
+          "period": "2026-06",
+          "actual": -71.182,
+          "bridge": -81.5329,
+          "baseline": -75.752
+        },
+        {
+          "period": "2026-07",
+          "actual": -92.826,
+          "bridge": -78.4748,
+          "baseline": -71.182
+        },
+        {
+          "period": "2026-08",
+          "actual": -105.737,
+          "bridge": -98.0388,
+          "baseline": -92.826
+        },
+        {
+          "period": "2026-09",
+          "actual": -105.047,
+          "bridge": -111.5691,
+          "baseline": -105.737
+        }
+      ],
+      "reference_period": "2026-10",
+      "dts_cutoff_used": "2026-11-05",
+      "dts_cutoff_scheduled": "2026-11-25",
+      "dts_sessions_missing": 13,
+      "point": -109.90505182645187,
+      "baseline": -105.047,
+      "range80": [
+        -128.0273589616432,
+        -100.18257216982
+      ],
+      "coefficients": {
+        "intercept": -0.29062479254814216,
+        "slopes": {
+          "customs_growth_surprise_pp": 0.06673459882227423
+        }
+      },
+      "feature_values": {
+        "customs_growth_surprise_pp": -68.44166466134863
+      },
+      "dts_contribution": -4.567427033903726,
+      "dts_direction": "DOWN"
+    }
+  }
+}

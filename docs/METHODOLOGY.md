@@ -125,3 +125,22 @@ Los eventos `nfp`, `claims`, `retail` y `trade` incorporan `dts_driver`, calcula
 - **Ventaja demostrada.** Si el AR1 elegido en el tramo de selección no mejora a la referencia en el tramo reservado, se publica la referencia (`demoted_on_holdout: true`). El tramo reservado solo puede degradar al modelo simple, nunca promover uno complejo. Cada estimación lleva `edge: DEMONSTRATED | NONE`.
 - **ARGOS.** En `argos_summary.json`, `signal` es `null` cuando `edge` es `NONE`; la dirección bruta se conserva en `signal_research`. ARGOS no debe usar `signal_research` como señal.
 - **Lectura de mesa.** Franja superior generada automáticamente a partir del contrato de caja y del radar: variación del TGA y su contribución a reservas, Z de calendario, caja neta y financiación, próximo dato con su estado de ventaja y recuento de consensos cargados. Es un resumen descriptivo, no una señal de trading.
+
+## v7 — Puente DTS → datos de impacto
+
+**Objetivo.** Medir, sin información futura, si la caja diaria del Tesoro mejora la estimación de NFP, solicitudes de paro, ventas minoristas y balanza comercial.
+
+| Dato | Canal DTS | Variable | Corte de información |
+|---|---|---|---|
+| NFP (PAYEMS, Δ mensual) | Retenciones IRPF/FICA (Tabla II; Tabla IV antes del 14-02-2023) | Crecimiento Lag 364 de 20 sesiones menos su media de 12 meses | 2 días hábiles antes del viernes BLS |
+| Solicitudes (ICSA) | Prestaciones por desempleo DOL | Cambio semanal del crecimiento Lag 364 de 5 sesiones | Martes posterior a la semana de referencia |
+| Ventas (RSAFS, % m/m) | Retenciones + devoluciones individuales (Tabla V) | Sorpresa de retenciones e impulso de devoluciones frente a un año antes | Último día hábil del mes |
+| Balanza (BOPGSTB) | Aduanas | Crecimiento Lag 364 de 15 sesiones del mes siguiente menos su media de 12 meses | Día 25 del mes siguiente |
+
+**Diseño fijado de antemano.** Una especificación por dato, sin búsqueda de variables. Regresión con penalización ridge fija (λ = 1 sobre variables estandarizadas), ventana móvil de 96 meses y mínimo de 36. Cada origen se estima solo con periodos cuyo dato ya estaba publicado. Se excluye mar-2020 a dic-2021 del ajuste y de la evaluación.
+
+**Regla de ventaja.** `DEMONSTRATED` exige: mejora del MAE ≥ 5 % frente a la referencia del radar, Diebold-Mariano unilateral p < 0,10 (Newey-West, 3 retardos), mejora positiva en los últimos 24 orígenes **y** mejora ≥ 2 % con p < 0,10 frente al mismo modelo sin las variables DTS (ablación). La ablación se añadió tras la primera ejecución porque la mejora de ventas minoristas procedía de la contracción de la referencia y no del DTS; solo endurece la regla.
+
+**Resultado inicial (2019–2026, sin pandemia).** Ningún canal demuestra valor añadido del DTS: NFP +0,4 % frente a la ablación (p 0,19); ventas +0,4 % (p 0,37); solicitudes −0,6 %; balanza −0,4 %. El puente se muestra en cada tarjeta con su aporte en unidades del dato, pero **no sustituye** la estimación publicada mientras su estado sea `NONE`.
+
+**Límites.** Los objetivos son la última versión revisada de FRED (las primeras publicaciones requieren ALFRED con clave). La estimación es `PRELIMINARY` mientras falten sesiones del DTS hasta el corte previsto. `data/bridge/dts_daily_series.json` guarda las cuatro series diarias desde 2014; el refresco diario añade solo las fechas nuevas. El flujo manual «DTS bridge — full history rebuild» reconstruye todo el historial.

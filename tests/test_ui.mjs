@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {expired,cashBlocked,effectiveCard,slgsState,localConsensus,sharedConsensus,escapeHTML,hasEdge,briefLines} from '../assets/app.mjs';
+import {expired,cashBlocked,effectiveCard,slgsState,localConsensus,sharedConsensus,escapeHTML,hasEdge,briefLines,bridgeState} from '../assets/app.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from '../assets/content.mjs';
 const now=Date.parse('2026-11-05T18:00:00Z');
 const fresh={generated_at:'2026-11-05T17:00:00Z',valid_until_utc:'2026-11-05T21:45:00Z'};
@@ -114,4 +114,18 @@ test('desk reading follows the cash contract and both languages',()=>{
   }
   const blocked=briefLines({...data,dq:{block:true}},cs,'es',now);
   assert.equal(blocked[0].tone,'red');assert.equal(blocked.length,3);
+});
+
+test('DTS bridge is shown only with a live forecast and a valid state',()=>{
+  const b={status:'PRELIMINARY',edge:'NONE',point:138.6,dts_contribution:-3.6};
+  assert.equal(bridgeState({forecast:{point:1},dts_bridge:b}),b);
+  assert.equal(bridgeState({forecast:null,dts_bridge:b}),null);
+  assert.equal(bridgeState({forecast:{point:1},dts_bridge:{status:'UNAVAILABLE',edge:'NONE'}}),null);
+  const mmt={ntf_total:1,dtga:-1,reserves_impact:1,tga_close:1,net_debt_cash_iiib:0,z_ntf_ex_exp_weekday_100bd:0};
+  const data={...fresh,asof:'2026-11-05',v:'dts-g8-6.0',dq:{block:false,stale:false},mmt_liquidity:mmt};
+  for(const lang of ['en','es']){
+    const lines=briefLines(data,[{id:'nfp',release_date:'2026-12-04',forecast:{point:1,edge:'NONE'},dts_bridge:b}],lang,now);
+    assert.ok(lines.some(l=>/0/.test(l.text)&&/DTS/.test(l.text)));
+    assert.ok(lines.every(l=>!/\{\w+\}/.test(l.text)));
+  }
 });
