@@ -1,0 +1,24 @@
+name: DTS bridge research (long history)
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/dts-bridge-v7]
+    paths: ['scripts/fetch_dts_long_history.py', '.github/workflows/dts_bridge_research.yml']
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python scripts/fetch_dts_long_history.py 2014-01-01
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/bridge/raw
+          git diff --cached --quiet && exit 0
+          git commit -m 'data: long DTS history for bridge research [skip netlify]'
+          git push origin HEAD:${{ github.ref_name }}
