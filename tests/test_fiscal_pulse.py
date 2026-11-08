@@ -51,6 +51,13 @@ class PulseTests(unittest.TestCase):
     def test_expiry_blocks(self):
         p = pulse_contract(build_pulse(book(), CPI, NOW), dt.datetime(2026, 11, 10, tzinfo=dt.timezone.utc))
         self.assertEqual(p["status"], "EXPIRED")
+    def test_known_base_event_is_excluded(self):
+        b = book(1.30)
+        for r in b["rows"]: r["components"]["FED_SALARIES_EFT"] = r["components"]["WITHHELD_FICA"]
+        p = build_pulse(b, CPI, NOW)
+        sal = next(x for x in p["indicators"] if x["id"] == "fed_salaries")
+        self.assertEqual(sal["state"], "distorted"); self.assertTrue(sal["base_effects"])
+        self.assertIn("efecto base", p["verdicts"]["labor"]["summary_es"])
     def test_theme_summary(self):
         v = build_pulse(book(1.10), CPI, NOW)["verdicts"]["labor"]
         self.assertIn("summary_es", v); self.assertTrue(v["summary_es"].endswith("."))

@@ -1,5 +1,5 @@
 // Fiscal pulse panel: DTS cash vs the same session of the previous fiscal year.
-const STATE_CLASS={better:'good',worse:'bad',pressure_up:'warn',pressure_down:'warn',stable:'flat',na:'flat'};
+const STATE_CLASS={better:'good',worse:'bad',pressure_up:'warn',pressure_down:'warn',stable:'flat',na:'flat',distorted:'flat'};
 const COPY={
  es:{eyebrow:'PULSO FISCAL → ECONOMÍA',title:'¿La economía va mejor o peor que hace un año? Lo dice la caja del Tesoro',
   intro:'Cada indicador compara lo acumulado en el año fiscal (FYTD) con el mismo número de sesiones del año pasado. Verde: mejor que hace un año. Rojo: peor. Ámbar: más presión fiscal o sobre tipos. Gris: sin cambio relevante (menos de ±3 %). Los ingresos se comparan también descontando la inflación. Es una lectura de tendencia, no la cifra exacta del próximo dato.',
@@ -68,7 +68,7 @@ export function pulseHTML(pulse,cards,lang='es',now=Date.now()){
       const fmt=v=>nf(v,0);
       return `<article class="pulse-item ${cls}" data-pulse-item="${e(x.id)}"><div class="pulse-top"><h4>${e(lang==='es'?x.es:x.en)}</h4><span class="pulse-big">${arrow} ${big}</span></div>
       ${f.change==null?`<p class="muted small">${c.na}</p>`:`<div class="pulse-sub"><span>${net?c.net:c.fytd}</span>${real}<span>${c.mtd}: ${mtd}</span></div>
-      <p class="pulse-reading">${e(lang==='es'?x.reading_es:x.reading_en)}</p>${chart(x,lang)}`}
+      ${(x.base_effects||[]).map(b=>`<p class="pulse-base">⚠ ${e(lang==='es'?b.es:b.en)}</p>`).join('')}<p class="pulse-reading">${e(lang==='es'?x.reading_es:x.reading_en)}</p>${chart(x,lang)}`}
       <p class="pulse-note">${e(lang==='es'?x.note_es:x.note_en)}</p></article>`;}).join('');
     return `<div class="pulse-block"><div class="pulse-block-head"><div><h3>${e(lang==='es'?th.es:th.en)}</h3><span class="muted small">${c.feeds}: ${e(lang==='es'?th.feeds_es:th.feeds_en)}</span></div><span class="pulse-verdict ${VERDICT_CLASS[v.verdict]||'flat'}">${c.verdict[v.verdict]||'—'}</span></div>
     <p class="pulse-summary">${e(lang==='es'?v.summary_es:v.summary_en)}</p>
