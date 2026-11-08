@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {expired,cashBlocked,effectiveCard,slgsState,localConsensus,sharedConsensus,escapeHTML,hasEdge,briefLines,bridgeState} from '../assets/app.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from '../assets/content.mjs';
+import {pulseHTML,pulseExpired} from '../assets/pulse.mjs';
 const now=Date.parse('2026-11-05T18:00:00Z');
 const fresh={generated_at:'2026-11-05T17:00:00Z',valid_until_utc:'2026-11-05T21:45:00Z'};
 test('missing or expired timestamp blocks rather than implying neutral',()=>{
@@ -139,4 +140,17 @@ test('desk reading shows the automatic consensus of the next release',()=>{
   assert.match(es.text,/Consenso 0,3 frente a estimación 0,37/);
   const en=briefLines(data,[card],'en',now).find(l=>/CPI/.test(l.text));
   assert.match(en.text,/Consensus 0.3 vs estimate 0.37/);
+});
+
+test('fiscal pulse renders verdicts, charts and blocks when expired',()=>{
+  const ind={id:'withheld',theme:'labor',es:'Retenciones',en:'Withholding',kind:'pct',good:'up',note_es:'n',note_en:'n',state:'better',
+    fytd:{change:4,real_change:1},mtd:{change:null,sessions:4},reading_es:'Más masa salarial',reading_en:'Larger wage bill',
+    monthly:[{month:'2026-09',change:-1},{month:'2026-10',change:2},{month:'2026-11',change:null,partial:true}]};
+  const pulse={status:'OK',valid_until_utc:'2026-11-09T21:45:00Z',themes:{labor:{es:'Empleo',en:'Jobs',feeds_es:'NFP',feeds_en:'NFP'}},
+    verdicts:{labor:{verdict:'stronger',summary_es:'Mejor que hace un año.',summary_en:'Better than a year ago.'}},indicators:[ind]};
+  const html=pulseHTML(pulse,[{id:'nfp',_name:'NFP',last:165,forecast:{point:137},release_date:'2026-12-04'}],'es',now);
+  assert.match(html,/Más fuerte que hace un año/);assert.match(html,/svg class="pulse-chart"/);assert.match(html,/NFP/);
+  assert.match(pulseHTML(pulse,[],'en',now),/Better than a year ago/);
+  assert.equal(pulseExpired(pulse,Date.parse('2026-11-10T00:00:00Z')),true);
+  assert.match(pulseHTML(pulse,[],'es',Date.parse('2026-11-10T00:00:00Z')),/caducado/);
 });

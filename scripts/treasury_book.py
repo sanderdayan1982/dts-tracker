@@ -19,7 +19,10 @@ COMPONENTS = [
  ('Withdrawals','INDIV_REFUNDS_EFT','Individual tax refunds · EFT','Devoluciones fiscales individuales · EFT'),
  ('Withdrawals','TREAS_INTEREST','Interest on Treasury securities','Intereses de títulos del Tesoro'),
  ('Withdrawals','SSA_BENEFITS','Social Security benefits','Prestaciones de la Seguridad Social'),
- ('Withdrawals','SSA_SSI','Supplemental Security Income','Ingreso de Seguridad Suplementario')]
+ ('Withdrawals','SSA_SSI','Supplemental Security Income','Ingreso de Seguridad Suplementario'),
+ ('Withdrawals','FED_SALARIES_EFT','Federal salaries · EFT','Salarios federales · EFT'),
+ ('Deposits','TSP_DEP','Thrift Savings Plan · contributions','Plan de ahorro federal TSP · aportaciones'),
+ ('Withdrawals','TSP_WD','Thrift Savings Plan · withdrawals','Plan de ahorro federal TSP · retiradas')]
 
 def number(x):
     return round(x, 3) if finite(x) else None
