@@ -13,15 +13,29 @@ concurrency:
 jobs:
   gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install numpy pandas scipy
+      - name: Restore Dukascopy cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /tmp/dkcache
+          key: dkcache-${{ github.run_id }}
+          restore-keys: dkcache-
       - name: Download Dukascopy daily candles (28 pairs + XAUUSD)
+        env:
+          DK_CACHE: /tmp/dkcache
         run: python research/rng/fetch_dukascopy_daily.py /tmp/dk_daily.csv 2016 2026
+      - name: Save Dukascopy cache (also after a failure, so the next run resumes)
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: /tmp/dkcache
+          key: dkcache-${{ github.run_id }}
       - name: Run frozen gate (dev, then confirmation)
         run: |
           set -e
