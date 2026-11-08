@@ -21,6 +21,7 @@ import time
 import urllib.request
 from pathlib import Path
 from argos_dts import dts_summary, attach_dts_drivers
+import dts_bridge
 from institutional_core import atomic_json, cash_contract, finite, iso, parse_time, radar_valid_until, utcnow
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -272,6 +273,39 @@ def context_card(key,spec,source,now):
                history=[{"date":x["date"],"value":x["value"]*spec["scale"]} for x in rows[-60:]])
     return out
 
+def bridge_view(model, card):
+    """Compact, fail-closed projection of a DTS bridge model onto a radar card."""
+    if not model or model.get("reference_period")!=card.get("reference_period") or "point" not in model:
+        return {"status":"UNAVAILABLE","edge":"NONE"}
+    v=model.get("validation") or {}; added=v.get("dts_added_value") or {}
+    r=lambda x,d=4:round(x,d) if finite(x) else None
+    return {"status":model["status"],"edge":model["edge"],"point":r(model["point"]),"range80":[r(x) for x in model["range80"]],
+            "baseline":r(model.get("baseline")),"dts_contribution":r(model.get("dts_contribution")),"dts_direction":model.get("dts_direction"),
+            "dts_asof":model.get("dts_cutoff_used"),"dts_cutoff_scheduled":model.get("dts_cutoff_scheduled"),
+            "dts_sessions_missing":model.get("dts_sessions_missing"),"driver_en":model.get("driver_en"),"driver_es":model.get("driver_es"),
+            "validation":{"n":v.get("n"),"first":v.get("first"),"last":v.get("last"),"improvement_pct":r(v.get("improvement_pct"),2),
+                          "dm_p_one_sided":r(v.get("dm_p_one_sided"),3),"recent_improvement_pct":r(v.get("recent_improvement_pct"),2),
+                          "added_value_pct":r(added.get("improvement_pct"),2),"added_value_dm_p":r(added.get("dm_p_one_sided"),3),
+                          "mae_bridge":r(v.get("mae_bridge")),"mae_baseline":r(v.get("mae_baseline"))}}
+
+def attach_bridge(cards,now,offline):
+    """DTS bridge v7. Any failure leaves an explicit UNAVAILABLE state; it never blocks the radar."""
+    try:
+        store=None
+        if not offline:
+            try: store=dts_bridge.update_series(now)
+            except Exception as exc: print("bridge DTS update failed:",type(exc).__name__)
+        result=dts_bridge.build(now,store)
+        stale=result.get("dts_asof") is None or (now.date()-dt.date.fromisoformat(result["dts_asof"])).days>10
+    except Exception as exc:
+        print("bridge failed:",type(exc).__name__,exc); result,stale={"models":{}},True
+    for card in cards:
+        if card["id"] not in dts_bridge.TARGETS: continue
+        view=bridge_view(None if stale else result["models"].get(card["id"]),card)
+        card["dts_bridge"]=view
+        # The bridge replaces the published estimate only with a demonstrated DTS contribution.
+        card["primary_estimate"]="DTS_BRIDGE" if view["edge"]=="DEMONSTRATED" and card.get("forecast") else "STATISTICAL"
+
 def main(offline=False):
     now=utcnow()
     specs={**SERIES,**CONTEXT}
@@ -292,6 +326,7 @@ def main(offline=False):
     dts=cash_contract(dts,now)
     summary=dts_summary(dts,now)
     attach_dts_drivers(cards,summary)
+    attach_bridge(cards,now,offline)
     valid_until=radar_valid_until(now)
     for card in cards:
         if card.get("consensus"):
@@ -321,6 +356,12 @@ def main(offline=False):
     for event, card in zip(compact["events"], cards):
         if "dts_driver" in card:
             event["dts_driver"]=card["dts_driver"]
+        b=card.get("dts_bridge")
+        if b:
+            event["dts_bridge"]={"status":b["status"],"edge":b["edge"],"point":b.get("point"),
+                                 "dts_direction":b.get("dts_direction"),"dts_contribution":b.get("dts_contribution")}
+            if card.get("primary_estimate")=="DTS_BRIDGE":
+                event["point"]=round(b["point"],3); event["primary_estimate"]="DTS_BRIDGE"
     atomic_json(DATA/"argos_summary.json",compact,compact=True)
     atomic_json(DATA/"dts_nowcast.json",dts)
     return payload

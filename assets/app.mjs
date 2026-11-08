@@ -52,9 +52,16 @@ export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount
     const edge=!next.forecast?c.briefNextBlocked:hasEdge(next)?c.briefNextEdge:c.briefNextNoEdge;
     lines.push({tone:hasEdge(next)?'teal':'',text:fill(c.briefNext,{name,date:next.release_date,edge})});
   }
+  const bridges=cardList.map(bridgeState).filter(Boolean);
+  if(bridges.length)lines.push({tone:bridges.some(b=>b.edge==='DEMONSTRATED')?'teal':'',text:fill(c.briefBridge,{n:bridges.filter(b=>b.edge==='DEMONSTRATED').length,total:bridges.length})});
   const withEdge=cardList.filter(hasEdge).length,live=cardList.filter(x=>x.forecast).length;
   lines.push({tone:withEdge?'':'amber',text:fill(c.briefEdgeCount,{n:withEdge,total:live})+' '+fill(c.briefConsensus,{n:consensusCount,total:live})});
   return lines;
+}
+export function bridgeState(card){
+  const b=card?.dts_bridge;
+  if(!card?.forecast||!b||!['PRELIMINARY','FINAL_INFORMATION_SET'].includes(b.status)||!numeric(b.point))return null;
+  return b;
 }
 export function slgsState(value){return value===true?'open':value===false?'closed':'unknown';}
 export function localConsensus(entry,card,now=Date.now()){
@@ -83,7 +90,7 @@ const $=id=>document.getElementById(id);
 const t=key=>copy[state.lang][key]??key;
 const e=escapeHTML;
 const n=(v,d=2)=>numeric(v)?new Intl.NumberFormat(state.lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d}).format(v):'—';
-const signed=(v,d=2)=>numeric(v)?(v>0?'+':'')+n(v,d):'—';
+const signed=(v,d=2)=>{if(!numeric(v))return '—';const r=Number(v.toFixed(d))||0;return (r>0?'+':'')+n(r,d);};
 const date=(v,withTime=false)=>{if(!v)return t('unverified');const d=new Date(v.length===10?v+'T12:00:00Z':v);return Number.isNaN(d.getTime())?t('unverified'):new Intl.DateTimeFormat(state.lang==='es'?'es-ES':'en-US',{dateStyle:'medium',...(withTime?{timeStyle:'short'}:{})}).format(d);};
 const pill=(label,cls='')=>`<span class="pill ${cls}">${e(label)}</span>`;
 const sourceLink=(id,label=t('source'))=>`<a href="https://fred.stlouisfed.org/series/${encodeURIComponent(id)}" target="_blank" rel="noopener">${e(label)} ↗</a>`;
@@ -133,7 +140,8 @@ function renderHeader(){
 function consensusFor(c){return localConsensus(state.consensus[c.id],c)??sharedConsensus(c.consensus,c)??null;}
 function cardHTML(c){
   const desc=targets[c.id]?.[state.lang]??[c.id,'',''];const f=c.forecast;const con=consensusFor(c);
-  const edge=hasEdge(c),noEdge=!!f&&!edge;
+  const bridge=bridgeState(c),bridgePrimary=!!bridge&&c.primary_estimate==='DTS_BRIDGE'&&bridge.edge==='DEMONSTRATED';
+  const edge=hasEdge(c)||bridgePrimary,noEdge=!!f&&!edge;
   const cls=noEdge?'flat':c.signal==='HOTTER'?'hot':c.signal==='WEAKER'?'weak':'';
   const validation=f?.validation;
   const fiscalLine=fiscalDriverText(c,state.data,state.lang);
@@ -145,13 +153,14 @@ function cardHTML(c){
   let gap='';
   if(con&&f){const diff=f.point-con.value;const within=con.value>=f.range80[0]&&con.value<=f.range80[1];gap=`<p><strong>${e(t('gap'))}: ${signed(diff)}</strong><br>${e(t(within?'gapSmall':'gapLarge'))}</p>`;}
   return `<article class="card" data-card="${e(c.id)}"><div class="card-top"><div><h3>${e(desc[0])}</h3><div class="meta">${e(c.agency??'')} · ${e(c.reference_period??'—')}</div></div>${pill(t(!f?'blocked':edge?'research':'noEdgePill'),!f?'red':edge?'amber':'')}</div>
-  <div class="reading ${cls}">${e(noEdge?t('noEdgeShort')+' · '+t(signal(c.signal)).toLowerCase():t(signal(c.signal)))}</div><div class="numbers"><div><div class="label">${e(t('previous'))}</div><div class="big">${n(c.last)}</div></div><div><div class="label">${e(t('estimate'))}</div><div class="big estimate${noEdge?' noedge':''}">${n(f?.point)}</div></div></div><div class="unit">${e(unit(c))}</div>
+  <div class="reading ${cls}">${e(noEdge?t('noEdgeShort')+' · '+t(signal(c.signal)).toLowerCase():t(signal(c.signal)))}</div><div class="numbers"><div><div class="label">${e(t('previous'))}</div><div class="big">${n(c.last)}</div></div><div><div class="label">${e(t(bridgePrimary?'bridgeEstimate':'estimate'))}</div><div class="big estimate${noEdge?' noedge':''}">${n(bridgePrimary?bridge.point:f?.point)}</div></div></div><div class="unit">${e(unit(c))}</div>
   ${fiscalLine?`<p class="unit" data-dts-driver="${e(c.id)}">DTS · ${e(fiscalLine)}${c.dts_driver_asof?' · '+e(c.dts_driver_asof):''}</p>`:''}
+  ${bridge?`<div class="bridge ${bridge.edge==='DEMONSTRATED'?'edge':''}" data-bridge="${e(c.id)}"><div class="bridge-top"><span>${e(t('bridgeTitle'))}</span>${pill(t(bridge.edge==='DEMONSTRATED'?'bridgeEdge':'bridgeNoEdge'),bridge.edge==='DEMONSTRATED'?'teal':'')}</div><div class="bridge-row"><strong>${n(bridge.point)}</strong><span>${e(t('bridgeContribution'))} <b>${signed(bridge.dts_contribution)}</b></span></div>${bridge.status==='PRELIMINARY'?`<div class="unit">${e(t('bridgePrelim').replace('{n}',bridge.dts_sessions_missing??'—').replace('{d}',bridge.dts_cutoff_scheduled??'—'))}</div>`:''}</div>`:''}
   <div class="range">${e(t('range'))}<strong>${f?n(f.range80[0])+' → '+n(f.range80[1]):'—'}</strong></div>
   ${spark(c.history)}<p class="explain">${e(desc[1])}</p><div class="consensus"><span>${e(t('consensus'))}<br><strong>${con?n(con.value):e(t('missingConsensus'))}</strong></span><button class="linkbutton" data-consensus="${e(c.id)}">${e(t('enter'))}</button></div>${gap}
   <details><summary>${e(t('evidence'))}</summary><p>${e(desc[2])}</p>${fiscalEvidence}
   ${f?`<p>${e(t('method'))}: ${e(t(f.method))}.<br>${e(t('mae'))}: <strong>${n(validation?.mae)}</strong> ${e(unit(c))}.<br>${e(t('holdout'))}: ${n(validation?.holdout_n,0)}.<br>${e(t('improvement'))}: ${n(validation?.improvement_pct,1)}%.</p><p>${e(t(edge?'hasEdge':'noEdge'))}</p>${f.demoted_on_holdout?`<p>${e(t('demoted'))}</p>`:''}<p>${e(t('rangeNote'))}</p>`:`<p>${e(t('notReady'))} · ${e(statusText(c.status))}</p>`}
-  <p>${e(t('revised'))}</p><p>${e(t('probability'))}</p><p>${e(t('observed'))}: ${e(c.observed_period??'—')}<br>${e(t('lastUpdated'))}: ${e(date(c.source_retrieved_at,true))}</p></details>
+  ${bridge?`<p><strong>${e(t('bridgeTitle'))}</strong> · ${e(state.lang==='es'?bridge.driver_es:bridge.driver_en)}.<br>${e(t('bridgeTest').replace('{n}',bridge.validation?.n??'—').replace('{a}',bridge.validation?.first??'—').replace('{b}',bridge.validation?.last??'—').replace('{i}',n(bridge.validation?.improvement_pct,1)).replace('{p}',n(bridge.validation?.dm_p_one_sided,3)).replace('{v}',n(bridge.validation?.added_value_pct,1)).replace('{q}',n(bridge.validation?.added_value_dm_p,3)))}</p>`:''}<p>${e(t('revised'))}</p><p>${e(t('probability'))}</p><p>${e(t('observed'))}: ${e(c.observed_period??'—')}<br>${e(t('lastUpdated'))}: ${e(date(c.source_retrieved_at,true))}</p></details>
   <div class="card-footer"><span>${e(t('release'))}: ${e(date(c.release_date))}</span>${c.series_id?sourceLink(c.series_id):''}</div></article>`;
 }
 function statusText(status){return t(({OK:'fresh',RESEARCH_ESTIMATE:'research',DATA_GAP:'missing',FETCH_FAIL:'fetchFail',STALE:'stale',INSUFFICIENT_HISTORY:'notReady',UNAVAILABLE:'missing'})[status]??'blocked');}

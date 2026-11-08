@@ -1,0 +1,23 @@
+name: DTS bridge — full history rebuild (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m unittest discover -s tests -p 'test_bridge.py' -v
+      - run: DTS_RAW_DIR=/tmp/dts_raw python scripts/fetch_dts_long_history.py 2014-01-01
+      - run: python scripts/dts_bridge.py --rebuild /tmp/dts_raw
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/bridge data/dts_bridge.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'data: rebuild DTS bridge history [skip netlify]'
+          git push origin HEAD:${{ github.ref_name }}
