@@ -130,7 +130,7 @@ def value(row, parts, mode):
     vals = [_value(row, p, mode) for p in parts]
     return sum(vals) if vals and all(finite(v) for v in vals) else None
 
-def monthly_yoy(rows, parts, net=False, months=13):
+def monthly_yoy(rows, parts, net=False, months=13, events=()):
     """Calendar-month totals from daily DTS amounts; change vs the same month a year earlier.
     A month counts only if every DTS session in it reported the item (missing is never zero).
     The current month is partial and flagged as such."""
@@ -147,7 +147,8 @@ def monthly_yoy(rows, parts, net=False, months=13):
         if not ok: chg = None
         elif net: chg = (totals[k] - totals[prev]) / 1000
         else: chg = 100 * (totals[k] / totals[prev] - 1) if totals[prev] > 0 else None
-        out.append({"month": k, "change": None if chg is None else round(chg, 2), "partial": k == current})
+        hit = any(ev["start"][:7] <= prev <= ev["end"][:7] or ev["start"][:7] <= k <= ev["end"][:7] for ev in events)
+        out.append({"month": k, "change": None if chg is None else round(chg, 2), "partial": k == current, "base_event": hit})
     return out
 
 def session_index(rows, i, key):
@@ -176,7 +177,11 @@ def classify(spec, change):
     return "better" if direction == spec["good"] else "worse"
 
 def fmt_change(x):
-    f = x["fytd"]; v = f["real_change"] if f["real_change"] is not None else f["change"]
+    f = x["fytd"]
+    if x.get("judged_on") == "trend3":
+        real = " real" if x["fytd"]["real_change"] is not None else ""
+        return (f"{x['trend3']:+.1f}" + (" bn" if x["kind"] == "net" else " %") + real + " 3 meses").replace(".", ",")
+    v = f["real_change"] if f["real_change"] is not None else f["change"]
     if v is None: return "n/d"
     suffix = " bn" if x["kind"] == "net" else " %" + (" real" if f["real_change"] is not None else "")
     return f"{v:+.1f}{suffix}".replace(".", ",")
@@ -212,12 +217,19 @@ def build_pulse(book, cpi_obs=None, now=None):
         base_end = prior_fy and prior_fy["d"]
         events = [ev for ev in BASE_EVENTS if spec["id"] in ev["affects"] and base_start and base_end
                   and ev["start"] <= base_end and ev["end"] >= base_start]
-        if events and f_chg is not None: state = "distorted"
+        monthly = monthly_yoy(rows, spec["parts"], net, events=[ev for ev in BASE_EVENTS if spec["id"] in ev["affects"]])
+        clean = [m["change"] for m in monthly if m["change"] is not None and not m["partial"] and not m["base_event"]][-3:]
+        trend3 = round(sum(clean) / len(clean), 2) if len(clean) == 3 else None
+        if trend3 is not None and spec.get("real") and finite(inflation): trend3 = round(trend3 - inflation, 2)   # real, like FYTD
+        if events and f_chg is not None:
+            # The cumulative base is not comparable: judge the indicator on its last 3 comparable months instead.
+            state = classify(spec, trend3) if trend3 is not None else "distorted"
         # Charts: cumulative FYTD path by session, this fiscal year vs the previous one (USD bn).
         cur_path = [value(r, spec["parts"], "fytd") for r in rows if r["fy"] == last["fy"]]
         old_path = [value(r, spec["parts"], "fytd") for r in rows if r["fy"] == last["fy"] - 1]
         to_bn = lambda xs: [round(x / 1000, 3) if finite(x) else None for x in xs]
-        text = (spec["up_es"], spec["up_en"]) if (f_chg or 0) > 0 else (spec["down_es"], spec["down_en"])
+        basis = trend3 if events and trend3 is not None else f_chg
+        text = (spec["up_es"], spec["up_en"]) if (basis or 0) > 0 else (spec["down_es"], spec["down_en"])
         out["indicators"].append({
             "id": spec["id"], "theme": spec["theme"], "es": spec["es"], "en": spec["en"], "kind": "net" if net else "pct",
             "good": spec["good"], "feeds": spec["feeds"], "note_es": spec["note_es"], "note_en": spec["note_en"],
@@ -228,10 +240,13 @@ def build_pulse(book, cpi_obs=None, now=None):
                     "change": None if m_chg is None or n_mo < MIN_MTD_SESSIONS else round(m_chg, 2),
                     "sessions": n_mo, "reliable": n_mo >= MIN_MTD_SESSIONS},
             "base_effects": [{"id": ev["id"], "es": ev["es"], "en": ev["en"]} for ev in events],
-            "state": state, "reading_es": text[0] if f_chg is not None and state != "stable" else "Sin cambio relevante frente al año pasado",
-            "reading_en": text[1] if f_chg is not None and state != "stable" else "No material change versus last year",
+            "state": state,
+            "reading_es": (("Acumulado no comparable; últimos 3 meses comparables: " + f"{trend3:+.1f}".replace(".", ",") + (" bn. " if net else " %. ")) if events and trend3 is not None else "")
+                          + (text[0] if basis is not None and state not in ("stable", "distorted") else "Sin cambio relevante frente al año pasado"),
+            "reading_en": ((f"Cumulative not comparable; last 3 comparable months: {trend3:+.1f}" + (" bn. " if net else "%. ")) if events and trend3 is not None else "")
+                          + (text[1] if basis is not None and state not in ("stable", "distorted") else "No material change versus last year"),
             "chart": {"current": to_bn(cur_path), "prior": to_bn(old_path)},
-            "monthly": monthly_yoy(rows, spec["parts"], net)})
+            "monthly": monthly, "trend3": trend3, "judged_on": "trend3" if events and trend3 is not None else "fytd"})
     # Theme verdicts: count indicators better/worse than a year ago (pressure lines are reported, not scored).
     verdicts = {}
     for theme in THEMES:
