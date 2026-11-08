@@ -1,11 +1,11 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-08T01:12:35Z",
-  "valid_until_utc": "2026-11-10T03:12:35Z",
+  "generated_at": "2026-11-08T01:14:29Z",
+  "valid_until_utc": "2026-11-10T03:14:29Z",
   "dts_asof": "2026-11-05",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
-    "edge_rule": "improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0",
+    "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
     "covid_excluded": [
       "2020-03",
       "2021-12"
