@@ -379,7 +379,7 @@ def build(now=None, dts_store=None):
     dts, asof = store.get("series", {}), store.get("asof")
     out = {"schema": "dts-bridge-1.0", "generated_at": iso(now), "valid_until_utc": iso(radar_valid_until(now)),
            "dts_asof": asof, "vintage": "latest_revised_targets_point_in_time_dts",
-           "policy": {"edge_rule": f"improvement>={EDGE_MIN_IMPROVEMENT}% AND DM one-sided p<{EDGE_MAX_P} AND recent {RECENT} improvement>0",
+           "policy": {"edge_rule": f"vs baseline: improvement>={EDGE_MIN_IMPROVEMENT}% AND DM one-sided p<{EDGE_MAX_P} AND recent {RECENT} improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<{EDGE_MAX_P}",
                       "covid_excluded": list(COVID), "rolling_window_months": ROLL, "min_train_months": MIN_TRAIN,
                       "ridge_lambda": 1.0, "first_release_verified": False, "probabilities": None},
            "models": {}}
