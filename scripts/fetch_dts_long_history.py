@@ -42,6 +42,9 @@ t2 = pages("deposits_withdrawals_operating_cash", ["record_date", "account_type"
 write("table2.csv.gz", t2, ["record_date", "account_type", "transaction_type", "transaction_catg", "transaction_catg_desc", "transaction_today_amt"])
 t5 = pages("income_tax_refunds_issued", ["record_date", "tax_refund_type", "tax_refund_type_desc", "tax_refund_today_amt"])
 write("table5.csv.gz", t5, ["record_date", "tax_refund_type", "tax_refund_type_desc", "tax_refund_today_amt"])
+# Pre-Feb-2023 statements report withheld taxes only in Table IV (Federal Tax Deposits).
+t4 = pages("federal_tax_deposits", ["record_date", "tax_deposit_type", "tax_deposit_type_desc", "tax_deposit_today_amt"])
+write("table4_ftd.csv.gz", t4, ["record_date", "tax_deposit_type", "tax_deposit_type_desc", "tax_deposit_today_amt"])
 meta = {"retrieved_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "start": START,
-        "rows": {"table2": len(t2), "table5": len(t5)}, "source": BASE}
+        "rows": {"table2": len(t2), "table5": len(t5), "table4_ftd": len(t4)}, "source": BASE}
 (OUT / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")
