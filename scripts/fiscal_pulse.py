@@ -103,6 +103,18 @@ THEMES = {
   "rates": {"es": "Deuda y tipos", "en": "Debt and rates", "feeds_es": "Rendimientos 2 y 10 años", "feeds_en": "2- and 10-year yields"},
   "fiscal": {"es": "Gasto público y presión fiscal", "en": "Public spending and fiscal pressure", "feeds_es": "Déficit · aportación de activos financieros netos (NFA)", "feeds_en": "Deficit · net financial assets"},
 }
+# Known one-off events in the comparison base. If the base window overlaps an event, the
+# indicator is shown as "distorted" and excluded from the block verdict (never silently scored).
+BASE_EVENTS = [
+  {"id": "shutdown_2025", "start": "2025-10-01", "end": "2025-11-12",
+   "affects": ["fed_salaries", "tsp_in", "tsp_out", "snap", "dol"],
+   "es": "Cierre del Gobierno federal (1-oct a 12-nov-2025): nóminas federales, TSP, SNAP y prestaciones alterados en el año base",
+   "en": "Federal government shutdown (Oct 1-Nov 12, 2025): federal payroll, TSP, SNAP and benefits disrupted in the base year"},
+  {"id": "irs_disaster_postponement_2025", "start": "2025-10-01", "end": "2025-10-31",
+   "affects": ["self_employed", "corporate"],
+   "es": "Aplazamientos del IRS por desastres (pagos movidos a octubre de 2025) inflan la base",
+   "en": "IRS disaster postponements (payments moved into October 2025) inflate the base"},
+]
 STABLE_PCT = 3.0     # |YoY| below this is "stable"
 STABLE_NET_BN = 25.0  # net issuance difference below this (USD bn) is "stable"
 MIN_MTD_SESSIONS = 10  # early in the month, payment-date shifts dominate the MTD comparison
@@ -196,6 +208,11 @@ def build_pulse(book, cpi_obs=None, now=None):
         m_cur, m_old, m_chg = compare(prior_mo, "mtd")
         real = f_chg - inflation if spec.get("real") and finite(f_chg) and finite(inflation) else None
         state = classify(spec, real if real is not None else f_chg)
+        base_start = next((r["d"] for r in rows if r["fy"] == last["fy"] - 1), None)
+        base_end = prior_fy and prior_fy["d"]
+        events = [ev for ev in BASE_EVENTS if spec["id"] in ev["affects"] and base_start and base_end
+                  and ev["start"] <= base_end and ev["end"] >= base_start]
+        if events and f_chg is not None: state = "distorted"
         # Charts: cumulative FYTD path by session, this fiscal year vs the previous one (USD bn).
         cur_path = [value(r, spec["parts"], "fytd") for r in rows if r["fy"] == last["fy"]]
         old_path = [value(r, spec["parts"], "fytd") for r in rows if r["fy"] == last["fy"] - 1]
@@ -210,6 +227,7 @@ def build_pulse(book, cpi_obs=None, now=None):
                     # Shown only once the month has enough sessions; before that, payment-date shifts dominate.
                     "change": None if m_chg is None or n_mo < MIN_MTD_SESSIONS else round(m_chg, 2),
                     "sessions": n_mo, "reliable": n_mo >= MIN_MTD_SESSIONS},
+            "base_effects": [{"id": ev["id"], "es": ev["es"], "en": ev["en"]} for ev in events],
             "state": state, "reading_es": text[0] if f_chg is not None and state != "stable" else "Sin cambio relevante frente al año pasado",
             "reading_en": text[1] if f_chg is not None and state != "stable" else "No material change versus last year",
             "chart": {"current": to_bn(cur_path), "prior": to_bn(old_path)},
@@ -234,7 +252,7 @@ def build_pulse(book, cpi_obs=None, now=None):
         parts_es, parts_en = [], []
         for st, es, en in ((("better",), "a favor", "supporting"), (("worse",), "en contra", "against"),
                            (("pressure_up",), "más presión", "more pressure"), (("pressure_down",), "menos presión", "less pressure"),
-                           (("stable",), "sin cambio", "unchanged")):
+                           (("stable",), "sin cambio", "unchanged"), (("distorted",), "efecto base (excluido)", "base effect (excluded)")):
             if names(st, "es"): parts_es.append(f"{es}: {names(st, 'es')}"); parts_en.append(f"{en}: {names(st, 'en')}")
         verdicts[theme] = {"verdict": verdict, "better": better, "worse": worse, "pressure": pressure, "n": len(items),
                            "summary_es": f"{lead_es}. " + "; ".join(parts_es).capitalize()[:1] + "; ".join(parts_es)[1:] + "." if parts_es else lead_es + ".",

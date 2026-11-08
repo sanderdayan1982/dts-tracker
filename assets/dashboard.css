@@ -16,3 +16,4 @@
 .pulse-reading{font-size:12.5px;margin:6px 0 4px}.pulse-chart{width:100%;height:120px;display:block;touch-action:none}.pulse-tip{font-size:11px;color:var(--muted);min-height:15px;font-variant-numeric:tabular-nums}.pulse-note{font-size:10.5px;color:var(--muted);margin:4px 0 0}
 @media(max-width:760px){.pulse-head{grid-template-columns:1fr}.pulse-grid{grid-template-columns:1fr}}
 .pulse-summary{font-size:13.5px;margin:0 0 12px;color:var(--text)}
+.pulse-base{font-size:11.5px;color:var(--amber);margin:6px 0 2px}
