@@ -204,6 +204,55 @@ def verified_consensus(config, target, period, unit, now):
            and captured<=now<release and captured<release and now-captured<=dt.timedelta(days=7))
     return entry if valid else None
 
+# Market consensus from the desk's own RadarNews feed (ForexFactory calendar, refreshed every 5 min).
+RADAR_NEWS_URL="https://raw.githubusercontent.com/sanderdayan1982/g8-radar-news/main/public/data/radar_news_full.json"
+FF_TITLES={"nfp":"Non-Farm Employment Change","unemployment":"Unemployment Rate","claims":"Unemployment Claims",
+           "retail":"Retail Sales m/m","cpi":"CPI m/m","core_cpi":"Core CPI m/m","core_pce":"Core PCE Price Index m/m",
+           "production":"Industrial Production m/m","housing":"Housing Starts","trade":"Trade Balance"}
+FF_SCALE={"K":1e3,"M":1e6,"B":1e9,"T":1e12}
+UNIT_DIVISOR={"thousand_jobs":1e3,"thousand_claims":1e3,"thousand_homes_saar":1e3,"usd_billions":1e9}
+
+def parse_ff_value(text,unit):
+    """'65K'->65 thousand jobs, '0.3%'->0.3, '-107.9B'->-107.9 bn, '1.32M'->1320 thousand homes. None if not numeric."""
+    m=re.fullmatch(r"\s*([+-]?\d+(?:\.\d+)?)\s*([KMBT%]?)\s*",str(text or ""))
+    if not m:return None
+    value,suffix=float(m.group(1)),m.group(2)
+    if unit in UNIT_DIVISOR:
+        return value*FF_SCALE.get(suffix,1)/UNIT_DIVISOR[unit] if suffix in FF_SCALE else None
+    return value if suffix in ("%","") else None
+
+def radar_news_consensus(cards,now,feed=None):
+    """Same release only: FF title + New York release date equal to the card's verified FRED release date."""
+    if feed is None:
+        try: feed=json.loads(request_text(RADAR_NEWS_URL))
+        except Exception as exc:
+            print("consensus feed unavailable:",type(exc).__name__); return {}
+    captured=parse_time(str(feed.get("generated_at","")).replace(".000Z","Z"))
+    if captured is None or captured>now+dt.timedelta(minutes=5):return {}
+    out={}
+    for card in cards:
+        title=FF_TITLES.get(card["id"])
+        if not title or not card.get("release_date") or not card.get("reference_period"):continue
+        for ev in feed.get("calendar",[]):
+            at=parse_time(str(ev.get("event_at","")).replace(".000Z","Z"))
+            if ev.get("currency")!="USD" or ev.get("title")!=title or at is None:continue
+            # 13:30Z -> 08:30 ET. A 5h shift keeps 08:30/10:00 ET releases on their New York date in both EST and EDT.
+            if (at-dt.timedelta(hours=5)).date().isoformat()!=card["release_date"]:continue
+            value=parse_ff_value(ev.get("forecast"),card["unit"])
+            if value is None:continue
+            out[card["id"]]={"value":value,"reference_period":card["reference_period"],"unit":card["unit"],
+                             "source":"ForexFactory via G8 RadarNews","source_text":ev.get("forecast"),
+                             "captured_at":iso(min(captured,now)),"release_at":iso(at),"automatic":True}
+    return out
+
+def apply_consensus(card,entry):
+    if not entry or not card.get("forecast"):return card
+    card["consensus"]=entry
+    card["model_minus_consensus"]=card["forecast"]["point"]-entry["value"]
+    card["surprise_bias"]="RESEARCH_GAP_ONLY"
+    if "NOT_MARKET_CONSENSUS" in card["flags"]:card["flags"].remove("NOT_MARKET_CONSENSUS")
+    return card
+
 def make_card(key,spec,source,now,consensus):
     observations=source.get("observations",[])
     rows=transform(observations,spec)
@@ -320,6 +369,11 @@ def main(offline=False):
     config_path=DATA/"consensus.json"
     consensus=json.loads(config_path.read_text()) if config_path.exists() else {}
     cards=[make_card(k,spec,sources[k],now,consensus) for k,spec in SERIES.items()]
+    # File entries take precedence; otherwise the desk's RadarNews feed supplies the consensus automatically.
+    auto={} if offline else radar_news_consensus(cards,now)
+    for card in cards:
+        if not card.get("consensus") and card["id"] in auto:
+            apply_consensus(card,verified_consensus(auto,card["id"],card.get("reference_period"),card["unit"],now))
     context=[context_card(k,spec,sources[k],now) for k,spec in CONTEXT.items()]
     dts_path=DATA/"dts_nowcast.json"
     dts=json.loads(dts_path.read_text()) if dts_path.exists() else {}

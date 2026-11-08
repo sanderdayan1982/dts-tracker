@@ -32,6 +32,7 @@ export function hasEdge(card){
 }
 const fill=(text,vars)=>text.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'—');
 export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount=0){
+  const fmtv=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:2}).format(v);
   const c=copy[lang],fmt=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:1}).format(Math.abs(v));
   const lines=[];
   if(cashBlocked(data,now)){lines.push({tone:'red',text:c.briefBlocked});}
@@ -50,7 +51,8 @@ export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount
   if(next){
     const name=targets[next.id]?.[lang]?.[0]??next.id;
     const edge=!next.forecast?c.briefNextBlocked:hasEdge(next)?c.briefNextEdge:c.briefNextNoEdge;
-    lines.push({tone:hasEdge(next)?'teal':'',text:fill(c.briefNext,{name,date:next.release_date,edge})});
+    const con=sharedConsensus(next.consensus,next,now);
+    lines.push({tone:hasEdge(next)?'teal':'',text:fill(c.briefNext,{name,date:next.release_date,edge})+(con&&next.forecast?' '+fill(c.briefNextConsensus,{c:fmtv(con.value),e:fmtv(next.forecast.point)}):'')});
   }
   const bridges=cardList.map(bridgeState).filter(Boolean);
   if(bridges.length)lines.push({tone:bridges.some(b=>b.edge==='DEMONSTRATED')?'teal':'',text:fill(c.briefBridge,{n:bridges.filter(b=>b.edge==='DEMONSTRATED').length,total:bridges.length})});
@@ -157,7 +159,7 @@ function cardHTML(c){
   ${fiscalLine?`<p class="unit" data-dts-driver="${e(c.id)}">DTS · ${e(fiscalLine)}${c.dts_driver_asof?' · '+e(c.dts_driver_asof):''}</p>`:''}
   ${bridge?`<div class="bridge ${bridge.edge==='DEMONSTRATED'?'edge':''}" data-bridge="${e(c.id)}"><div class="bridge-top"><span>${e(t('bridgeTitle'))}</span>${pill(t(bridge.edge==='DEMONSTRATED'?'bridgeEdge':'bridgeNoEdge'),bridge.edge==='DEMONSTRATED'?'teal':'')}</div><div class="bridge-row"><strong>${n(bridge.point)}</strong><span>${e(t('bridgeContribution'))} <b>${signed(bridge.dts_contribution)}</b></span></div>${bridge.status==='PRELIMINARY'?`<div class="unit">${e(t('bridgePrelim').replace('{n}',bridge.dts_sessions_missing??'—').replace('{d}',bridge.dts_cutoff_scheduled??'—'))}</div>`:''}</div>`:''}
   <div class="range">${e(t('range'))}<strong>${f?n(f.range80[0])+' → '+n(f.range80[1]):'—'}</strong></div>
-  ${spark(c.history)}<p class="explain">${e(desc[1])}</p><div class="consensus"><span>${e(t('consensus'))}<br><strong>${con?n(con.value):e(t('missingConsensus'))}</strong></span><button class="linkbutton" data-consensus="${e(c.id)}">${e(t('enter'))}</button></div>${gap}
+  ${spark(c.history)}<p class="explain">${e(desc[1])}</p><div class="consensus"><span>${e(t('consensus'))}<br><strong>${con?n(con.value):e(t('missingConsensus'))}</strong></span>${con?`<span class="unit">${e(con.source??'')}${con.captured_at?' · '+e(date(con.captured_at,true)):''}</span>`:''}</div>${gap}
   <details><summary>${e(t('evidence'))}</summary><p>${e(desc[2])}</p>${fiscalEvidence}
   ${f?`<p>${e(t('method'))}: ${e(t(f.method))}.<br>${e(t('mae'))}: <strong>${n(validation?.mae)}</strong> ${e(unit(c))}.<br>${e(t('holdout'))}: ${n(validation?.holdout_n,0)}.<br>${e(t('improvement'))}: ${n(validation?.improvement_pct,1)}%.</p><p>${e(t(edge?'hasEdge':'noEdge'))}</p>${f.demoted_on_holdout?`<p>${e(t('demoted'))}</p>`:''}<p>${e(t('rangeNote'))}</p>`:`<p>${e(t('notReady'))} · ${e(statusText(c.status))}</p>`}
   ${bridge?`<p><strong>${e(t('bridgeTitle'))}</strong> · ${e(state.lang==='es'?bridge.driver_es:bridge.driver_en)}.<br>${e(t('bridgeTest').replace('{n}',bridge.validation?.n??'—').replace('{a}',bridge.validation?.first??'—').replace('{b}',bridge.validation?.last??'—').replace('{i}',n(bridge.validation?.improvement_pct,1)).replace('{p}',n(bridge.validation?.dm_p_one_sided,3)).replace('{v}',n(bridge.validation?.added_value_pct,1)).replace('{q}',n(bridge.validation?.added_value_dm_p,3)))}</p>`:''}<p>${e(t('revised'))}</p><p>${e(t('probability'))}</p><p>${e(t('observed'))}: ${e(c.observed_period??'—')}<br>${e(t('lastUpdated'))}: ${e(date(c.source_retrieved_at,true))}</p></details>
