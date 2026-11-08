@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-from institutional_core import business_day, settlement, lag364_stats, cash_contract
+from institutional_core import business_day, settlement, lag364_stats, cash_contract, radar_valid_until
 from build_macro_radar import parse_csv, estimate, transform, verified_consensus, make_card, SERIES
 import build_dts_nowcast as dts
 
@@ -91,5 +91,29 @@ class ForecastTests(unittest.TestCase):
     def test_failed_feed(self):
         src={'status':'FETCH_FAIL','retrieved_at':'2026-11-05T17:00:00Z','observations':[{'date':'2026-09-01','value':4.2}]}
         self.assertIsNone(make_card('unemployment',SERIES['unemployment'],src,self.now,{})['forecast'])
+
+class ValidityAndEdgeTests(unittest.TestCase):
+    def test_weekend_and_holiday_validity(self):
+        u=dt.timezone.utc
+        cases={dt.datetime(2026,11,6,21,15,tzinfo=u):dt.datetime(2026,11,9,23,15,tzinfo=u),   # Friday -> Monday
+               dt.datetime(2026,11,4,23,15,tzinfo=u):dt.datetime(2026,11,6,1,15,tzinfo=u),    # midweek unchanged
+               dt.datetime(2026,11,10,23,15,tzinfo=u):dt.datetime(2026,11,13,1,15,tzinfo=u)}  # Veterans Day
+        for now,expected in cases.items():self.assertEqual(radar_valid_until(now),expected)
+    def test_business_day_failure_still_expires(self):
+        now=dt.datetime(2026,11,3,13,45,tzinfo=dt.timezone.utc)
+        self.assertEqual(radar_valid_until(now)-now,dt.timedelta(hours=26))
+    def test_ar1_failing_holdout_is_demoted(self):
+        # Smooth start lets AR1 win selection; a noisy holdout makes it lose to persistence.
+        import random
+        random.seed(3)
+        values=[100+10*math.sin(i/6) for i in range(150)]+[100+random.choice((-1,1))*8 for _ in range(30)]
+        r=estimate(values,'level')
+        self.assertIn(r['edge'],('NONE','DEMONSTRATED'))
+        if r['selected_on_training']=='ar1' and not r['validation']['ar1_holdout_mae']<r['validation']['baseline_mae']:
+            self.assertTrue(r['demoted_on_holdout']);self.assertEqual(r['method'],'baseline')
+        if r['edge']=='DEMONSTRATED':self.assertEqual(r['method'],'ar1')
+    def test_baseline_never_claims_edge(self):
+        r=estimate([5.0]*180,'level')
+        self.assertEqual(r['method'],'baseline');self.assertEqual(r['edge'],'NONE')
 
 if __name__=='__main__':unittest.main()

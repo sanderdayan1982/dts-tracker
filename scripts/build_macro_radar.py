@@ -21,7 +21,7 @@ import time
 import urllib.request
 from pathlib import Path
 from argos_dts import dts_summary, attach_dts_drivers
-from institutional_core import atomic_json, cash_contract, finite, iso, parse_time, utcnow
+from institutional_core import atomic_json, cash_contract, finite, iso, parse_time, radar_valid_until, utcnow
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
@@ -174,16 +174,24 @@ def estimate(values, mode):
         errors["baseline"].append(values[i]-baseline(past,mode))
         errors["ar1"].append(values[i]-autoregression(past))
     mae=lambda seq:stats.fmean(abs(v) for v in seq)
-    choice="ar1" if mae(errors["ar1"][:30]) < .95*mae(errors["baseline"][:30]) else "baseline"
-    # Preserve the preselected choice in the holdout; no re-selection on the holdout.
+    selected="ar1" if mae(errors["ar1"][:30]) < .95*mae(errors["baseline"][:30]) else "baseline"
+    # The holdout never promotes a model. It can only demote the selected AR1 back to the
+    # simpler null model when AR1 fails to beat it out of sample (conservative guard).
+    naive_mae=mae(errors["baseline"][30:])
+    ar1_holdout_mae=mae(errors["ar1"][30:])
+    demoted=selected=="ar1" and not ar1_holdout_mae<naive_mae
+    choice="baseline" if demoted else selected
     residuals=errors[choice][30:]
-    selected_mae=mae(residuals); naive_mae=mae(errors["baseline"][30:])
+    selected_mae=mae(residuals)
     point=autoregression(values) if choice=="ar1" else baseline(values,mode)
+    beats=choice=="ar1" and selected_mae<.95*naive_mae
     return {"point":point,"range80":[point+quantile(residuals,.1),point+quantile(residuals,.9)],
-            "method":choice,"validation":{"kind":"chronological_latest_vintage_holdout", "selection_n":30,"holdout_n":30,
-            "mae":selected_mae,"baseline_mae":naive_mae,
+            "method":choice,"selected_on_training":selected,"demoted_on_holdout":demoted,
+            "edge":"DEMONSTRATED" if beats else "NONE",
+            "validation":{"kind":"chronological_latest_vintage_holdout", "selection_n":30,"holdout_n":30,
+            "mae":selected_mae,"baseline_mae":naive_mae,"ar1_holdout_mae":ar1_holdout_mae,
             "improvement_pct":100*(1-selected_mae/naive_mae) if naive_mae>0 else None,
-            "beats_baseline":choice=="ar1" and selected_mae<.95*naive_mae,
+            "beats_baseline":beats,
             "first_release_verified":False},
             "probability_above_consensus":None}
 
@@ -230,8 +238,10 @@ def make_card(key,spec,source,now,consensus):
     if key in ("claims","housing","unemployment"):
         forecast["point"]=max(0,forecast["point"])
         forecast["range80"]=[max(0,x) for x in forecast["range80"]]
-    card.update(status="RESEARCH_ESTIMATE",forecast=forecast,
+    card.update(status="RESEARCH_ESTIMATE",forecast=forecast,edge=forecast["edge"],
                 flags=["LATEST_REVISED_DATA", "NOT_FIRST_RELEASE_VALIDATED", "NOT_MARKET_CONSENSUS"])
+    if forecast["edge"]=="NONE":card["flags"].append("NO_DEMONSTRATED_EDGE")
+    if forecast["demoted_on_holdout"]:card["flags"].append("AR1_DEMOTED_ON_HOLDOUT")
     if any(v is None for v in dense):card["flags"].append("HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED")
     delta=forecast["point"]-last["value"]
     # Use forecast uncertainty to distinguish a material change from noise.
@@ -282,7 +292,7 @@ def main(offline=False):
     dts=cash_contract(dts,now)
     summary=dts_summary(dts,now)
     attach_dts_drivers(cards,summary)
-    valid_until=now+dt.timedelta(hours=26)
+    valid_until=radar_valid_until(now)
     for card in cards:
         if card.get("consensus"):
             valid_until=min(valid_until,parse_time(card["consensus"]["release_at"]))
@@ -304,7 +314,10 @@ def main(offline=False):
     for c in cards:
         f=c.get("forecast")
         compact["events"].append({"id":c["id"],"period":c.get("reference_period"),"unit":c["unit"],"status":c["status"],
-                                  "point":round(f["point"],3) if f else None,"signal":c["signal"],"consensus":c["consensus"]["value"] if c["consensus"] else None})
+                                  "point":round(f["point"],3) if f else None,"edge":c.get("edge"),
+                                  # Fail closed: a direction without demonstrated edge is not an agent signal.
+                                  "signal":c["signal"] if c.get("edge")=="DEMONSTRATED" else None,
+                                  "signal_research":c["signal"],"consensus":c["consensus"]["value"] if c["consensus"] else None})
     for event, card in zip(compact["events"], cards):
         if "dts_driver" in card:
             event["dts_driver"]=card["dts_driver"]
