@@ -36,7 +36,7 @@ function chart(x,lang){
   const f=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:0}).format(v);
   const mon=k=>new Intl.DateTimeFormat(lang==='es'?'es-ES':'en-US',{month:'short',year:'2-digit',timeZone:'UTC'}).format(new Date(k+'-15T00:00:00Z'));
   const bars=data.map((m,i)=>{const h=Math.max(1,Math.abs(m.change)*sc),yy=m.change>=0?y0-h:y0;
-    return `<rect x="${(L+i*bw+1).toFixed(1)}" y="${yy.toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${BAR[barState(x,m.change)]}"><title>${mon(m.month)}: ${m.change>0?'+':''}${f(m.change)}${unit}</title></rect>`;}).join('');
+    return `<rect x="${(L+i*bw+1).toFixed(1)}" y="${yy.toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${BAR[barState(x,m.change)]}"${m.base_event?' fill-opacity="0.35" stroke="var(--amber)" stroke-dasharray="2 2"':''}><title>${mon(m.month)}: ${m.change>0?'+':''}${f(m.change)}${unit}</title></rect>`;}).join('');
   const last=data[n-1],ly=last.change>=0?y0-Math.abs(last.change)*sc-3:y0+Math.abs(last.change)*sc+9;
   return `<svg class="pulse-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${COPY[lang].axis}" data-pulse="${x.id}" data-months='${JSON.stringify(data.map(m=>[mon(m.month),m.change]))}' data-unit="${unit||(' '+COPY[lang].bn)}" data-l="${L}" data-r="${R}" data-w="${W}">
   <line x1="${L}" x2="${W-R}" y1="${y0}" y2="${y0}" stroke="var(--line)"/>

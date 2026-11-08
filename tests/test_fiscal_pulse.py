@@ -56,8 +56,11 @@ class PulseTests(unittest.TestCase):
         for r in b["rows"]: r["components"]["FED_SALARIES_EFT"] = r["components"]["WITHHELD_FICA"]
         p = build_pulse(b, CPI, NOW)
         sal = next(x for x in p["indicators"] if x["id"] == "fed_salaries")
-        self.assertEqual(sal["state"], "distorted"); self.assertTrue(sal["base_effects"])
-        self.assertIn("efecto base", p["verdicts"]["labor"]["summary_es"])
+        self.assertTrue(sal["base_effects"])
+        # Judged on the last 3 comparable months, not on the distorted FYTD base.
+        self.assertEqual(sal["judged_on"], "trend3"); self.assertAlmostEqual(sal["trend3"], -3.0, places=0)   # Jul-Sep flat nominal, minus 3 % CPI; Oct (event) excluded
+        self.assertTrue(any(m["base_event"] for m in sal["monthly"]))
+        self.assertIn("3 meses", p["verdicts"]["labor"]["summary_es"])
     def test_theme_summary(self):
         v = build_pulse(book(1.10), CPI, NOW)["verdicts"]["labor"]
         self.assertIn("summary_es", v); self.assertTrue(v["summary_es"].endswith("."))
