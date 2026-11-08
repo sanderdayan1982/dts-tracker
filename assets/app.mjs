@@ -15,7 +15,8 @@ export function cashBlocked(data,now=Date.now()){
 export function effectiveCard(card,radar,now=Date.now()){
   const result={...card};
   const sourceAt=Date.parse(card?.source_retrieved_at);
-  if(!radar||expired(radar,now)||!Number.isFinite(sourceAt)||now-sourceAt>26*3600000){
+  // Expiry is governed by the radar contract (weekend-aware); each source must belong to that run.
+  if(!radar||expired(radar,now)||!Number.isFinite(sourceAt)||Date.parse(radar.generated_at)-sourceAt>26*3600000){
     result.status='STALE';result.forecast=null;result.signal=null;result.direction_vs_previous=null;
   }
   if(result.status!=='RESEARCH_ESTIMATE'){result.forecast=null;result.signal=null;result.direction_vs_previous=null;}
@@ -24,6 +25,36 @@ export function effectiveCard(card,radar,now=Date.now()){
     result.status='INVALID';result.forecast=null;result.signal=null;
   }
   return result;
+}
+export function hasEdge(card){
+  const f=card?.forecast;if(!f)return false;
+  return f.edge?f.edge==='DEMONSTRATED':f.validation?.beats_baseline===true;
+}
+const fill=(text,vars)=>text.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'—');
+export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount=0){
+  const c=copy[lang],fmt=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:1}).format(Math.abs(v));
+  const lines=[];
+  if(cashBlocked(data,now)){lines.push({tone:'red',text:c.briefBlocked});}
+  else{
+    const m=data.mmt_liquidity,dq=data.dq??{};
+    const bn=m.dtga/1000;
+    lines.push({tone:bn<0?'teal':bn>0?'amber':'',text:fill(bn<0?c.briefTgaDown:bn>0?c.briefTgaUp:c.briefTgaFlat,{x:fmt(bn),asof:data.asof})});
+    const z=m.z_ntf_ex_exp_weekday_100bd;
+    if(dq.calendar_miss||dq.calendar_warmup||!numeric(z))lines.push({tone:'amber',text:c.briefZUnknown});
+    else{const a=Math.abs(z);lines.push({tone:a>=2?'red':a>=1?'amber':'',text:fill(a>=2?c.briefZAnomaly:a>=1?c.briefZUnusual:c.briefZNormal,{z:(z>0?'+':'')+z.toFixed(2)})});}
+    const debt=m.net_debt_cash_iiib/1000,ntf=m.ntf_total/1000;
+    lines.push({tone:'',text:fill(c.briefFunding,{ntf:(ntf>0?'+':ntf<0?'−':'')+fmt(ntf),debt:(debt>0?'+':debt<0?'−':'')+fmt(debt)})});
+  }
+  const today=new Date(now).toISOString().slice(0,10);
+  const next=cardList.filter(x=>x.release_date&&x.release_date>=today).sort((a,b)=>a.release_date.localeCompare(b.release_date))[0];
+  if(next){
+    const name=targets[next.id]?.[lang]?.[0]??next.id;
+    const edge=!next.forecast?c.briefNextBlocked:hasEdge(next)?c.briefNextEdge:c.briefNextNoEdge;
+    lines.push({tone:hasEdge(next)?'teal':'',text:fill(c.briefNext,{name,date:next.release_date,edge})});
+  }
+  const withEdge=cardList.filter(hasEdge).length,live=cardList.filter(x=>x.forecast).length;
+  lines.push({tone:withEdge?'':'amber',text:fill(c.briefEdgeCount,{n:withEdge,total:live})+' '+fill(c.briefConsensus,{n:consensusCount,total:live})});
+  return lines;
 }
 export function slgsState(value){return value===true?'open':value===false?'closed':'unknown';}
 export function localConsensus(entry,card,now=Date.now()){
@@ -95,12 +126,15 @@ function renderHeader(){
   const m=state.data?.mmt_liquidity??{};
   const zOk=!blocked&&!state.data?.dq?.calendar_miss&&!state.data?.dq?.calendar_warmup;
   const metrics=[['cash',blocked?'—':signed(m.ntf_total/1000),t('billion')+' · '+t('cashSub')],['reserve',blocked?'—':signed(m.reserves_impact/1000),t('billion')+' · '+t('reserveSub')],['z',zOk?signed(m.z_ntf_ex_exp_weekday_100bd):'—',t('zSub')],['coverage',`${available} / 10`,t('coverageSub')]];
+  const cs=cards(),brief=state.loading?[]:briefLines(state.data,cs,state.lang,Date.now(),cs.filter(c=>c.forecast&&consensusFor(c)).length);
+  $('brief').innerHTML=brief.length?`<div class="brief-head"><span class="eyebrow">${e(t('briefTitle'))}</span><span class="muted">${e(t('briefNote'))}</span></div><ul>${brief.map(l=>`<li class="${l.tone}">${e(l.text)}</li>`).join('')}</ul>`:'';
   $('kpis').innerHTML=metrics.map(([key,value,sub])=>`<article class="kpi"><div class="label">${e(t(key))}</div><div class="value">${e(value)}</div><div class="sub">${e(sub)}</div></article>`).join('');
 }
 function consensusFor(c){return localConsensus(state.consensus[c.id],c)??sharedConsensus(c.consensus,c)??null;}
 function cardHTML(c){
   const desc=targets[c.id]?.[state.lang]??[c.id,'',''];const f=c.forecast;const con=consensusFor(c);
-  const cls=c.signal==='HOTTER'?'hot':c.signal==='WEAKER'?'weak':'';
+  const edge=hasEdge(c),noEdge=!!f&&!edge;
+  const cls=noEdge?'flat':c.signal==='HOTTER'?'hot':c.signal==='WEAKER'?'weak':'';
   const validation=f?.validation;
   const fiscalLine=fiscalDriverText(c,state.data,state.lang);
   let fiscalEvidence='';
@@ -110,13 +144,13 @@ function cardHTML(c){
   }
   let gap='';
   if(con&&f){const diff=f.point-con.value;const within=con.value>=f.range80[0]&&con.value<=f.range80[1];gap=`<p><strong>${e(t('gap'))}: ${signed(diff)}</strong><br>${e(t(within?'gapSmall':'gapLarge'))}</p>`;}
-  return `<article class="card" data-card="${e(c.id)}"><div class="card-top"><div><h3>${e(desc[0])}</h3><div class="meta">${e(c.agency??'')} · ${e(c.reference_period??'—')}</div></div>${pill(t(f?'research':'blocked'),f?'amber':'red')}</div>
-  <div class="reading ${cls}">${e(t(signal(c.signal)))}</div><div class="numbers"><div><div class="label">${e(t('previous'))}</div><div class="big">${n(c.last)}</div></div><div><div class="label">${e(t('estimate'))}</div><div class="big estimate">${n(f?.point)}</div></div></div><div class="unit">${e(unit(c))}</div>
+  return `<article class="card" data-card="${e(c.id)}"><div class="card-top"><div><h3>${e(desc[0])}</h3><div class="meta">${e(c.agency??'')} · ${e(c.reference_period??'—')}</div></div>${pill(t(!f?'blocked':edge?'research':'noEdgePill'),!f?'red':edge?'amber':'')}</div>
+  <div class="reading ${cls}">${e(noEdge?t('noEdgeShort')+' · '+t(signal(c.signal)).toLowerCase():t(signal(c.signal)))}</div><div class="numbers"><div><div class="label">${e(t('previous'))}</div><div class="big">${n(c.last)}</div></div><div><div class="label">${e(t('estimate'))}</div><div class="big estimate${noEdge?' noedge':''}">${n(f?.point)}</div></div></div><div class="unit">${e(unit(c))}</div>
   ${fiscalLine?`<p class="unit" data-dts-driver="${e(c.id)}">DTS · ${e(fiscalLine)}${c.dts_driver_asof?' · '+e(c.dts_driver_asof):''}</p>`:''}
   <div class="range">${e(t('range'))}<strong>${f?n(f.range80[0])+' → '+n(f.range80[1]):'—'}</strong></div>
   ${spark(c.history)}<p class="explain">${e(desc[1])}</p><div class="consensus"><span>${e(t('consensus'))}<br><strong>${con?n(con.value):e(t('missingConsensus'))}</strong></span><button class="linkbutton" data-consensus="${e(c.id)}">${e(t('enter'))}</button></div>${gap}
   <details><summary>${e(t('evidence'))}</summary><p>${e(desc[2])}</p>${fiscalEvidence}
-  ${f?`<p>${e(t('method'))}: ${e(t(f.method))}.<br>${e(t('mae'))}: <strong>${n(validation?.mae)}</strong> ${e(unit(c))}.<br>${e(t('holdout'))}: ${n(validation?.holdout_n,0)}.<br>${e(t('improvement'))}: ${n(validation?.improvement_pct,1)}%.</p><p>${e(t(validation?.beats_baseline?'hasEdge':'noEdge'))}</p><p>${e(t('rangeNote'))}</p>`:`<p>${e(t('notReady'))} · ${e(statusText(c.status))}</p>`}
+  ${f?`<p>${e(t('method'))}: ${e(t(f.method))}.<br>${e(t('mae'))}: <strong>${n(validation?.mae)}</strong> ${e(unit(c))}.<br>${e(t('holdout'))}: ${n(validation?.holdout_n,0)}.<br>${e(t('improvement'))}: ${n(validation?.improvement_pct,1)}%.</p><p>${e(t(edge?'hasEdge':'noEdge'))}</p>${f.demoted_on_holdout?`<p>${e(t('demoted'))}</p>`:''}<p>${e(t('rangeNote'))}</p>`:`<p>${e(t('notReady'))} · ${e(statusText(c.status))}</p>`}
   <p>${e(t('revised'))}</p><p>${e(t('probability'))}</p><p>${e(t('observed'))}: ${e(c.observed_period??'—')}<br>${e(t('lastUpdated'))}: ${e(date(c.source_retrieved_at,true))}</p></details>
   <div class="card-footer"><span>${e(t('release'))}: ${e(date(c.release_date))}</span>${c.series_id?sourceLink(c.series_id):''}</div></article>`;
 }
@@ -125,7 +159,7 @@ function radarHTML(){
   const cs=cards(),today=new Date().toISOString().slice(0,10),end=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
   const upcoming=cs.filter(c=>c.release_date&&c.release_date>=today).sort((a,b)=>a.release_date.localeCompare(b.release_date));
   const next=upcoming[0];const f=next?.forecast;
-  const spotlight=next?`<section class="spotlight"><div><div class="eyebrow">${e(t('upcoming'))} · ${e(date(next.release_date))}</div><h2>${e(targets[next.id][state.lang][0])}</h2><p>${e(t(signal(next.signal)))} · ${e(t('target'))}: ${e(next.reference_period??'—')}</p><p>${e(t('missingCalendar'))} ${sourceLink(next.series_id,t('calendarSource'))}</p></div><div class="focus-values"><div><small>${e(t('previous'))}</small><strong>${n(next.last)}</strong></div><div><small>${e(t('estimate'))}</small><strong style="color:var(--teal)">${n(f?.point)}</strong></div></div></section>`:`<section class="spotlight"><div><div class="eyebrow">${e(t('radar'))}</div><h2>${e(t('noUpcoming'))}</h2><p>${e(t('noUpcomingText'))}</p></div></section>`;
+  const spotlight=next?`<section class="spotlight"><div><div class="eyebrow">${e(t('upcoming'))} · ${e(date(next.release_date))}</div><h2>${e(targets[next.id][state.lang][0])}</h2><p>${e(next.forecast&&!hasEdge(next)?t('noEdgeShort'):t(signal(next.signal)))} · ${e(t('target'))}: ${e(next.reference_period??'—')}</p><p>${e(t('missingCalendar'))} ${sourceLink(next.series_id,t('calendarSource'))}</p></div><div class="focus-values"><div><small>${e(t('previous'))}</small><strong>${n(next.last)}</strong></div><div><small>${e(t('estimate'))}</small><strong style="color:${f&&!hasEdge(next)?'var(--muted)':'var(--teal)'}">${n(f?.point)}</strong></div></div></section>`:`<section class="spotlight"><div><div class="eyebrow">${e(t('radar'))}</div><h2>${e(t('noUpcoming'))}</h2><p>${e(t('noUpcomingText'))}</p></div></section>`;
   const filtered=cs.filter(c=>state.filter==='all'||state.filter===c.group||(state.filter==='week'&&c.release_date>=today&&c.release_date<=end));
   return `<div class="section-head"><div><h2>${e(t('radarTitle'))}</h2><p>${e(t('radarSub'))}</p></div><div class="filters">${['all','labor','inflation','growth','week'].map(g=>`<button data-filter="${g}" aria-pressed="${state.filter===g}">${e(t(g))}</button>`).join('')}</div></div>${spotlight}<div class="grid">${filtered.map(cardHTML).join('')}</div>${!filtered.length?`<div class="empty">${e(t('noneWeek'))}</div>`:''}<div class="note">${e(t('contract'))}</div>`;
 }

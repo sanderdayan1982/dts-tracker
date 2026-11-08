@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {expired,cashBlocked,effectiveCard,slgsState,localConsensus,sharedConsensus,escapeHTML} from '../assets/app.mjs';
+import {expired,cashBlocked,effectiveCard,slgsState,localConsensus,sharedConsensus,escapeHTML,hasEdge,briefLines} from '../assets/app.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from '../assets/content.mjs';
 const now=Date.parse('2026-11-05T18:00:00Z');
 const fresh={generated_at:'2026-11-05T17:00:00Z',valid_until_utc:'2026-11-05T21:45:00Z'};
@@ -88,4 +88,30 @@ test('daily net flow chart fills the available panel width',()=>{
  const book={...fresh,schema:'treasury-book-1.0',asof:'2026-11-03',rows:[{d:'2026-11-03',fy:2027,tga:110,ntf:-7,z:0,periods:{today:p,mtd:p,fytd:p},components:{}}],components:[]};
  const html=treasuryHTML(book,{asof:book.asof,dq:{block:false}},{ntfWidth:1174});
  assert.match(html,/viewBox="0 0 1174 220"/);assert.match(html,/viewBox="0 0 300 220"/);
+});
+
+test('no-edge estimates are never presented as an edge',()=>{
+  assert.equal(hasEdge({forecast:{edge:'NONE',validation:{beats_baseline:true}}}),false);
+  assert.equal(hasEdge({forecast:{edge:'DEMONSTRATED'}}),true);
+  assert.equal(hasEdge({forecast:{validation:{beats_baseline:true}}}),true);
+  assert.equal(hasEdge({forecast:null}),false);
+});
+test('radar source age is judged against its own run, not wall-clock',()=>{
+  const radar={generated_at:'2026-11-06T21:15:00Z',valid_until_utc:'2026-11-09T23:15:00Z'};
+  const c={status:'RESEARCH_ESTIMATE',source_retrieved_at:'2026-11-06T21:14:00Z',signal:'SIMILAR',forecast:{point:1,range80:[0,2]}};
+  assert.equal(effectiveCard(c,radar,Date.parse('2026-11-08T12:00:00Z')).status,'RESEARCH_ESTIMATE');
+  assert.equal(effectiveCard(c,radar,Date.parse('2026-11-09T23:15:00Z')).status,'STALE');
+});
+test('desk reading follows the cash contract and both languages',()=>{
+  const mmt={ntf_total:13329,dtga:-13496,reserves_impact:13496,tga_close:922752,net_debt_cash_iiib:-167,z_ntf_ex_exp_weekday_100bd:.56};
+  const data={...fresh,asof:'2026-11-05',v:'dts-g8-6.0',dq:{block:false,stale:false},mmt_liquidity:mmt};
+  const cs=[{id:'cpi',release_date:'2026-11-10',forecast:{point:.37,edge:'NONE'}},{id:'retail',release_date:'2026-11-17',forecast:{point:.45,edge:'DEMONSTRATED'}}];
+  for(const lang of ['en','es']){
+    const lines=briefLines(data,cs,lang,now);
+    assert.ok(lines.every(l=>!/\{\w+\}/.test(l.text)),'no unfilled placeholders');
+    assert.match(lines[0].text,/13[.,]5/);assert.equal(lines[0].tone,'teal');
+    assert.match(lines.at(-2).text,/2026-11-10/);
+  }
+  const blocked=briefLines({...data,dq:{block:true}},cs,'es',now);
+  assert.equal(blocked[0].tone,'red');assert.equal(blocked.length,3);
 });

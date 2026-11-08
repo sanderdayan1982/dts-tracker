@@ -52,6 +52,21 @@ def business_day(day, calendar_kind="federal"):
             holidays.add(days[occurrence-1] if occurrence>0 else days[-1])
     return day not in holidays
 
+def radar_valid_until(now, base_hours=26):
+    """Validity that does not expire over weekends/federal holidays.
+
+    No official monthly/weekly macro release, FRED daily observation or scheduled
+    refresh occurs on a non-business day, so each such day inside the window
+    extends it by 24h. A business-day failure still expires after base_hours.
+    """
+    deadline = now + dt.timedelta(hours=base_hours)
+    day = now.date()
+    while day <= deadline.date():
+        if not business_day(day, "federal"):
+            deadline += dt.timedelta(days=1)
+        day += dt.timedelta(days=1)
+    return deadline
+
 def shift_business(day, convention, calendar_kind="federal"):
     if convention not in ("PRECEDING", "FOLLOWING"):
         raise ValueError("Unknown settlement convention")
