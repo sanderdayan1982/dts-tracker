@@ -144,3 +144,12 @@ Los eventos `nfp`, `claims`, `retail` y `trade` incorporan `dts_driver`, calcula
 **Resultado inicial (2019–2026, sin pandemia).** Ningún canal demuestra valor añadido del DTS: NFP +0,4 % frente a la ablación (p 0,19); ventas +0,4 % (p 0,37); solicitudes −0,6 %; balanza −0,4 %. El puente se muestra en cada tarjeta con su aporte en unidades del dato, pero **no sustituye** la estimación publicada mientras su estado sea `NONE`.
 
 **Límites.** Los objetivos son la última versión revisada de FRED (las primeras publicaciones requieren ALFRED con clave). La estimación es `PRELIMINARY` mientras falten sesiones del DTS hasta el corte previsto. `data/bridge/dts_daily_series.json` guarda las cuatro series diarias desde 2014; el refresco diario añade solo las fechas nuevas. El flujo manual «DTS bridge — full history rebuild» reconstruye todo el historial.
+
+## v7.1 — Consenso automático desde G8 RadarNews
+
+El consenso ya no es manual. Cada ejecución lee `public/data/radar_news_full.json` del repositorio `g8-radar-news` (calendario de ForexFactory, refrescado cada 5 minutos por la Mesa Macro) y lo asocia a cada tarjeta solo si coinciden:
+
+- el título del evento USD (`Non-Farm Employment Change`, `Unemployment Rate`, `Unemployment Claims`, `Retail Sales m/m`, `CPI m/m`, `Core CPI m/m`, `Core PCE Price Index m/m`, `Industrial Production m/m`, `Housing Starts`, `Trade Balance`);
+- la fecha de publicación en Nueva York con la fecha verificada de FRED de la tarjeta.
+
+La unidad se convierte de forma explícita (K, M y B a las unidades del radar; un sufijo incompatible se rechaza). `captured_at` es la hora de generación del feed. El contrato existente se mantiene: mismo periodo y unidad, captura anterior al anuncio y antigüedad máxima de 7 días. Después del anuncio, el consenso deja de mostrarse. `data/consensus.json` conserva prioridad si contiene una entrada. El archivo diario de previsiones guarda la tarjeta con su consenso, así que el registro para medir el sistema frente al mercado se acumula solo.

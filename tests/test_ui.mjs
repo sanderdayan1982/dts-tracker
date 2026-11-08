@@ -129,3 +129,14 @@ test('DTS bridge is shown only with a live forecast and a valid state',()=>{
     assert.ok(lines.every(l=>!/\{\w+\}/.test(l.text)));
   }
 });
+
+test('desk reading shows the automatic consensus of the next release',()=>{
+  const mmt={ntf_total:1,dtga:-1,reserves_impact:1,tga_close:1,net_debt_cash_iiib:0,z_ntf_ex_exp_weekday_100bd:0};
+  const data={...fresh,asof:'2026-11-05',v:'dts-g8-6.0',dq:{block:false,stale:false},mmt_liquidity:mmt};
+  const con={value:.3,reference_period:'2026-10',unit:'percent_mom',source:'ForexFactory via G8 RadarNews',captured_at:'2026-11-05T12:00:00Z',release_at:'2026-11-10T13:30:00Z'};
+  const card={id:'cpi',release_date:'2026-11-10',reference_period:'2026-10',unit:'percent_mom',forecast:{point:.37,edge:'NONE'},consensus:con};
+  const es=briefLines(data,[card],'es',now).find(l=>/CPI/.test(l.text));
+  assert.match(es.text,/Consenso 0,3 frente a estimación 0,37/);
+  const en=briefLines(data,[card],'en',now).find(l=>/CPI/.test(l.text));
+  assert.match(en.text,/Consensus 0.3 vs estimate 0.37/);
+});
