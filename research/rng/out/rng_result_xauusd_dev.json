@@ -1,0 +1,75 @@
+{
+ "label": "xauusd",
+ "partition": "dev",
+ "window": [
+  "2019-01-01",
+  "2022-12-31"
+ ],
+ "n": 2074,
+ "by_h": {
+  "1": {
+   "qlike": {
+    "har": 0.4073,
+    "b1": 0.442,
+    "b2": 1.0358,
+    "b3": 0.4263
+   },
+   "gain_vs_b1_pct": 7.84,
+   "gain_vs_b2_pct": 60.67,
+   "gain_vs_b3_pct": 4.45,
+   "dm_t": -3.94,
+   "dm_p": 4.07e-05,
+   "pairs_won": "1/1",
+   "pairs_needed": 1,
+   "mse_gain_vs_b1_pct": 10.23,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "XAUUSD": {
+     "n": 1037,
+     "qlike_har": 0.4073,
+     "qlike_b1": 0.442,
+     "gain_pct": 7.84,
+     "dm_p": 0.0
+    }
+   }
+  },
+  "5": {
+   "qlike": {
+    "har": 0.2066,
+    "b1": 0.2378,
+    "b2": 0.8694,
+    "b3": 0.2192
+   },
+   "gain_vs_b1_pct": 13.14,
+   "gain_vs_b2_pct": 76.24,
+   "gain_vs_b3_pct": 5.75,
+   "dm_t": -3.128,
+   "dm_p": 0.000881,
+   "pairs_won": "1/1",
+   "pairs_needed": 1,
+   "mse_gain_vs_b1_pct": 18.37,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "XAUUSD": {
+     "n": 1037,
+     "qlike_har": 0.2066,
+     "qlike_b1": 0.2378,
+     "gain_pct": 13.14,
+     "dm_p": 0.0009
+    }
+   }
+  }
+ }
+}

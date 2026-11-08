@@ -1,0 +1,159 @@
+{
+ "label": "majorsdk",
+ "partition": "dev",
+ "window": [
+  "2019-01-01",
+  "2022-12-31"
+ ],
+ "n": 14602,
+ "by_h": {
+  "1": {
+   "qlike": {
+    "har": 0.356,
+    "b1": 0.3803,
+    "b2": 1.2316,
+    "b3": 0.3686
+   },
+   "gain_vs_b1_pct": 6.38,
+   "gain_vs_b2_pct": 71.09,
+   "gain_vs_b3_pct": 3.42,
+   "dm_t": -2.653,
+   "dm_p": 0.00398,
+   "pairs_won": "7/7",
+   "pairs_needed": 6,
+   "mse_gain_vs_b1_pct": 10.85,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "AUDUSD": {
+     "n": 1043,
+     "qlike_har": 0.3705,
+     "qlike_b1": 0.3799,
+     "gain_pct": 2.46,
+     "dm_p": 0.2667
+    },
+    "EURUSD": {
+     "n": 1043,
+     "qlike_har": 0.3072,
+     "qlike_b1": 0.3215,
+     "gain_pct": 4.46,
+     "dm_p": 0.0495
+    },
+    "GBPUSD": {
+     "n": 1043,
+     "qlike_har": 0.3526,
+     "qlike_b1": 0.4118,
+     "gain_pct": 14.37,
+     "dm_p": 0.0004
+    },
+    "NZDUSD": {
+     "n": 1043,
+     "qlike_har": 0.3443,
+     "qlike_b1": 0.3602,
+     "gain_pct": 4.41,
+     "dm_p": 0.0324
+    },
+    "USDCAD": {
+     "n": 1043,
+     "qlike_har": 0.3145,
+     "qlike_b1": 0.3343,
+     "gain_pct": 5.9,
+     "dm_p": 0.0028
+    },
+    "USDCHF": {
+     "n": 1043,
+     "qlike_har": 0.2948,
+     "qlike_b1": 0.3198,
+     "gain_pct": 7.81,
+     "dm_p": 0.0024
+    },
+    "USDJPY": {
+     "n": 1043,
+     "qlike_har": 0.5083,
+     "qlike_b1": 0.5348,
+     "gain_pct": 4.96,
+     "dm_p": 0.1396
+    }
+   }
+  },
+  "5": {
+   "qlike": {
+    "har": 0.1736,
+    "b1": 0.1988,
+    "b2": 0.7231,
+    "b3": 0.1825
+   },
+   "gain_vs_b1_pct": 12.67,
+   "gain_vs_b2_pct": 75.99,
+   "gain_vs_b3_pct": 4.91,
+   "dm_t": -2.75,
+   "dm_p": 0.00298,
+   "pairs_won": "7/7",
+   "pairs_needed": 6,
+   "mse_gain_vs_b1_pct": 20.27,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "AUDUSD": {
+     "n": 1043,
+     "qlike_har": 0.1721,
+     "qlike_b1": 0.1833,
+     "gain_pct": 6.12,
+     "dm_p": 0.1201
+    },
+    "EURUSD": {
+     "n": 1043,
+     "qlike_har": 0.1278,
+     "qlike_b1": 0.1417,
+     "gain_pct": 9.87,
+     "dm_p": 0.0792
+    },
+    "GBPUSD": {
+     "n": 1043,
+     "qlike_har": 0.208,
+     "qlike_b1": 0.2726,
+     "gain_pct": 23.7,
+     "dm_p": 0.0043
+    },
+    "NZDUSD": {
+     "n": 1043,
+     "qlike_har": 0.1557,
+     "qlike_b1": 0.1731,
+     "gain_pct": 10.06,
+     "dm_p": 0.0381
+    },
+    "USDCAD": {
+     "n": 1043,
+     "qlike_har": 0.1546,
+     "qlike_b1": 0.1657,
+     "gain_pct": 6.73,
+     "dm_p": 0.0164
+    },
+    "USDCHF": {
+     "n": 1043,
+     "qlike_har": 0.1406,
+     "qlike_b1": 0.1609,
+     "gain_pct": 12.64,
+     "dm_p": 0.0335
+    },
+    "USDJPY": {
+     "n": 1043,
+     "qlike_har": 0.2563,
+     "qlike_b1": 0.2938,
+     "gain_pct": 12.76,
+     "dm_p": 0.0232
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,355 @@
+{
+ "label": "crosses",
+ "partition": "conf",
+ "window": [
+  "2023-01-01",
+  "2026-06-30"
+ ],
+ "n": 38262,
+ "by_h": {
+  "1": {
+   "qlike": {
+    "har": 0.3253,
+    "b1": 0.3673,
+    "b2": 0.7347,
+    "b3": 0.3491
+   },
+   "gain_vs_b1_pct": 11.44,
+   "gain_vs_b2_pct": 55.72,
+   "gain_vs_b3_pct": 6.83,
+   "dm_t": -4.537,
+   "dm_p": 2.85e-06,
+   "pairs_won": "20/21",
+   "pairs_needed": 18,
+   "mse_gain_vs_b1_pct": 16.58,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "AUDCAD": {
+     "n": 911,
+     "qlike_har": 0.2915,
+     "qlike_b1": 0.3218,
+     "gain_pct": 9.42,
+     "dm_p": 0.0024
+    },
+    "AUDCHF": {
+     "n": 911,
+     "qlike_har": 0.2941,
+     "qlike_b1": 0.3555,
+     "gain_pct": 17.28,
+     "dm_p": 0.0003
+    },
+    "AUDJPY": {
+     "n": 911,
+     "qlike_har": 0.3918,
+     "qlike_b1": 0.4703,
+     "gain_pct": 16.7,
+     "dm_p": 0.0
+    },
+    "AUDNZD": {
+     "n": 911,
+     "qlike_har": 0.2891,
+     "qlike_b1": 0.3041,
+     "gain_pct": 4.95,
+     "dm_p": 0.0798
+    },
+    "CADCHF": {
+     "n": 911,
+     "qlike_har": 0.2877,
+     "qlike_b1": 0.3304,
+     "gain_pct": 12.91,
+     "dm_p": 0.0002
+    },
+    "CADJPY": {
+     "n": 911,
+     "qlike_har": 0.4311,
+     "qlike_b1": 0.5179,
+     "gain_pct": 16.76,
+     "dm_p": 0.0
+    },
+    "CHFJPY": {
+     "n": 911,
+     "qlike_har": 0.3964,
+     "qlike_b1": 0.456,
+     "gain_pct": 13.07,
+     "dm_p": 0.0
+    },
+    "EURAUD": {
+     "n": 911,
+     "qlike_har": 0.2967,
+     "qlike_b1": 0.3448,
+     "gain_pct": 13.95,
+     "dm_p": 0.0018
+    },
+    "EURCAD": {
+     "n": 911,
+     "qlike_har": 0.3047,
+     "qlike_b1": 0.3284,
+     "gain_pct": 7.23,
+     "dm_p": 0.0097
+    },
+    "EURCHF": {
+     "n": 911,
+     "qlike_har": 0.3177,
+     "qlike_b1": 0.3799,
+     "gain_pct": 16.37,
+     "dm_p": 0.0
+    },
+    "EURGBP": {
+     "n": 911,
+     "qlike_har": 0.3128,
+     "qlike_b1": 0.322,
+     "gain_pct": 2.86,
+     "dm_p": 0.2224
+    },
+    "EURJPY": {
+     "n": 911,
+     "qlike_har": 0.4233,
+     "qlike_b1": 0.5141,
+     "gain_pct": 17.67,
+     "dm_p": 0.0
+    },
+    "EURNZD": {
+     "n": 911,
+     "qlike_har": 0.2904,
+     "qlike_b1": 0.3076,
+     "gain_pct": 5.62,
+     "dm_p": 0.0221
+    },
+    "GBPAUD": {
+     "n": 911,
+     "qlike_har": 0.3159,
+     "qlike_b1": 0.3442,
+     "gain_pct": 8.24,
+     "dm_p": 0.0458
+    },
+    "GBPCAD": {
+     "n": 911,
+     "qlike_har": 0.2924,
+     "qlike_b1": 0.2918,
+     "gain_pct": -0.23,
+     "dm_p": 0.5387
+    },
+    "GBPCHF": {
+     "n": 911,
+     "qlike_har": 0.3154,
+     "qlike_b1": 0.3498,
+     "gain_pct": 9.83,
+     "dm_p": 0.0194
+    },
+    "GBPJPY": {
+     "n": 911,
+     "qlike_har": 0.4106,
+     "qlike_b1": 0.4882,
+     "gain_pct": 15.9,
+     "dm_p": 0.0
+    },
+    "GBPNZD": {
+     "n": 911,
+     "qlike_har": 0.2843,
+     "qlike_b1": 0.2958,
+     "gain_pct": 3.88,
+     "dm_p": 0.1267
+    },
+    "NZDCAD": {
+     "n": 911,
+     "qlike_har": 0.2705,
+     "qlike_b1": 0.2785,
+     "gain_pct": 2.87,
+     "dm_p": 0.05
+    },
+    "NZDCHF": {
+     "n": 911,
+     "qlike_har": 0.2668,
+     "qlike_b1": 0.2973,
+     "gain_pct": 10.25,
+     "dm_p": 0.0013
+    },
+    "NZDJPY": {
+     "n": 911,
+     "qlike_har": 0.3483,
+     "qlike_b1": 0.4154,
+     "gain_pct": 16.17,
+     "dm_p": 0.0
+    }
+   }
+  },
+  "5": {
+   "qlike": {
+    "har": 0.1662,
+    "b1": 0.1978,
+    "b2": 0.7788,
+    "b3": 0.1822
+   },
+   "gain_vs_b1_pct": 15.95,
+   "gain_vs_b2_pct": 78.66,
+   "gain_vs_b3_pct": 8.75,
+   "dm_t": -3.289,
+   "dm_p": 0.000503,
+   "pairs_won": "19/21",
+   "pairs_needed": 18,
+   "mse_gain_vs_b1_pct": 22.41,
+   "gates": {
+    "G1": true,
+    "G2": true,
+    "G3": true,
+    "G4": true
+   },
+   "PASS": true,
+   "per_pair": {
+    "AUDCAD": {
+     "n": 911,
+     "qlike_har": 0.1461,
+     "qlike_b1": 0.1666,
+     "gain_pct": 12.35,
+     "dm_p": 0.018
+    },
+    "AUDCHF": {
+     "n": 911,
+     "qlike_har": 0.1835,
+     "qlike_b1": 0.2239,
+     "gain_pct": 18.04,
+     "dm_p": 0.0055
+    },
+    "AUDJPY": {
+     "n": 911,
+     "qlike_har": 0.2275,
+     "qlike_b1": 0.2965,
+     "gain_pct": 23.28,
+     "dm_p": 0.0002
+    },
+    "AUDNZD": {
+     "n": 911,
+     "qlike_har": 0.1219,
+     "qlike_b1": 0.1359,
+     "gain_pct": 10.31,
+     "dm_p": 0.1268
+    },
+    "CADCHF": {
+     "n": 911,
+     "qlike_har": 0.1453,
+     "qlike_b1": 0.1751,
+     "gain_pct": 17.01,
+     "dm_p": 0.0035
+    },
+    "CADJPY": {
+     "n": 911,
+     "qlike_har": 0.2441,
+     "qlike_b1": 0.3241,
+     "gain_pct": 24.67,
+     "dm_p": 0.0002
+    },
+    "CHFJPY": {
+     "n": 911,
+     "qlike_har": 0.2151,
+     "qlike_b1": 0.2708,
+     "gain_pct": 20.56,
+     "dm_p": 0.0
+    },
+    "EURAUD": {
+     "n": 911,
+     "qlike_har": 0.167,
+     "qlike_b1": 0.2037,
+     "gain_pct": 18.01,
+     "dm_p": 0.0183
+    },
+    "EURCAD": {
+     "n": 911,
+     "qlike_har": 0.1291,
+     "qlike_b1": 0.1436,
+     "gain_pct": 10.07,
+     "dm_p": 0.0728
+    },
+    "EURCHF": {
+     "n": 911,
+     "qlike_har": 0.1746,
+     "qlike_b1": 0.2128,
+     "gain_pct": 17.95,
+     "dm_p": 0.0012
+    },
+    "EURGBP": {
+     "n": 911,
+     "qlike_har": 0.147,
+     "qlike_b1": 0.1417,
+     "gain_pct": -3.79,
+     "dm_p": 0.6414
+    },
+    "EURJPY": {
+     "n": 911,
+     "qlike_har": 0.2546,
+     "qlike_b1": 0.3358,
+     "gain_pct": 24.17,
+     "dm_p": 0.0
+    },
+    "EURNZD": {
+     "n": 911,
+     "qlike_har": 0.1316,
+     "qlike_b1": 0.1444,
+     "gain_pct": 8.87,
+     "dm_p": 0.0747
+    },
+    "GBPAUD": {
+     "n": 911,
+     "qlike_har": 0.158,
+     "qlike_b1": 0.1811,
+     "gain_pct": 12.73,
+     "dm_p": 0.1165
+    },
+    "GBPCAD": {
+     "n": 911,
+     "qlike_har": 0.1198,
+     "qlike_b1": 0.1027,
+     "gain_pct": -16.74,
+     "dm_p": 0.993
+    },
+    "GBPCHF": {
+     "n": 911,
+     "qlike_har": 0.1632,
+     "qlike_b1": 0.1826,
+     "gain_pct": 10.6,
+     "dm_p": 0.1677
+    },
+    "GBPJPY": {
+     "n": 911,
+     "qlike_har": 0.2257,
+     "qlike_b1": 0.2931,
+     "gain_pct": 23.0,
+     "dm_p": 0.0026
+    },
+    "GBPNZD": {
+     "n": 911,
+     "qlike_har": 0.1263,
+     "qlike_b1": 0.1287,
+     "gain_pct": 1.85,
+     "dm_p": 0.4078
+    },
+    "NZDCAD": {
+     "n": 911,
+     "qlike_har": 0.0966,
+     "qlike_b1": 0.1007,
+     "gain_pct": 4.12,
+     "dm_p": 0.156
+    },
+    "NZDCHF": {
+     "n": 911,
+     "qlike_har": 0.1268,
+     "qlike_b1": 0.1475,
+     "gain_pct": 14.02,
+     "dm_p": 0.0097
+    },
+    "NZDJPY": {
+     "n": 911,
+     "qlike_har": 0.1868,
+     "qlike_b1": 0.2423,
+     "gain_pct": 22.9,
+     "dm_p": 0.0002
+    }
+   }
+  }
+ }
+}
