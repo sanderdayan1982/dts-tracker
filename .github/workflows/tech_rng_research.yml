@@ -1,0 +1,46 @@
+name: G8 technical — Gate RNG extension (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tech-rng-research
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install numpy pandas scipy
+      - name: Download Dukascopy daily candles (28 pairs + XAUUSD)
+        run: python research/rng/fetch_dukascopy_daily.py /tmp/dk_daily.csv 2016 2026
+      - name: Run frozen gate (dev, then confirmation)
+        run: |
+          set -e
+          cd research/rng
+          mkdir -p out
+          CROSSES=EURGBP,EURAUD,EURNZD,EURCAD,EURCHF,EURJPY,GBPAUD,GBPNZD,GBPCAD,GBPCHF,GBPJPY,AUDNZD,AUDCAD,AUDCHF,AUDJPY,NZDCAD,NZDCHF,NZDJPY,CADCHF,CADJPY,CHFJPY
+          MAJORS=EURUSD,GBPUSD,AUDUSD,NZDUSD,USDCAD,USDCHF,USDJPY
+          for part in dev conf; do
+            python gate_rng.py /tmp/dk_daily.csv $part out crosses $CROSSES
+            python gate_rng.py /tmp/dk_daily.csv $part out xauusd XAUUSD
+            python gate_rng.py /tmp/dk_daily.csv $part out majorsdk $MAJORS
+          done
+          rm -f out/rng_forecasts_*.csv
+          sha256sum /tmp/dk_daily.csv > out/input_sha256.txt
+      - name: Commit results
+        run: |
+          git config user.name "g8-research-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add research/rng/out
+          git commit -m "research(rng): gate RNG extension results [skip netlify]" || echo "nothing to commit"
+          git pull --rebase -q origin main
+          git push origin HEAD:main
