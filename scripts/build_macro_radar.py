@@ -22,6 +22,7 @@ import urllib.request
 from pathlib import Path
 from argos_dts import dts_summary, attach_dts_drivers
 import dts_bridge
+from fiscal_pulse import build_pulse, pulse_contract
 from institutional_core import atomic_json, cash_contract, finite, iso, parse_time, radar_valid_until, utcnow
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -390,6 +391,13 @@ def main(offline=False):
              "dts_asof":dts.get("asof"),"dts_status":dts.get("dq",{}).get("status"),
              "research_policy":"NO_AUTOTRADE_NO_SURPRISE_PROBABILITY_BEFORE_FIRST_RELEASE_VALIDATION"}
     atomic_json(DATA/"macro_radar.json",payload)
+    # Fiscal pulse: DTS cash vs the same session last year (reading of direction, not a release forecast).
+    try:
+        book=json.loads((DATA/"treasury_book.json").read_text()) if (DATA/"treasury_book.json").exists() else {}
+        pulse=pulse_contract(build_pulse(book,sources.get("cpi",{}).get("observations",[]),now),now)
+    except Exception as exc:
+        print("fiscal pulse failed:",type(exc).__name__,exc); pulse={"schema":"fiscal-pulse-1.0","status":"UNAVAILABLE","indicators":[]}
+    atomic_json(DATA/"fiscal_pulse.json",pulse,compact=True)
     # Immutable issue snapshots: never rewrite a previously issued forecast of the same vintage.
     if not offline:
         archive=DATA/"forecast_archive"/now.strftime("%Y-%m-%d")
@@ -416,6 +424,9 @@ def main(offline=False):
                                  "dts_direction":b.get("dts_direction"),"dts_contribution":b.get("dts_contribution")}
             if card.get("primary_estimate")=="DTS_BRIDGE":
                 event["point"]=round(b["point"],3); event["primary_estimate"]="DTS_BRIDGE"
+    compact["fiscal_pulse"]={"status":pulse.get("status"),"asof":pulse.get("asof"),"basis":"dts_vs_same_session_last_year_not_forecast",
+                             "verdicts":{k:v["verdict"] for k,v in (pulse.get("verdicts") or {}).items()},
+                             "indicators":{x["id"]:{"fytd_change":x["fytd"]["change"],"real":x["fytd"]["real_change"],"state":x["state"]} for x in pulse.get("indicators",[])}}
     atomic_json(DATA/"argos_summary.json",compact,compact=True)
     atomic_json(DATA/"dts_nowcast.json",dts)
     return payload

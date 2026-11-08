@@ -153,3 +153,22 @@ El consenso ya no es manual. Cada ejecución lee `public/data/radar_news_full.js
 - la fecha de publicación en Nueva York con la fecha verificada de FRED de la tarjeta.
 
 La unidad se convierte de forma explícita (K, M y B a las unidades del radar; un sufijo incompatible se rechaza). `captured_at` es la hora de generación del feed. El contrato existente se mantiene: mismo periodo y unidad, captura anterior al anuncio y antigüedad máxima de 7 días. Después del anuncio, el consenso deja de mostrarse. `data/consensus.json` conserva prioridad si contiene una entrada. El archivo diario de previsiones guarda la tarjeta con su consenso, así que el registro para medir el sistema frente al mercado se acumula solo.
+
+## v8 — Pulso fiscal → economía
+
+Panel principal del dashboard: responde a «¿la economía va mejor o peor que hace un año?» con la caja del Tesoro.
+
+**Método.** Para cada partida se toma el importe oficial acumulado del año fiscal (FYTD) y del mes (MTD) del DTS y se compara con el **mismo número de sesiones** del año anterior (no con sumas de calendario). Las partidas de renta (retenciones, sociedades, autónomos, salarios federales) se muestran también **descontando la inflación** (IPC interanual de FRED). Un cambio de menos de ±3 % (o de ±25 mil millones en emisión neta) se considera «sin cambio». El MTD no se muestra hasta tener 10 sesiones, porque al inicio del mes dominan los desplazamientos de fechas de pago. Las barras comparan cada mes natural completo con el mismo mes del año anterior; un mes con alguna sesión sin dato no se calcula.
+
+| Bloque | Partidas DTS | Alimenta |
+|---|---|---|
+| Empleo y desempleo | Retenciones IRPF/FICA, prestaciones DOL, SNAP, salarios federales | NFP, tasa de paro, solicitudes |
+| Consumo y ahorro | Devoluciones a hogares, TSP aportaciones y retiradas | Ventas minoristas, tasa de ahorro |
+| Crecimiento y beneficios | Impuesto de sociedades, renta no retenida/SECA (electrónica + otros) | PIB |
+| Sector exterior | Aduanas | Importaciones, balanza comercial |
+| Deuda y tipos | Emisión neta (IIIB), intereses de títulos del Tesoro | Rendimientos 2 y 10 años |
+| Gasto público | Medicare A/B/D, Medicaid, HHS varios | Déficit, activos financieros netos |
+
+**Semántica.** Verde = mejor que hace un año para la economía (por ejemplo, menos prestaciones o menos SNAP); rojo = peor; ámbar = más presión fiscal o sobre tipos (sin juicio de bueno/malo: en lectura MMT, más intereses y más gasto también son más ingreso del sector privado); gris = sin cambio. El veredicto de cada bloque cuenta las partidas a favor y en contra.
+
+**Límites.** Es una lectura de tendencia, no la cifra del próximo dato (el puente v7 mide eso y hoy no muestra valor añadido). Cada partida lleva su cautela: estacionalidad de devoluciones, pagos trimestrales de sociedades y autónomos, aplazamientos del IRS por desastres, aranceles en aduanas desde 2025, fechas de cupón en intereses, nóminas quincenales en salarios federales. `data/fiscal_pulse.json` caduca con el libro de caja; `argos_summary.json` incluye `fiscal_pulse` con `basis: dts_vs_same_session_last_year_not_forecast`.

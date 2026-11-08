@@ -1,4 +1,5 @@
 import {treasuryHTML} from './treasury.mjs';
+import {pulseHTML,attachPulseHover,pulseExpired} from './pulse.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from './content.mjs';
 
 export const numeric=x=>typeof x==='number'&&Number.isFinite(x);
@@ -31,7 +32,7 @@ export function hasEdge(card){
   return f.edge?f.edge==='DEMONSTRATED':f.validation?.beats_baseline===true;
 }
 const fill=(text,vars)=>text.replace(/\{(\w+)\}/g,(_,k)=>vars[k]??'—');
-export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount=0){
+export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount=0,pulse=null){
   const fmtv=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:2}).format(v);
   const c=copy[lang],fmt=v=>new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:1}).format(Math.abs(v));
   const lines=[];
@@ -53,6 +54,11 @@ export function briefLines(data,cardList,lang='es',now=Date.now(),consensusCount
     const edge=!next.forecast?c.briefNextBlocked:hasEdge(next)?c.briefNextEdge:c.briefNextNoEdge;
     const con=sharedConsensus(next.consensus,next,now);
     lines.push({tone:hasEdge(next)?'teal':'',text:fill(c.briefNext,{name,date:next.release_date,edge})+(con&&next.forecast?' '+fill(c.briefNextConsensus,{c:fmtv(con.value),e:fmtv(next.forecast.point)}):'')});
+  }
+  if(pulse&&!pulseExpired(pulse,now)&&pulse.verdicts){
+    const words=c.pulseWords,names=c.pulseThemes;
+    const parts=['labor','consumption','growth','trade','rates','fiscal'].filter(k=>pulse.verdicts[k]).map(k=>`${names[k]} ${words[pulse.verdicts[k].verdict]??'—'}`);
+    lines.push({tone:'',text:fill(c.briefPulse,{list:parts.join(' · ')})});
   }
   const bridges=cardList.map(bridgeState).filter(Boolean);
   if(bridges.length)lines.push({tone:bridges.some(b=>b.edge==='DEMONSTRATED')?'teal':'',text:fill(c.briefBridge,{n:bridges.filter(b=>b.edge==='DEMONSTRATED').length,total:bridges.length})});
@@ -113,8 +119,8 @@ async function fetchFile(name){
 }
 async function load(){
   state.loading=true;render();
-  const r=await Promise.allSettled(['dts_nowcast.json','macro_radar.json','dts_history_400d.json','treasury_book.json'].map(fetchFile));
-  ['data','radar','history','book'].forEach((key,i)=>{if(r[i].status==='fulfilled')state[key]=r[i].value;else state[key]=null;});
+  const r=await Promise.allSettled(['dts_nowcast.json','macro_radar.json','dts_history_400d.json','treasury_book.json','fiscal_pulse.json'].map(fetchFile));
+  ['data','radar','history','book','pulse'].forEach((key,i)=>{if(r[i].status==='fulfilled')state[key]=r[i].value;else state[key]=null;});
   state.error=r.some(x=>x.status==='rejected');state.loading=false;render();
 }
 function spark(rows,color='var(--blue)'){
@@ -135,7 +141,7 @@ function renderHeader(){
   const m=state.data?.mmt_liquidity??{};
   const zOk=!blocked&&!state.data?.dq?.calendar_miss&&!state.data?.dq?.calendar_warmup;
   const metrics=[['cash',blocked?'—':signed(m.ntf_total/1000),t('billion')+' · '+t('cashSub')],['reserve',blocked?'—':signed(m.reserves_impact/1000),t('billion')+' · '+t('reserveSub')],['z',zOk?signed(m.z_ntf_ex_exp_weekday_100bd):'—',t('zSub')],['coverage',`${available} / 10`,t('coverageSub')]];
-  const cs=cards(),brief=state.loading?[]:briefLines(state.data,cs,state.lang,Date.now(),cs.filter(c=>c.forecast&&consensusFor(c)).length);
+  const cs=cards(),brief=state.loading?[]:briefLines(state.data,cs,state.lang,Date.now(),cs.filter(c=>c.forecast&&consensusFor(c)).length,state.pulse);
   $('brief').innerHTML=brief.length?`<div class="brief-head"><span class="eyebrow">${e(t('briefTitle'))}</span><span class="muted">${e(t('briefNote'))}</span></div><ul>${brief.map(l=>`<li class="${l.tone}">${e(l.text)}</li>`).join('')}</ul>`:'';
   $('kpis').innerHTML=metrics.map(([key,value,sub])=>`<article class="kpi"><div class="label">${e(t(key))}</div><div class="value">${e(value)}</div><div class="sub">${e(sub)}</div></article>`).join('');
 }
@@ -205,7 +211,7 @@ function render(){
   const openDetails=[...document.querySelectorAll('[data-card] details[open]')].map(el=>el.closest('[data-card]').dataset.card);
   const cashDetails=[...document.querySelectorAll('#treasury details')].map(el=>[el.id,el.open]);
   const cashScroll=new Map([...document.querySelectorAll('#treasury [data-scroll-id]')].map(el=>[el.dataset.scrollId,el.scrollLeft]));
-  renderHeader();$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily,ntfWidth:Math.max(300,$('treasury').clientWidth-46)});
+  renderHeader();$('pulseRoot').innerHTML=pulseHTML(state.pulse,cards().map(k=>({...k,_name:targets[k.id]?.[state.lang]?.[0]})),state.lang);$('treasury').innerHTML=treasuryHTML(state.book,state.data,{lang:state.lang,mode:state.cashMode,year:state.cashYear,cutoff:state.cashDate,days:state.cashDays,dailyBars:state.cashDaily,ntfWidth:Math.max(300,$('treasury').clientWidth-46)});
   for(const [id,open] of cashDetails){const el=document.getElementById(id);if(el)el.open=open;}
   for(const el of document.querySelectorAll('#treasury [data-scroll-id]'))el.scrollLeft=cashScroll.get(el.dataset.scrollId)??Math.max(0,el.scrollWidth-el.clientWidth);
   $('view').innerHTML=({radar:radarHTML,fiscal:cashHTML,liquidity:liquidityHTML,guide:guideHTML}[state.tab])();
@@ -224,6 +230,7 @@ function init(){
   try{state.lang=localStorage.getItem('dts-v6-language')??'es';if(!copy[state.lang])state.lang='es';state.consensus=JSON.parse(localStorage.getItem('dts-v6-consensus')??'{}');}catch{}
   for(const lang of ['en','es'])$('lang'+(lang==='en'?'En':'Es')).addEventListener('click',()=>{state.lang=lang;try{localStorage.setItem('dts-v6-language',lang);}catch{}render();});
   $('refresh').addEventListener('click',load);
+  attachPulseHover($('pulseRoot'),()=>state.lang);
   let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(render,150);});
   document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;if(b.dataset.tab){state.tab=b.dataset.tab;render();}if(b.dataset.filter){state.filter=b.dataset.filter;render();}if(b.dataset.days){state.days=Number(b.dataset.days);render();}if(b.dataset.consensus)editConsensus(b.dataset.consensus);if(b.dataset.cashMode){state.cashMode=b.dataset.cashMode;state.cashDaily=false;if(state.cashMode==='fytd')state.cashDays='fy';render();}if(b.dataset.cashDaily){state.cashDaily=b.dataset.cashDaily==='yes';render();}if(b.dataset.download==='treasury')download(state.book,'treasury-cash-ledger.json');if(b.dataset.download==='history')download(state.history,'dts-history.json');});
   document.addEventListener('change',ev=>{if(ev.target.id==='cashYear'){state.cashYear=Number(ev.target.value);state.cashDate=null;render();}if(ev.target.id==='cashDate'){state.cashDate=ev.target.value;render();}if(ev.target.id==='cashWindow'){state.cashDays=ev.target.value;render();}});
