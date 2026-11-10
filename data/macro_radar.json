@@ -1,7 +1,7 @@
 {
   "schema": "macro-radar-1.0",
-  "generated_at": "2026-11-10T03:36:32Z",
-  "valid_until_utc": "2026-11-10T13:30:00Z",
+  "generated_at": "2026-11-10T20:37:26Z",
+  "valid_until_utc": "2026-11-12T13:30:00Z",
   "mode": "live_fetch",
   "cards": [
     {
@@ -12,7 +12,7 @@
       "unit": "thousand_jobs",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PAYEMS",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "524af3d12cd251359077de41e69325da96a0bc607ff72b5e9bff8623d17e129c",
       "release_date": "2026-12-04",
       "status": "RESEARCH_ESTIMATE",
@@ -245,7 +245,7 @@
       "unit": "percent",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/UNRATE",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "22b606d834be40d4ab304b82d11d2974321e08bc8d53dd5e566a2a10f7694101",
       "release_date": "2026-12-04",
       "status": "RESEARCH_ESTIMATE",
@@ -443,7 +443,7 @@
       "unit": "thousand_claims",
       "frequency": "weekly",
       "source_url": "https://fred.stlouisfed.org/series/ICSA",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "13a82a437a2749acad9a5ca67d58eeebf61634568a26e47426d72e299597fdb3",
       "release_date": "2026-11-12",
       "status": "RESEARCH_ESTIMATE",
@@ -476,7 +476,7 @@
         "unit": "thousand_claims",
         "source": "ForexFactory via G8 RadarNews",
         "source_text": "194K",
-        "captured_at": "2026-11-10T03:35:58Z",
+        "captured_at": "2026-11-10T20:36:00Z",
         "release_at": "2026-11-12T13:30:00Z",
         "automatic": true
       },
@@ -686,7 +686,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/RSAFS",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "d829c86ce02e96c1049c96dadda3897a6748daf443befa58875d8696133cb24e",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -918,15 +918,15 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
-      "source_sha256": "b99909e322c5c3653ec18960e5f05f41fae38fc9bbaa36a0732ae673ab810a67",
-      "release_date": "2026-11-10",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
+      "source_sha256": "453fd44aa6d549f34901561d71fec2e72b553f458cedbfaa3bd722e5919b9b62",
+      "release_date": "2026-12-10",
       "status": "RESEARCH_ESTIMATE",
       "forecast": {
-        "point": 0.37274511777281766,
+        "point": 0.4649502593353135,
         "range80": [
-          0.09270932885811489,
-          0.5933473508320869
+          0.1849144704206107,
+          0.6855524923945827
         ],
         "method": "baseline",
         "selected_on_training": "baseline",
@@ -936,40 +936,28 @@
           "kind": "chronological_latest_vintage_holdout",
           "selection_n": 30,
           "holdout_n": 30,
-          "mae": 0.2077721956399096,
-          "baseline_mae": 0.2077721956399096,
-          "ar1_holdout_mae": 0.13728193651744364,
+          "mae": 0.20219140827915885,
+          "baseline_mae": 0.20219140827915885,
+          "ar1_holdout_mae": 0.1396036523494665,
           "improvement_pct": 0.0,
           "beats_baseline": false,
           "first_release_verified": false
         },
         "probability_above_consensus": null
       },
-      "consensus": {
-        "value": 0.3,
-        "reference_period": "2026-10",
-        "unit": "percent_mom",
-        "source": "ForexFactory via G8 RadarNews",
-        "source_text": "0.3%",
-        "captured_at": "2026-11-10T03:35:58Z",
-        "release_at": "2026-11-10T13:30:00Z",
-        "automatic": true
-      },
-      "surprise_bias": "RESEARCH_GAP_ONLY",
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
       "probability_above_consensus": null,
-      "direction_vs_previous": -1,
-      "signal": "COOLER",
+      "direction_vs_previous": 1,
+      "signal": "HOTTER",
       "flags": [
         "LATEST_REVISED_DATA",
         "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
         "NO_DEMONSTRATED_EDGE",
         "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
       ],
       "history": [
-        {
-          "date": "2023-09-01",
-          "value": 0.3900915440960384
-        },
         {
           "date": "2023-10-01",
           "value": 0.13668493471667986
@@ -1109,13 +1097,16 @@
         {
           "date": "2026-09-01",
           "value": 0.6485480245771891
+        },
+        {
+          "date": "2026-10-01",
+          "value": 0.3502845690429357
         }
       ],
-      "last": 0.6485480245771891,
-      "observed_period": "2026-09-01",
-      "reference_period": "2026-10",
-      "edge": "NONE",
-      "model_minus_consensus": 0.07274511777281767
+      "last": 0.3502845690429357,
+      "observed_period": "2026-10-01",
+      "reference_period": "2026-11",
+      "edge": "NONE"
     },
     {
       "id": "core_cpi",
@@ -1125,15 +1116,15 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPILFESL",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
-      "source_sha256": "f238deb0105212694d3700b84eaf6db7e4c89754644ef669f3abe2285b0fbf98",
-      "release_date": "2026-11-10",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
+      "source_sha256": "15f9ea7f42ab2bbb9c38c85362a84ae42ea6a12208b381f342320ff359b9350e",
+      "release_date": "2026-12-10",
       "status": "RESEARCH_ESTIMATE",
       "forecast": {
-        "point": 0.30554590113418995,
+        "point": 0.2832858853441236,
         "range80": [
-          0.18465964076294902,
-          0.4147719030987117
+          0.16239962497288266,
+          0.39251188730864534
         ],
         "method": "ar1",
         "selected_on_training": "ar1",
@@ -1143,39 +1134,27 @@
           "kind": "chronological_latest_vintage_holdout",
           "selection_n": 30,
           "holdout_n": 30,
-          "mae": 0.08448717289804333,
-          "baseline_mae": 0.09865372801806697,
-          "ar1_holdout_mae": 0.08448717289804333,
-          "improvement_pct": 14.359878136008453,
+          "mae": 0.08391255716017573,
+          "baseline_mae": 0.09814424780802619,
+          "ar1_holdout_mae": 0.08391255716017573,
+          "improvement_pct": 14.500789364332567,
           "beats_baseline": true,
           "first_release_verified": false
         },
         "probability_above_consensus": null
       },
-      "consensus": {
-        "value": 0.2,
-        "reference_period": "2026-10",
-        "unit": "percent_mom",
-        "source": "ForexFactory via G8 RadarNews",
-        "source_text": "0.2%",
-        "captured_at": "2026-11-10T03:35:58Z",
-        "release_at": "2026-11-10T13:30:00Z",
-        "automatic": true
-      },
-      "surprise_bias": "RESEARCH_GAP_ONLY",
+      "consensus": null,
+      "surprise_bias": "NOT_ESTIMATED",
       "probability_above_consensus": null,
-      "direction_vs_previous": -1,
-      "signal": "COOLER",
+      "direction_vs_previous": 0,
+      "signal": "SIMILAR",
       "flags": [
         "LATEST_REVISED_DATA",
         "NOT_FIRST_RELEASE_VALIDATED",
+        "NOT_MARKET_CONSENSUS",
         "HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED"
       ],
       "history": [
-        {
-          "date": "2023-09-01",
-          "value": 0.3097745332385715
-        },
         {
           "date": "2023-10-01",
           "value": 0.29561504352111356
@@ -1315,13 +1294,16 @@
         {
           "date": "2026-09-01",
           "value": 0.3348481932704761
+        },
+        {
+          "date": "2026-10-01",
+          "value": 0.2962560785609636
         }
       ],
-      "last": 0.3348481932704761,
-      "observed_period": "2026-09-01",
-      "reference_period": "2026-10",
-      "edge": "DEMONSTRATED",
-      "model_minus_consensus": 0.10554590113418993
+      "last": 0.2962560785609636,
+      "observed_period": "2026-10-01",
+      "reference_period": "2026-11",
+      "edge": "DEMONSTRATED"
     },
     {
       "id": "core_pce",
@@ -1331,7 +1313,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PCEPILFE",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "d604aece76c0467c84ab2a141e9265b236c15b8c2939cfbb5ae0dd51897bd25c",
       "release_date": "2026-11-25",
       "status": "RESEARCH_ESTIMATE",
@@ -1528,7 +1510,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/INDPRO",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "d42158196d41b82d1a53526d3511a35f7826cbb4ae2d8663b89ec8515bab07f8",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -1725,7 +1707,7 @@
       "unit": "thousand_homes_saar",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/HOUST",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "643e192d263a4690aaa4e13349d22d484a07dbf3a6d787da61cf0eb0aaaaae4b",
       "release_date": "2026-11-18",
       "status": "RESEARCH_ESTIMATE",
@@ -1922,7 +1904,7 @@
       "unit": "usd_billions",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/BOPGSTB",
-      "source_retrieved_at": "2026-11-10T03:36:32Z",
+      "source_retrieved_at": "2026-11-10T20:37:26Z",
       "source_sha256": "d0e6835a7e947727c75bada19f7208bc3a4327ec85efb57b6d4325c00f000268",
       "release_date": "2026-12-08",
       "status": "RESEARCH_ESTIMATE",
@@ -2919,14 +2901,10 @@
       "frequency": "daily",
       "basis": "daily_operation",
       "status": "OK",
-      "observed_at": "2026-11-09",
-      "value": 0.252,
-      "change": 0.10200000000000001,
+      "observed_at": "2026-11-10",
+      "value": 0.152,
+      "change": -0.1,
       "history": [
-        {
-          "date": "2026-08-14",
-          "value": 0.25
-        },
         {
           "date": "2026-08-17",
           "value": 0.255
@@ -3162,6 +3140,10 @@
         {
           "date": "2026-11-09",
           "value": 0.252
+        },
+        {
+          "date": "2026-11-10",
+          "value": 0.152
         }
       ]
     },
