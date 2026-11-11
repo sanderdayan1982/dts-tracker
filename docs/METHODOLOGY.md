@@ -172,3 +172,7 @@ Panel principal del dashboard: responde a «¿la economía va mejor o peor que h
 **Semántica.** Verde = mejor que hace un año para la economía (por ejemplo, menos prestaciones o menos SNAP); rojo = peor; ámbar = más presión fiscal o sobre tipos (sin juicio de bueno/malo: en lectura MMT, más intereses y más gasto también son más ingreso del sector privado); gris = sin cambio. El veredicto de cada bloque cuenta las partidas a favor y en contra.
 
 **Límites.** Es una lectura de tendencia, no la cifra del próximo dato (el puente v7 mide eso y hoy no muestra valor añadido). Cada partida lleva su cautela: estacionalidad de devoluciones, pagos trimestrales de sociedades y autónomos, aplazamientos del IRS por desastres, aranceles en aduanas desde 2025, fechas de cupón en intereses, nóminas quincenales en salarios federales. `data/fiscal_pulse.json` caduca con el libro de caja; `argos_summary.json` incluye `fiscal_pulse` con `basis: dts_vs_same_session_last_year_not_forecast`.
+
+## v8.1: events retirado de argos_summary; las tarjetas viven solo en macro_radar.json, consumidor IRIS
+
+El productor de `data/argos_summary.json` publica `v` 2 (una unidad por encima del contrato anterior). Las claves son `v`, `at`, `expires`, `dts`, `basis`, `probabilities` y `fiscal_pulse`.
