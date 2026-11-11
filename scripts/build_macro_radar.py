@@ -356,6 +356,14 @@ def attach_bridge(cards,now,offline):
         # The bridge replaces the published estimate only with a demonstrated DTS contribution.
         card["primary_estimate"]="DTS_BRIDGE" if view["edge"]=="DEMONSTRATED" and card.get("forecast") else "STATISTICAL"
 
+def argos_contract(summary, valid_until, now, pulse):
+    """Compact ARGOS file. Event cards are not published here; IRIS reads macro_radar.json."""
+    return {"v":2,"at":iso(now),"expires":iso(valid_until),"dts":summary,
+            "basis":"research_vs_previous_not_consensus","probabilities":None,
+            "fiscal_pulse":{"status":pulse.get("status"),"asof":pulse.get("asof"),"basis":"dts_vs_same_session_last_year_not_forecast",
+                            "verdicts":{k:v["verdict"] for k,v in (pulse.get("verdicts") or {}).items()},
+                            "indicators":{x["id"]:{"fytd_change":x["fytd"]["change"],"real":x["fytd"]["real_change"],"state":x["state"]} for x in pulse.get("indicators",[])}}}
+
 def main(offline=False):
     now=utcnow()
     specs={**SERIES,**CONTEXT}
@@ -405,28 +413,8 @@ def main(offline=False):
             if c["status"]=="RESEARCH_ESTIMATE":
                 path=archive/f"{c['id']}-{c['reference_period']}.json"
                 if not path.exists(): atomic_json(path,{"issued_at":iso(now),"card":c},compact=True)
-    # Compact contract for ARGOS. Explicit directions refer to previous data, never surprise odds.
-    compact={"v":1,"at":iso(now),"expires":iso(valid_until),"dts":summary,
-             "basis":"research_vs_previous_not_consensus","probabilities":None,"events":[]}
-    for c in cards:
-        f=c.get("forecast")
-        compact["events"].append({"id":c["id"],"period":c.get("reference_period"),"unit":c["unit"],"status":c["status"],
-                                  "point":round(f["point"],3) if f else None,"edge":c.get("edge"),
-                                  # Fail closed: a direction without demonstrated edge is not an agent signal.
-                                  "signal":c["signal"] if c.get("edge")=="DEMONSTRATED" else None,
-                                  "signal_research":c["signal"],"consensus":c["consensus"]["value"] if c["consensus"] else None})
-    for event, card in zip(compact["events"], cards):
-        if "dts_driver" in card:
-            event["dts_driver"]=card["dts_driver"]
-        b=card.get("dts_bridge")
-        if b:
-            event["dts_bridge"]={"status":b["status"],"edge":b["edge"],"point":b.get("point"),
-                                 "dts_direction":b.get("dts_direction"),"dts_contribution":b.get("dts_contribution")}
-            if card.get("primary_estimate")=="DTS_BRIDGE":
-                event["point"]=round(b["point"],3); event["primary_estimate"]="DTS_BRIDGE"
-    compact["fiscal_pulse"]={"status":pulse.get("status"),"asof":pulse.get("asof"),"basis":"dts_vs_same_session_last_year_not_forecast",
-                             "verdicts":{k:v["verdict"] for k,v in (pulse.get("verdicts") or {}).items()},
-                             "indicators":{x["id"]:{"fytd_change":x["fytd"]["change"],"real":x["fytd"]["real_change"],"state":x["state"]} for x in pulse.get("indicators",[])}}
+    # Compact ARGOS contract: cash and fiscal pulse only. Event cards stay on the radar for IRIS.
+    compact=argos_contract(summary, valid_until, now, pulse)
     atomic_json(DATA/"argos_summary.json",compact,compact=True)
     atomic_json(DATA/"dts_nowcast.json",dts)
     return payload
