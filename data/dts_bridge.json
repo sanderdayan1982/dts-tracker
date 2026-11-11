@@ -1,8 +1,8 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-10T20:37:26Z",
-  "valid_until_utc": "2026-11-12T22:37:26Z",
-  "dts_asof": "2026-11-06",
+  "generated_at": "2026-11-11T01:16:43Z",
+  "valid_until_utc": "2026-11-13T03:16:43Z",
+  "dts_asof": "2026-11-09",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
     "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
@@ -270,14 +270,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-06",
+      "dts_cutoff_used": "2026-11-09",
       "dts_cutoff_scheduled": "2026-12-02",
-      "dts_sessions_missing": 16,
-      "point": 138.62486645371683,
+      "dts_sessions_missing": 15,
+      "point": 138.70256435305436,
       "baseline": 137.0,
       "range80": [
-        -6.931362967155394,
-        217.54728497771353
+        -6.853665067817872,
+        217.62498287705105
       ],
       "coefficients": {
         "intercept": 55.53215303674814,
@@ -288,9 +288,9 @@
       },
       "feature_values": {
         "baseline_3m": 137.0,
-        "withheld_growth_surprise_pp": 3.1099989712175056
+        "withheld_growth_surprise_pp": 3.0427271144692005
       },
-      "dts_contribution": -3.591998180004551,
+      "dts_contribution": -3.514300280667034,
       "dts_direction": "DOWN"
     },
     "claims": {
@@ -546,14 +546,14 @@
         }
       ],
       "reference_period": "2026-11-07",
-      "dts_cutoff_used": "2026-11-06",
+      "dts_cutoff_used": "2026-11-09",
       "dts_cutoff_scheduled": "2026-11-10",
-      "dts_sessions_missing": 2,
-      "point": 190.0253821655714,
+      "dts_sessions_missing": 1,
+      "point": 189.99792300809426,
       "baseline": 189.0,
       "range80": [
-        181.37430679625925,
-        200.1237739947724
+        181.34684763878212,
+        200.09631483729527
       ],
       "coefficients": {
         "intercept": -0.0008519433696274903,
@@ -564,10 +564,10 @@
       },
       "feature_values": {
         "prior_week_log_change": -0.031252543504104426,
-        "dol_ui_growth_change_pp": 0.6759444706672085
+        "dol_ui_growth_change_pp": -3.6195926131472893
       },
-      "dts_contribution": 0.004321228154680057,
-      "dts_direction": "UP"
+      "dts_contribution": -0.02313792932244496,
+      "dts_direction": "DOWN"
     },
     "retail": {
       "series_id": "RSAFS",
@@ -1100,14 +1100,14 @@
         }
       ],
       "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-11-06",
+      "dts_cutoff_used": "2026-11-09",
       "dts_cutoff_scheduled": "2026-11-25",
-      "dts_sessions_missing": 12,
-      "point": -109.90111307125696,
+      "dts_sessions_missing": 11,
+      "point": -109.64804686639437,
       "baseline": -105.047,
       "range80": [
-        -128.0234202064483,
-        -100.1786334146251
+        -127.77035400158569,
+        -99.9255672097625
       ],
       "coefficients": {
         "intercept": -0.2906247925481421,
@@ -1116,9 +1116,9 @@
         }
       },
       "feature_values": {
-        "customs_growth_surprise_pp": -68.38264347497123
+        "customs_growth_surprise_pp": -64.59051451445181
       },
-      "dts_contribution": -4.563488278708817,
+      "dts_contribution": -4.310422073846226,
       "dts_direction": "DOWN"
     }
   }
