@@ -48,8 +48,8 @@ function chart(x,lang){
 
 export function pulseHTML(pulse,cards,lang='es',now=Date.now()){
   const c=COPY[lang],e=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-  const nf=(v,d=1)=>Number.isFinite(v)?new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d,minimumFractionDigits:d}).format(v):'—';
-  const sg=(v,d=1)=>Number.isFinite(v)?(v>0?'+':v<0?'−':'')+nf(Math.abs(v),d):'—';
+  const nf=(v,d=1)=>Number.isFinite(v)?new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d,minimumFractionDigits:d}).format(v):'NO DATA';
+  const sg=(v,d=1)=>Number.isFinite(v)?(v>0?'+':v<0?'−':'')+nf(Math.abs(v),d):'NO DATA';
   if(!pulse)return '';
   const head=`<div class="pulse-head"><div><div class="eyebrow">${c.eyebrow}</div><h2>${c.title}</h2><p>${c.intro}</p></div>
   <div class="pulse-meta"><span>${c.compared}: <b>${e(pulse.compare_fytd_date??'—')}</b> · ${pulse.sessions_fytd??'—'} ${c.sessions}</span><span>${c.cpi}: <b>${sg(pulse.cpi_yoy_pct)} %</b> (${e(pulse.cpi_period??'—')})</span>
@@ -58,10 +58,10 @@ export function pulseHTML(pulse,cards,lang='es',now=Date.now()){
   const byId=Object.fromEntries((cards||[]).map(x=>[x.id,x]));
   const blocks=Object.entries(pulse.themes||{}).map(([key,th])=>{
     const items=pulse.indicators.filter(x=>x.theme===key);const v=pulse.verdicts?.[key]??{};
-    const links=(LINKS[key]||[]).map(id=>byId[id]).filter(Boolean).map(k=>`<div class="pulse-link"><b>${e(k._name??k.id)}</b><span>${c.prev} ${nf(k.last,2)}</span><span>${c.est} ${nf(k.forecast?.point,2)}</span><span>${c.cons} ${k.consensus?nf(k.consensus.value,2):'—'}</span><span>${c.release} ${e(k.release_date??'—')}</span></div>`).join('');
+    const links=(LINKS[key]||[]).map(id=>byId[id]).filter(Boolean).map(k=>`<div class="pulse-link"><b>${e(k._name??k.id)}</b><span>${c.prev} ${nf(k.last,2)}</span><span>${c.est} ${nf(k.forecast?.point,2)}</span><span>${c.cons} ${k.consensus?nf(k.consensus.value,2):'NO DATA'}</span><span>${c.release} ${e(k.release_date??'—')}</span></div>`).join('');
     const rows=items.map(x=>{
       const cls=STATE_CLASS[x.state]||'flat',net=x.kind==='net',f=x.fytd;
-      const big=f.change==null?'—':net?`${sg(f.change,0)} ${c.bn}`:`${sg(f.change)} %`;
+      const big=f.change==null?'NO DATA':net?`${sg(f.change,0)} ${c.bn}`:`${sg(f.change)} %`;
       const arrow=f.change==null?'':f.change>0?'▲':f.change<0?'▼':'■';
       const real=f.real_change!=null?`<span class="pulse-real">${c.real} ${sg(f.real_change)} %</span>`:'';
       const mtd=x.mtd.change!=null?(net?`${sg(x.mtd.change,0)} ${c.bn}`:`${sg(x.mtd.change)} %`):c.mtdWait.replace('{n}',x.mtd.sessions??'—');

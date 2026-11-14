@@ -18,7 +18,7 @@ export function comparableFiscal(book,year,cutoff){
  return {current:a,prior:b,sessions:cur.length};
 }
 export function cashDeskHTML(book,selection,mode,lang){
- const t=text[lang]??text.es,n=(v,d=2)=>ok(v)?new Intl.NumberFormat(lang==='en'?'en-US':'es-ES',{maximumFractionDigits:d}).format(v):'—',b=v=>ok(v)?n(v/1000):'—';
+ const t=text[lang]??text.es,n=(v,d=2)=>ok(v)?new Intl.NumberFormat(lang==='en'?'en-US':'es-ES',{maximumFractionDigits:d}).format(v):'NO DATA',b=v=>ok(v)?n(v/1000):'NO DATA';
  const r=selection.last,p=r.periods[mode],all=book.rows.filter(x=>x.d<=r.d),comparison=comparableFiscal(book,selection.year,r.d);
  const svg=(body,label=t.waterfall,height=200)=>`<svg class="desk-svg" viewBox="0 0 520 ${height}" role="img" aria-label="${label}">${body}</svg>`;
  const txt=(x,y,label,anchor='start')=>`<text x="${x}" y="${y}" text-anchor="${anchor}">${label}</text>`;
@@ -32,7 +32,7 @@ export function cashDeskHTML(book,selection,mode,lang){
  const funding=svg(financing.map(([label,v,color],i)=>`${txt(8,18+i*48,label)}<line x1="250" x2="250" y1="${23+i*48}" y2="${40+i*48}" stroke="#94a3b8"/><rect x="${ok(v)&&v<0?250+v/maxFin*210:250}" y="${25+i*48}" width="${ok(v)?Math.abs(v)/maxFin*210:0}" height="13" fill="${color}"/>${txt(508,36+i*48,b(v),'end')}`).join(''),t.funding,215);
  const rolling=[5,20,60].map(count=>({count,totals:windowTotals(all,count)}));const maxRoll=Math.max(1,...rolling.flatMap(x=>Object.values(x.totals??{}).map(Math.abs)));
  const rollingSvg=svg(rolling.map((row,i)=>[t.ntf,t.reserves,t.debt].map((label,j)=>{const v=row.totals?.[['ntf','reserves','debt'][j]],yy=22+i*82+j*22;return `${j===0?txt(2,yy-5,row.count+' '+t.sessions):''}<line x1="310" x2="310" y1="${yy}" y2="${yy+14}" stroke="#94a3b8"/><rect x="${ok(v)&&v<0?310+v/maxRoll*115:310}" y="${yy}" width="${ok(v)?Math.abs(v)/maxRoll*115:0}" height="12" fill="${['#64d8c1','#7ab8ff','#f3c476'][j]}"/>${txt(85,yy+11,label)}${txt(515,yy+11,b(v),'end')}`;}).join('')).join(''),t.rolling,275);
- const heatRows=all.slice(-60),maxHeat=Math.max(1,...heatRows.map(x=>Math.abs((x.tga??0)-(x.periods.today.open??0))));
+ const heatRows=all.slice(-60),maxHeat=Math.max(1,...heatRows.map(x=>{const open=x.periods?.today?.open;return ok(x.tga)&&ok(open)?Math.abs(x.tga-open):0;}));
  const heat=svg(heatRows.map((x,i)=>{const p=x.periods.today,v=p.ok&&ok(x.tga)&&ok(p.open)?-(x.tga-p.open):null,xx=5+(i%10)*51,yy=10+Math.floor(i/10)*44;return `<g><title>${x.d}: ${b(v)} ${t.unit}</title><rect x="${xx}" y="${yy}" width="46" height="37" rx="4" fill="${!ok(v)?'#263a50':v>=0?'#64d8c1':'#ff9b9b'}" fill-opacity="${ok(v)?.2+.8*Math.abs(v)/maxHeat:.4}"/>${txt(xx+23,yy+14,x.d.slice(5),'middle')}${txt(xx+23,yy+29,b(v),'middle')}</g>`;}).join(''),t.heat,280);
  let compare=`<p>${t.unavailable}</p>`;
  if(comparison){const a=comparison.current,bRow=comparison.prior,max=Math.max(1,a.periods.fytd.D,a.periods.fytd.W,bRow.periods.fytd.D,bRow.periods.fytd.W);compare=svg(['D','W'].map((key,i)=>[bRow,a].map((row,j)=>{const v=row.periods.fytd[key],yy=25+i*95+j*34;return `${txt(5,yy-6,(i===0?t.deposits:t.withdrawals)+' · FY '+row.fy)}<rect x="5" y="${yy}" width="${v/max*390}" height="15" fill="${j===0?'#7ab8ff':'#64d8c1'}"/>${txt(512,yy+13,b(v),'end')}`;}).join('')).join(''),t.compare,210)+`<p>${comparison.sessions} ${t.sessions} · ${a.d} / ${bRow.d}</p>`;}
