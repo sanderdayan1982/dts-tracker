@@ -97,8 +97,8 @@ const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,his
 const $=id=>document.getElementById(id);
 const t=key=>copy[state.lang][key]??key;
 const e=escapeHTML;
-const n=(v,d=2)=>numeric(v)?new Intl.NumberFormat(state.lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d}).format(v):'—';
-const signed=(v,d=2)=>{if(!numeric(v))return '—';const r=Number(v.toFixed(d))||0;return (r>0?'+':'')+n(r,d);};
+const n=(v,d=2)=>numeric(v)?new Intl.NumberFormat(state.lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d}).format(v):'NO DATA';
+const signed=(v,d=2)=>{if(!numeric(v))return 'NO DATA';const r=Number(v.toFixed(d))||0;return (r>0?'+':'')+n(r,d);};
 const date=(v,withTime=false)=>{if(!v)return t('unverified');const d=new Date(v.length===10?v+'T12:00:00Z':v);return Number.isNaN(d.getTime())?t('unverified'):new Intl.DateTimeFormat(state.lang==='es'?'es-ES':'en-US',{dateStyle:'medium',...(withTime?{timeStyle:'short'}:{})}).format(d);};
 const pill=(label,cls='')=>`<span class="pill ${cls}">${e(label)}</span>`;
 const sourceLink=(id,label=t('source'))=>`<a href="https://fred.stlouisfed.org/series/${encodeURIComponent(id)}" target="_blank" rel="noopener">${e(label)} ↗</a>`;
@@ -140,7 +140,8 @@ function renderHeader(){
   $('status').innerHTML=`<span><span class="dot"></span>${e(msg)}</span><span>${e(t('updated'))}: ${e(date(state.radar?.generated_at??state.data?.generated_at,true))}</span>`;
   const m=state.data?.mmt_liquidity??{};
   const zOk=!blocked&&!state.data?.dq?.calendar_miss&&!state.data?.dq?.calendar_warmup;
-  const metrics=[['cash',blocked?'—':signed(m.ntf_total/1000),t('billion')+' · '+t('cashSub')],['reserve',blocked?'—':signed(m.reserves_impact/1000),t('billion')+' · '+t('reserveSub')],['z',zOk?signed(m.z_ntf_ex_exp_weekday_100bd):'—',t('zSub')],['coverage',`${available} / 10`,t('coverageSub')]];
+  const metric=(v,label)=>numeric(v)?label:'NO DATA';
+  const metrics=[['cash',metric(m.ntf_total,blocked?'—':signed(m.ntf_total/1000)),t('billion')+' · '+t('cashSub')],['reserve',metric(m.reserves_impact,blocked?'—':signed(m.reserves_impact/1000)),t('billion')+' · '+t('reserveSub')],['z',metric(m.z_ntf_ex_exp_weekday_100bd,zOk?signed(m.z_ntf_ex_exp_weekday_100bd):'—'),t('zSub')],['coverage',`${available} / 10`,t('coverageSub')]];
   const cs=cards(),brief=state.loading?[]:briefLines(state.data,cs,state.lang,Date.now(),cs.filter(c=>c.forecast&&consensusFor(c)).length,state.pulse);
   $('brief').innerHTML=brief.length?`<div class="brief-head"><span class="eyebrow">${e(t('briefTitle'))}</span><span class="muted">${e(t('briefNote'))}</span></div><ul>${brief.map(l=>`<li class="${l.tone}">${e(l.text)}</li>`).join('')}</ul>`:'';
   $('kpis').innerHTML=metrics.map(([key,value,sub])=>`<article class="kpi"><div class="label">${e(t(key))}</div><div class="value">${e(value)}</div><div class="sub">${e(sub)}</div></article>`).join('');

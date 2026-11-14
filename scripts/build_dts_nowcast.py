@@ -446,6 +446,176 @@ def get_row_amounts(row):
     return today, mtd, fytd
 
 
+def observed(value):
+    """Keep a reported number, including a real zero. Absence stays None."""
+    return value if finite(value) else None
+
+
+def present_amount(rec, field):
+    """Read a canonical field only when that vintage was actually reported."""
+    if not rec or field not in rec.get("present", ()):
+        return None
+    return observed(rec.get(field))
+
+
+def today_amount(today, mtd, previous_mtd, same_month):
+    """Today is only the reported today. Month-to-date never fills the missing day."""
+    would_reconstruct = today is None and mtd is not None and (
+        (not same_month) or previous_mtd is not None
+    )
+    return observed(today), bool(would_reconstruct)
+
+
+def opening_balance(reported_open, previous_close):
+    """Today's open is only today's reported open, never the previous close."""
+    refused = (not finite(reported_open)) and finite(previous_close)
+    return observed(reported_open), bool(refused)
+
+
+def calendar_value(mapping, day):
+    """A calendar day that was not built is absent, never a substitute zero."""
+    if mapping is None or day not in mapping:
+        return None
+    return observed(mapping[day])
+
+
+def sub(a, b):
+    if not finite(a) or not finite(b):
+        return None
+    return a - b
+
+
+def publish_round(value):
+    return round(value) if finite(value) else None
+
+
+def add_into(rec, key, value):
+    """A missing component poisons the sum. It is not added as zero."""
+    if rec.get(key) is None or not finite(value):
+        rec[key] = None
+    else:
+        rec[key] = rec[key] + value
+
+
+def sum_observed(values):
+    if any(not finite(v) for v in values):
+        return None
+    return sum(values)
+
+
+def read_bucket(rec, key):
+    """An empty category total stays zero. A null component stays null."""
+    if key not in rec:
+        return 0.0
+    return observed(rec.get(key))
+
+
+def operating_total(canonical, component_sum, table_present):
+    """Reported ex-debt total, including a real zero.
+
+    Fiscal Data does not carry the Table II total line, so the sum of the
+    lines that were actually printed is the operating total. A day with no
+    Table II is absent, not zero. A reported zero is not replaced by that sum.
+    """
+    if finite(canonical):
+        return canonical
+    if table_present and finite(component_sum):
+        return component_sum
+    return None
+
+
+def z_window_value(value, inputs_complete, recon_diff, recon_op_diff):
+    """Absent inputs and their derivatives do not enter the z window."""
+    if (
+        inputs_complete
+        and finite(value)
+        and finite(recon_diff) and recon_diff <= 5
+        and finite(recon_op_diff) and recon_op_diff <= 15
+    ):
+        return value
+    return None
+
+
+def shock_day(in_tax_window, corp, nonw):
+    """A missing corp/SECA amount does not vote as a zero non-shock day."""
+    if not finite(corp) or not finite(nonw):
+        return True
+    return bool(in_tax_window or (corp + nonw > 20000.0))
+
+
+def history_row_quality(refused_substitute, source_values):
+    """Per-row publication state: OK, ABSENT, or STALE. Never a filled number."""
+    if refused_substitute:
+        return "STALE"
+    if any(not finite(v) for v in source_values):
+        return "ABSENT"
+    return "OK"
+
+
+def accounting_derivatives(
+    tga_close, tga_open, previous_close, D_raw, W_raw, I_raw, R_raw,
+    i_calc, r_calc, op_dep_t2, op_wd_t2, ntf_scheduled, ntf_expected, is_warmup,
+):
+    """Flow identities from reported amounts only. No zero, MTD, or prior-close fill."""
+    close_v = observed(tga_close)
+    open_v, refused_open = opening_balance(tga_open, previous_close)
+    D, W, I, R = observed(D_raw), observed(W_raw), observed(I_raw), observed(R_raw)
+    op_dep_t2_v, op_wd_t2_v = observed(op_dep_t2), observed(op_wd_t2)
+    i_calc_v, r_calc_v = observed(i_calc), observed(r_calc)
+    inputs_complete = all(finite(v) for v in (close_v, open_v, D, W, I, R, i_calc_v, r_calc_v))
+    net_debt = sub(I, R)
+    op_dep = sub(D, I)
+    op_wd = sub(W, R)
+    ntf_total = sub(op_wd, op_dep)
+    dtga = sub(close_v, open_v)
+    reserves = -dtga if finite(dtga) else None
+    flow_gap = sub(D, W)
+    balance_gap = sub(dtga, flow_gap)
+    diff_tga = None if not finite(balance_gap) else abs(balance_gap)
+    identity_gap = sub(dtga, sub(net_debt, ntf_total))
+    diff_bf = None if not finite(identity_gap) else abs(identity_gap)
+    issue_gap = sub(I, i_calc_v)
+    redemp_gap = sub(R, r_calc_v)
+    diff_i = None if not finite(issue_gap) else abs(issue_gap)
+    diff_r = None if not finite(redemp_gap) else abs(redemp_gap)
+    op_dep_gap = sub(op_dep, op_dep_t2_v)
+    op_wd_gap = sub(op_wd, op_wd_t2_v)
+    diff_op_d = None if not finite(op_dep_gap) else abs(op_dep_gap)
+    diff_op_w = None if not finite(op_wd_gap) else abs(op_wd_gap)
+    recon_parts = (diff_tga, diff_bf, diff_i, diff_r)
+    recon_diff = None if any(not finite(p) for p in recon_parts) else max(recon_parts)
+    op_parts = (diff_op_d, diff_op_w)
+    recon_op_diff = None if any(not finite(p) for p in op_parts) else max(op_parts)
+    sched = observed(ntf_scheduled)
+    expected = None if is_warmup else observed(ntf_expected)
+    residual = sub(ntf_total, sched)
+    ex_ante = sub(ntf_total, expected)
+    return {
+        "tga_close": close_v,
+        "tga_open": open_v,
+        "refused_open": refused_open,
+        "D": D,
+        "W": W,
+        "I": I,
+        "R": R,
+        "op_dep": op_dep,
+        "op_wd": op_wd,
+        "net_debt": net_debt,
+        "ntf_total": ntf_total,
+        "dtga": dtga,
+        "reserves": reserves,
+        "ntf_scheduled": sched,
+        "ntf_expected": expected,
+        "ntf_residual": residual,
+        "ntf_ex_ante": ex_ante,
+        "inputs_complete": inputs_complete,
+        "recon_diff": recon_diff,
+        "recon_op_diff": recon_op_diff,
+        "z_realized": z_window_value(residual, inputs_complete, recon_diff, recon_op_diff),
+        "z_ex_ante": z_window_value(ex_ante, inputs_complete, recon_diff, recon_op_diff),
+    }
+
+
 def fiscal_year_for_date(d_str):
     y = int(d_str[0:4])
     m = int(d_str[5:7])
@@ -781,6 +951,7 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
     calendar_warmup_by_date = {d: False for d in all_bd_dates}
     active_events_by_date = {d: [] for d in all_bd_dates}
     tax_window_dates = set()
+    incomplete_schedule = set()
 
     counted_realized_cid = set()
     counted_expected_cid = set()
@@ -804,6 +975,7 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             parts = [get_cval(side, cid, d, "today") for cid in cids]
             if not all(finite(v) for v in parts):
                 calendar_warmup_by_date[d] = True
+                incomplete_schedule.add(d)
                 continue
             obs_val = sum(parts)
             for cid in cids:
@@ -855,6 +1027,7 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             obs_v = get_cval(side, cid, d, "today")
             if not finite(obs_v):
                 calendar_warmup_by_date[d] = True
+                incomplete_schedule.add(d)
                 continue
             realized_sched_by_date[d] += ntf_sign * obs_v
             if len(wd_hist[wd]) >= 4:
@@ -863,6 +1036,10 @@ def build_asymmetric_calendar_schedule(all_bd_dates, get_cval):
             else:
                 calendar_warmup_by_date[d] = True
             wd_hist[wd].append(obs_v)
+
+    for d in incomplete_schedule:
+        realized_sched_by_date[d] = None
+        expected_by_date[d] = None
 
     return (
         expected_by_date,
@@ -1063,17 +1240,19 @@ def main():
                 if v is not None:
                     day_map[key][idx_v] = (day_map[key][idx_v] or 0.0) + v
 
+    # INTEGRIDAD-01 (Sander 14-nov-2026): never reconstruct today from MTD.
+    refused_mtd_dates = set()
     for i, d in enumerate(all_bd_dates):
         day_map = t2_raw.get(d, {})
         prev_d = all_bd_dates[i - 1] if i > 0 else None
         prev_map = t2_raw.get(prev_d, {}) if prev_d else {}
         same_month = (prev_d is not None) and (d[:7] == prev_d[:7])
         for key, vals in day_map.items():
-            if vals[0] is None and vals[1] is not None:
-                if not same_month:
-                    vals[0] = vals[1]
-                elif key in prev_map and prev_map[key][1] is not None:
-                    vals[0] = vals[1] - prev_map[key][1]
+            prev_mtd = prev_map[key][1] if key in prev_map else None
+            amount, refused = today_amount(vals[0], vals[1], prev_mtd, same_month)
+            vals[0] = amount
+            if refused:
+                refused_mtd_dates.add(d)
 
     t2_canon = {
         "Deposits": {},
@@ -1136,8 +1315,8 @@ def main():
         sec_low = sec_type.lower()
         desc_low = sec_desc.lower()
         today_v, mtd_v, fytd_v = get_row_amounts(r)
-        t_val = today_v or 0.0
-        f_val = fytd_v or 0.0
+        t_val = observed(today_v)
+        f_val = observed(fytd_v)
 
         rec = t3a_by_date.setdefault(
             d,
@@ -1155,25 +1334,25 @@ def main():
         )
         if side == "Issues":
             if "regular series" in desc_low or "regular series" in sec_low:
-                rec["bills_reg_iss"] += t_val
-                rec["bills_iss_total"] += t_val
+                add_into(rec, "bills_reg_iss", t_val)
+                add_into(rec, "bills_iss_total", t_val)
             elif "cash management" in desc_low or "cash management" in sec_low:
-                rec["cmb_iss"] += t_val
-                rec["cmb_iss_fytd"] += f_val
-                rec["bills_iss_total"] += t_val
+                add_into(rec, "cmb_iss", t_val)
+                add_into(rec, "cmb_iss_fytd", f_val)
+                add_into(rec, "bills_iss_total", t_val)
             elif sec_low == "bills":
-                rec["bills_iss_total"] += t_val
+                add_into(rec, "bills_iss_total", t_val)
             elif "state and local" in sec_low or "state and local" in desc_low:
-                rec["slgs_iss"] += t_val
+                add_into(rec, "slgs_iss", t_val)
             elif "government account series" in sec_low or "government account series" in desc_low:
-                rec["gas_iss"] += t_val
+                add_into(rec, "gas_iss", t_val)
         elif side == "Redemptions":
             if sec_low == "bills" or "regular series" in desc_low or "cash management" in desc_low:
-                rec["bills_red_total"] += t_val
+                add_into(rec, "bills_red_total", t_val)
             elif "state and local" in sec_low or "state and local" in desc_low:
-                rec["slgs_red"] += t_val
+                add_into(rec, "slgs_red", t_val)
             elif "government account series" in sec_low or "government account series" in desc_low:
-                rec["gas_red"] += t_val
+                add_into(rec, "gas_red", t_val)
 
     # ── Organize Table IIIB (Adjustment of Public Debt Transactions to Cash Basis) ──
     t3b_by_date = {}
@@ -1184,7 +1363,7 @@ def main():
         side = normalize_side(r.get("transaction_type"))
         label = get_catg_label(r).lower()
         today_v, mtd_v, fytd_v = get_row_amounts(r)
-        t_val = today_v or 0.0
+        t_val = observed(today_v)
         rec = t3b_by_date.setdefault(
             d,
             {
@@ -1208,23 +1387,23 @@ def main():
             rec["cash_redemp_fytd"] = fytd_v
         elif side == "Issues":
             if "public debt issues (table iiia)" in label:
-                rec["iiia_issues"] += t_val
+                add_into(rec, "iiia_issues", t_val)
             elif "premium" in label:
-                rec["iiia_issues"] += t_val
+                add_into(rec, "iiia_issues", t_val)
             elif "(-)" in label or "discount" in label:
-                rec["issues_adj"] += t_val
+                add_into(rec, "issues_adj", t_val)
         elif side == "Redemptions":
             if "public debt redemptions (table iiia)" in label:
-                rec["iiia_redemp"] += t_val
+                add_into(rec, "iiia_redemp", t_val)
             elif "premium" in label:
-                rec["iiia_redemp"] += t_val
+                add_into(rec, "iiia_redemp", t_val)
             elif "(-)" in label or "discount" in label:
-                rec["redemp_adj"] += t_val
+                add_into(rec, "redemp_adj", t_val)
 
     for d, rec in t3b_by_date.items():
-        if rec["iiia_issues"] > 0:
+        if finite(rec["iiia_issues"]) and rec["iiia_issues"] > 0 and finite(rec["issues_adj"]):
             rec["cash_issues_calc"] = rec["iiia_issues"] - rec["issues_adj"]
-        if rec["iiia_redemp"] > 0:
+        if finite(rec["iiia_redemp"]) and rec["iiia_redemp"] > 0 and finite(rec["redemp_adj"]):
             rec["cash_redemp_calc"] = rec["iiia_redemp"] - rec["redemp_adj"]
 
     # ── Organize Table IIIC (Debt Subject to Limit) ──
@@ -1337,12 +1516,12 @@ def main():
                 rec["indiv_eft_today"] += t_v
                 rec["indiv_eft_fytd"] += f_v
 
-    def get_cval(side, cid, d, field="today"):
-        return t2_canon.get(side, {}).get(cid, {}).get(d, {}).get(field, 0.0)
-
     def nullable_cval(side, cid, d, field="today"):
         rec = t2_canon.get(side, {}).get(cid, {}).get(d, {})
-        return rec.get(field) if field in rec.get("present", set()) else None
+        return present_amount(rec, field)
+
+    def get_cval(side, cid, d, field="today"):
+        return nullable_cval(side, cid, d, field)
 
     def has_cval(side, cid, d):
         return finite(nullable_cval(side, cid, d))
@@ -1367,81 +1546,67 @@ def main():
         t1 = t1_by_date.get(d, {})
         t3b = t3b_by_date.get(d, {})
 
-        tga_close = t1.get("tga_close")
-        tga_open = t1.get("tga_open")
-        if tga_open is None and idx > 0:
-            tga_open = t1_by_date.get(all_bd_dates[idx - 1], {}).get("tga_close")
+        previous_close = t1_by_date.get(all_bd_dates[idx - 1], {}).get("tga_close") if idx > 0 else None
 
         D_raw = t1.get("tga_dep_t1")
         if D_raw is None and has_cval("Deposits", "TOTAL_TGA_DEPOSITS_T2", d):
-            D_raw = get_cval("Deposits", "TOTAL_TGA_DEPOSITS_T2", d, "today")
+            D_raw = nullable_cval("Deposits", "TOTAL_TGA_DEPOSITS_T2", d, "today")
         W_raw = t1.get("tga_wd_t1")
         if W_raw is None and has_cval("Withdrawals", "TOTAL_TGA_WITHDRAWALS_T2", d):
-            W_raw = get_cval("Withdrawals", "TOTAL_TGA_WITHDRAWALS_T2", d, "today")
+            W_raw = nullable_cval("Withdrawals", "TOTAL_TGA_WITHDRAWALS_T2", d, "today")
 
         I_raw = t3b.get("cash_issues_today")
         if I_raw is None and has_cval("Deposits", "PUBLIC_DEBT_CASH_ISSUES_T2", d):
-            I_raw = get_cval("Deposits", "PUBLIC_DEBT_CASH_ISSUES_T2", d, "today")
+            I_raw = nullable_cval("Deposits", "PUBLIC_DEBT_CASH_ISSUES_T2", d, "today")
         if I_raw is None:
             I_raw = t3b.get("cash_issues_calc")
 
         R_raw = t3b.get("cash_redemp_today")
         if R_raw is None and has_cval("Withdrawals", "PUBLIC_DEBT_CASH_REDEMP_T2", d):
-            R_raw = get_cval("Withdrawals", "PUBLIC_DEBT_CASH_REDEMP_T2", d, "today")
+            R_raw = nullable_cval("Withdrawals", "PUBLIC_DEBT_CASH_REDEMP_T2", d, "today")
         if R_raw is None:
             R_raw = t3b.get("cash_redemp_calc")
 
-        i_calc = t3b.get("cash_issues_calc")
-        r_calc = t3b.get("cash_redemp_calc")
-
-        inputs_complete = bool(
-            tga_close is not None
-            and tga_open is not None
-            and D_raw is not None
-            and W_raw is not None
-            and I_raw is not None
-            and R_raw is not None
-            and i_calc is not None
-            and r_calc is not None
+        table_ii_present = bool(t2_raw.get(d))
+        op_dep_t2 = operating_total(
+            nullable_cval("Deposits", "TOTAL_DEPOSITS_EX_DEBT", d, "today"),
+            t2_op_sums.get(d, {}).get("dep"),
+            table_ii_present,
         )
-
-        D = D_raw or 0.0
-        W = W_raw or 0.0
-        I = I_raw or 0.0
-        R = R_raw or 0.0
-
-        op_dep_t2 = get_cval("Deposits", "TOTAL_DEPOSITS_EX_DEBT", d, "today") or t2_op_sums.get(d, {}).get("dep", 0.0)
-        op_wd_t2 = get_cval("Withdrawals", "TOTAL_WITHDRAWALS_EX_DEBT", d, "today") or t2_op_sums.get(d, {}).get("wd", 0.0)
-
-        net_debt_cash_iiib = I - R
-        ntf_total = (W - R) - (D - I)
-        dtga = (tga_close - tga_open) if (tga_close is not None and tga_open is not None) else (D - W)
-        reserves_impact = -dtga
-
-        diff_tga = abs(dtga - (D - W))
-        diff_bf = abs(dtga - (net_debt_cash_iiib - ntf_total))
-        diff_iiib_i = abs(I - i_calc) if i_calc is not None else 999.0
-        diff_iiib_r = abs(R - r_calc) if r_calc is not None else 999.0
-        diff_op_dep = abs((D - I) - op_dep_t2)
-        diff_op_wd = abs((W - R) - op_wd_t2)
-        recon_diff = max(diff_tga, diff_bf, diff_iiib_i, diff_iiib_r)
-        recon_op_diff = max(diff_op_dep, diff_op_wd)
-
-        ntf_scheduled = realized_sched_by_date.get(d, 0.0)
+        op_wd_t2 = operating_total(
+            nullable_cval("Withdrawals", "TOTAL_WITHDRAWALS_EX_DEBT", d, "today"),
+            t2_op_sums.get(d, {}).get("wd"),
+            table_ii_present,
+        )
         is_warmup = calendar_warmup_by_date.get(d, False)
-        ntf_expected_cal = None if is_warmup else expected_sched_by_date.get(d, 0.0)
-        ntf_residual_realized = ntf_total - ntf_scheduled
-        ntf_ex_expected = None if ntf_expected_cal is None else (ntf_total - ntf_expected_cal)
+        deriv = accounting_derivatives(
+            t1.get("tga_close"),
+            t1.get("tga_open"),
+            previous_close,
+            D_raw,
+            W_raw,
+            I_raw,
+            R_raw,
+            t3b.get("cash_issues_calc"),
+            t3b.get("cash_redemp_calc"),
+            op_dep_t2,
+            op_wd_t2,
+            calendar_value(realized_sched_by_date, d),
+            calendar_value(expected_sched_by_date, d),
+            is_warmup,
+        )
+        inputs_complete = deriv["inputs_complete"]
 
         # Shock day filter for MAD denominator:
-        # Only exclude statutory tax deadline windows or extreme corporate/SECA tax days (> $20,000M).
-        # Do NOT exclude Tuesday business refunds (which are now in `continuous_specs` weekday baseline)!
-        corp_d = get_cval("Deposits", "CORP_INCOME", d, "today")
-        nonw_d = get_cval("Deposits", "NON_WITHHELD_SECA", d, "today")
-        is_shock = (d in tax_window_dates) or (corp_d + nonw_d > 20000.0)
+        # Statutory tax windows or extreme corporate/SECA days (> $20,000M).
+        # A missing corp/SECA print does not enter that vote as zero.
+        # Do NOT exclude Tuesday business refunds (continuous weekday baseline).
+        corp_d = nullable_cval("Deposits", "CORP_INCOME", d, "today")
+        nonw_d = nullable_cval("Deposits", "NON_WITHHELD_SECA", d, "today")
+        is_shock = shock_day(d in tax_window_dates, corp_d, nonw_d)
 
-        ntf_realized_resid_series.append(ntf_residual_realized if inputs_complete and recon_diff <= 5 and recon_op_diff <= 15 else None)
-        ntf_ex_ante_surp_series.append(ntf_ex_expected if inputs_complete and recon_diff <= 5 and recon_op_diff <= 15 else None)
+        ntf_realized_resid_series.append(deriv["z_realized"])
+        ntf_ex_ante_surp_series.append(deriv["z_ex_ante"])
         shock_day_flags.append(is_shock)
 
         z_ex_ante_wd, floor_ex_ante, n_ex_ante, fb_ex_ante = robust_zscore_weekday_out_of_sample(
@@ -1458,22 +1623,22 @@ def main():
         z_pctile_250d = rolling_empirical_percentile(z_ex_ante_series, idx, window=250)
 
         daily_records[d] = {
-            "tga_close": round(tga_close or 0.0),
-            "tga_open": round(tga_open or 0.0),
-            "dtga": round(dtga),
-            "reserves_impact": round(reserves_impact),
-            "D": round(D),
-            "W": round(W),
-            "I": round(I),
-            "R": round(R),
-            "op_dep": round(D - I),
-            "op_wd": round(W - R),
-            "net_debt_cash_iiib": round(net_debt_cash_iiib),
-            "ntf_total": round(ntf_total),
-            "ntf_scheduled": round(ntf_scheduled),
-            "ntf_expected_cal": round(ntf_expected_cal) if ntf_expected_cal is not None else None,
-            "ntf_residual_realized_cal": round(ntf_residual_realized),
-            "ntf_ex_expected": round(ntf_ex_expected) if ntf_ex_expected is not None else None,
+            "tga_close": publish_round(deriv["tga_close"]),
+            "tga_open": publish_round(deriv["tga_open"]),
+            "dtga": publish_round(deriv["dtga"]),
+            "reserves_impact": publish_round(deriv["reserves"]),
+            "D": publish_round(deriv["D"]),
+            "W": publish_round(deriv["W"]),
+            "I": publish_round(deriv["I"]),
+            "R": publish_round(deriv["R"]),
+            "op_dep": publish_round(deriv["op_dep"]),
+            "op_wd": publish_round(deriv["op_wd"]),
+            "net_debt_cash_iiib": publish_round(deriv["net_debt"]),
+            "ntf_total": publish_round(deriv["ntf_total"]),
+            "ntf_scheduled": publish_round(deriv["ntf_scheduled"]),
+            "ntf_expected_cal": publish_round(deriv["ntf_expected"]),
+            "ntf_residual_realized_cal": publish_round(deriv["ntf_residual"]),
+            "ntf_ex_expected": publish_round(deriv["ntf_ex_ante"]),
             "z_ntf_ex_exp_weekday_100bd": z_ex_ante_wd,
             "z_ex_ante_pctile_250d": z_pctile_250d,
             "z_ntf_realized_weekday_100bd": z_realized_wd,
@@ -1484,8 +1649,9 @@ def main():
             "calendar_miss": calendar_miss_by_date.get(d, False),
             "calendar_warmup": is_warmup,
             "inputs_complete": inputs_complete,
-            "recon_diff": round(recon_diff),
-            "recon_op_diff": round(recon_op_diff),
+            "recon_diff": publish_round(deriv["recon_diff"]),
+            "recon_op_diff": publish_round(deriv["recon_op_diff"]),
+            "refused_substitute": bool(deriv["refused_open"] or d in refused_mtd_dates),
         }
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -1578,18 +1744,24 @@ def main():
     ahe_stale = bool(ahe_age_days is None or ahe_age_days > 35)
 
     unclass_wd_today = get_cval("Withdrawals", "UNCLASSIFIED_WD", asof, "today")
-    op_wd_today = max(1.0, float(asof_rec["op_wd"]))
-    unclass_wd_pct = round((unclass_wd_today / op_wd_today) * 100.0, 2)
-    recon_diff_musd = int(asof_rec["recon_diff"])
-    recon_op_diff_musd = int(asof_rec["recon_op_diff"])
+    op_wd_today = asof_rec["op_wd"]
+    if finite(unclass_wd_today) and finite(op_wd_today):
+        unclass_wd_pct = round((unclass_wd_today / max(1.0, float(op_wd_today))) * 100.0, 2)
+    else:
+        unclass_wd_pct = None
+    recon_diff_musd = asof_rec["recon_diff"]
+    recon_op_diff_musd = asof_rec["recon_op_diff"]
     recon_ok = bool(
         asof_rec["inputs_complete"]
-        and recon_diff_musd <= 5
-        and recon_op_diff_musd <= 15
+        and finite(recon_diff_musd) and recon_diff_musd <= 5
+        and finite(recon_op_diff_musd) and recon_op_diff_musd <= 15
         and critical_series_ok
     )
-    # Hard block only on accounting breach, missing critical inputs, staleness, or >15% unclassified
-    dq_block = bool(not recon_ok or not endpoints_complete or unclass_wd_pct > 15.0 or is_stale)
+    # Hard block only on accounting breach, missing critical inputs, staleness, or >15% unclassified.
+    # An absent unclassified share does not vote as zero.
+    dq_block = bool(
+        not recon_ok or not endpoints_complete or not finite(unclass_wd_pct) or unclass_wd_pct > 15.0 or is_stale
+    )
     # Warning flag on single-event calendar_miss, warmup, or AHE benchmark age > 35d
     dq_warn = bool(asof_rec["calendar_miss"] or asof_rec["calendar_warmup"] or ahe_stale)
 
@@ -1795,15 +1967,25 @@ def main():
                     p_idx = bd_index[stat_15_prev]
                     pw_start = max(0, p_idx - 1)
                     prev_win_dates = all_bd_dates[pw_start : pw_start + offset_len]
-                    cur_w_sum = sum(
-                        get_cval("Deposits", "CORP_INCOME", d, "today")
-                        + get_cval("Deposits", "NON_WITHHELD_SECA", d, "today")
-                        for d in cur_win_dates
+                    cur_w_sum = sum_observed(
+                        [
+                            amount
+                            for day in cur_win_dates
+                            for amount in (
+                                get_cval("Deposits", "CORP_INCOME", day, "today"),
+                                get_cval("Deposits", "NON_WITHHELD_SECA", day, "today"),
+                            )
+                        ]
                     )
-                    prev_w_sum = sum(
-                        get_cval("Deposits", "CORP_INCOME", d, "today")
-                        + get_cval("Deposits", "NON_WITHHELD_SECA", d, "today")
-                        for d in prev_win_dates
+                    prev_w_sum = sum_observed(
+                        [
+                            amount
+                            for day in prev_win_dates
+                            for amount in (
+                                get_cval("Deposits", "CORP_INCOME", day, "today"),
+                                get_cval("Deposits", "NON_WITHHELD_SECA", day, "today"),
+                            )
+                        ]
                     )
                     corp_window_yoy = pct_yoy(cur_w_sum, prev_w_sum)
 
@@ -1834,14 +2016,12 @@ def main():
     t3a_asof = t3a_by_date.get(asof, {})
     t3c_asof = t3c_by_date.get(asof, {})
 
-    bills_net_iiia = round(
-        t3a_asof.get("bills_iss_total", 0.0) - t3a_asof.get("bills_red_total", 0.0)
-    )
-    cmb_today = round(t3a_asof.get("cmb_iss", 0.0))
-    slgs_issues_today_musd = round(t3a_asof.get("slgs_iss", 0.0))
-    slgs_issues_5d_musd = round(
-        sum(t3a_by_date.get(d, {}).get("slgs_iss", 0.0) for d in all_bd_dates[-5:])
-    )
+    bills_net_iiia = publish_round(sub(read_bucket(t3a_asof, "bills_iss_total"), read_bucket(t3a_asof, "bills_red_total")))
+    cmb_today = publish_round(read_bucket(t3a_asof, "cmb_iss"))
+    slgs_issues_today_musd = publish_round(read_bucket(t3a_asof, "slgs_iss"))
+    slgs_issues_5d_musd = publish_round(sum_observed(
+        [read_bucket(t3a_by_date.get(d, {}), "slgs_iss") for d in all_bd_dates[-5:]]
+    ))
     if slgs_window_policy_status == "OPEN":
         slgs_open = True
     elif slgs_window_policy_status == "CLOSED":
@@ -1860,9 +2040,9 @@ def main():
     subj_limit = t3c_asof.get("debt_subj_limit") or 0.0
     debt_headroom_iiic = round(stat_limit - subj_limit) if stat_limit > 0 else None
 
-    interest_today = round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "today"))
-    interest_mtd = round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "mtd"))
-    interest_fytd = round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "fytd"))
+    interest_today = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "today"))
+    interest_mtd = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "mtd"))
+    interest_fytd = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "fytd"))
 
     # Govern funding_state strictly by Ex-Ante Weekday-Conditioned Z-score AND Empirical 250d Percentile
     # (Perplexity #1 & ChatGPT #2: requires |z| >= 3.0 AND two-sided 5% empirical tail pctile <= 2.5 or >= 97.5)
@@ -1879,7 +2059,9 @@ def main():
 
     ssa_today = get_cval("Withdrawals", "SSA_BENEFITS", asof, "today")
     biz_shock = biz_refund_today_musd >= max(1000, biz_refund_p95_musd)
-    if ssa_today > 10000 and abs(bills_net_iiia) > 10000:
+    if not (finite(ssa_today) and finite(bills_net_iiia) and finite(interest_today)):
+        funding_driver = None
+    elif ssa_today > 10000 and abs(bills_net_iiia) > 10000:
         base_drv = "ssa_day3_and_bills" if asof_dt.day <= 5 else "ssa_wed_and_bills"
         funding_driver = f"{base_drv}_plus_biz_refund_shock" if biz_shock else base_drv
     elif biz_shock:
@@ -1996,7 +2178,7 @@ def main():
                 "non_withheld_fytd_yoy": non_withheld_fytd_yoy if in_corp_tax_window else None,
                 "biz_refund_today_musd": biz_refund_today_musd,
                 "biz_refund_p95_musd": biz_refund_p95_musd,
-                "customs_fytd_musd": round(customs_fytd_cur),
+                "customs_fytd_musd": publish_round(customs_fytd_cur),
                 "customs_20d_yoy": customs_20d_norm_yoy if customs_20d_clean else None,
                 "customs_fytd_yoy": customs_fytd_raw_spliced_yoy if customs_fytd_clean else None,
                 "customs_yoy_basis": "clean" if customs_fytd_clean else "spliced_suspended",
@@ -2027,6 +2209,22 @@ def main():
     for d in hist_dates:
         rec = daily_records[d]
         t3c_d = t3c_by_date.get(d, {})
+        withheld_t2 = publish_round(get_cval("Deposits", "WITHHELD_FICA", d, "today"))
+        corp_tax = publish_round(get_cval("Deposits", "CORP_INCOME", d, "today"))
+        non_withheld = publish_round(get_cval("Deposits", "NON_WITHHELD_SECA", d, "today"))
+        customs = publish_round(get_cval("Deposits", "CUSTOMS_DUTIES", d, "today"))
+        dol_ub = publish_round(get_cval("Withdrawals", "DOL_UNEMP_BEN", d, "today"))
+        snap = publish_round(get_cval("Withdrawals", "USDA_SNAP", d, "today"))
+        ssa = publish_round(get_cval("Withdrawals", "SSA_BENEFITS", d, "today"))
+        interest = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", d, "today"))
+        quality = history_row_quality(
+            rec.get("refused_substitute"),
+            [
+                rec["tga_close"], rec["tga_open"], rec["dtga"], rec["D"], rec["W"], rec["I"], rec["R"],
+                rec["op_dep"], rec["op_wd"], rec["ntf_total"], rec["ntf_scheduled"],
+                withheld_t2, corp_tax, non_withheld, customs, dol_ub, snap, ssa, interest,
+            ],
+        )
         history_rows.append(
             {
                 "d": d,
@@ -2054,15 +2252,16 @@ def main():
                 )
                 if (t3c_d.get("stat_debt_limit") or 0.0) > 0
                 else None,
-                "withheld_t2": round(get_cval("Deposits", "WITHHELD_FICA", d, "today")),
+                "withheld_t2": withheld_t2,
                 "withheld_t4": round(t4_by_date.get(d, {}).get("withheld_today", 0.0)),
-                "corp_tax": round(get_cval("Deposits", "CORP_INCOME", d, "today")),
-                "non_withheld": round(get_cval("Deposits", "NON_WITHHELD_SECA", d, "today")),
-                "customs": round(get_cval("Deposits", "CUSTOMS_DUTIES", d, "today")),
-                "dol_ub": round(get_cval("Withdrawals", "DOL_UNEMP_BEN", d, "today")),
-                "snap": round(get_cval("Withdrawals", "USDA_SNAP", d, "today")),
-                "ssa": round(get_cval("Withdrawals", "SSA_BENEFITS", d, "today")),
-                "interest": round(get_cval("Withdrawals", "TREAS_INTEREST", d, "today")),
+                "corp_tax": corp_tax,
+                "non_withheld": non_withheld,
+                "customs": customs,
+                "dol_ub": dol_ub,
+                "snap": snap,
+                "ssa": ssa,
+                "interest": interest,
+                "quality": quality,
             }
         )
 
