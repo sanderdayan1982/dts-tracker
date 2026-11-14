@@ -1,7 +1,7 @@
 {
   "schema": "macro-radar-1.0",
-  "generated_at": "2026-11-13T20:39:56Z",
-  "valid_until_utc": "2026-11-16T22:39:56Z",
+  "generated_at": "2026-11-14T01:28:34Z",
+  "valid_until_utc": "2026-11-17T03:28:34Z",
   "mode": "live_fetch",
   "cards": [
     {
@@ -12,7 +12,7 @@
       "unit": "thousand_jobs",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PAYEMS",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "524af3d12cd251359077de41e69325da96a0bc607ff72b5e9bff8623d17e129c",
       "release_date": "2026-12-04",
       "status": "RESEARCH_ESTIMATE",
@@ -200,26 +200,26 @@
       "observed_period": "2026-10-01",
       "reference_period": "2026-11",
       "edge": "NONE",
-      "dts_driver": "Withheld 20d YoY (Lag 364): +2.8%",
-      "dts_driver_es": "Retenciones 20 sesiones interanual (Lag 364): +2,8%",
-      "dts_driver_asof": "2026-11-10",
-      "dts_driver_expires": "2026-11-13T21:45:00Z",
+      "dts_driver": "Withheld 20d YoY (Lag 364): +7.9%",
+      "dts_driver_es": "Retenciones 20 sesiones interanual (Lag 364): +7,9%",
+      "dts_driver_asof": "2026-11-12",
+      "dts_driver_expires": "2026-11-16T21:45:00Z",
       "dts_driver_metric": "withheld_20d_yoy_pct",
       "dts_driver_status": "AVAILABLE",
       "dts_bridge": {
         "status": "PRELIMINARY",
         "edge": "NONE",
-        "point": 148.387,
+        "point": 137.2395,
         "range80": [
-          2.8307,
-          227.3094
+          -8.3167,
+          216.162
         ],
         "baseline": 137.0,
-        "dts_contribution": 6.1701,
-        "dts_direction": "UP",
-        "dts_asof": "2026-11-10",
+        "dts_contribution": -4.9773,
+        "dts_direction": "DOWN",
+        "dts_asof": "2026-11-12",
         "dts_cutoff_scheduled": "2026-12-02",
-        "dts_sessions_missing": 14,
+        "dts_sessions_missing": 13,
         "driver_en": "Withheld income/FICA taxes, 20 sessions, Lag-364 growth vs its own 12-month average",
         "driver_es": "Retenciones IRPF/FICA, 20 sesiones, crecimiento Lag 364 frente a su media de 12 meses",
         "validation": {
@@ -245,7 +245,7 @@
       "unit": "percent",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/UNRATE",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "22b606d834be40d4ab304b82d11d2974321e08bc8d53dd5e566a2a10f7694101",
       "release_date": "2026-12-04",
       "status": "RESEARCH_ESTIMATE",
@@ -443,7 +443,7 @@
       "unit": "thousand_claims",
       "frequency": "weekly",
       "source_url": "https://fred.stlouisfed.org/series/ICSA",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "0b593718af793c752588f21a7e4b12269196ef43c657c24c033822f45a9c269e",
       "release_date": "2026-11-19",
       "status": "RESEARCH_ESTIMATE",
@@ -632,26 +632,26 @@
       "observed_period": "2026-11-07",
       "reference_period": "2026-11-14",
       "edge": "NONE",
-      "dts_driver": "DOL UI Benefits FYTD YoY: -2.1%",
-      "dts_driver_es": "Prestaciones DOL interanual acumulado fiscal: -2,1%",
-      "dts_driver_asof": "2026-11-10",
-      "dts_driver_expires": "2026-11-13T21:45:00Z",
+      "dts_driver": "DOL UI Benefits FYTD YoY: -5.3%",
+      "dts_driver_es": "Prestaciones DOL interanual acumulado fiscal: -5,3%",
+      "dts_driver_asof": "2026-11-12",
+      "dts_driver_expires": "2026-11-16T21:45:00Z",
       "dts_driver_metric": "dol_benefits_fytd_yoy_pct",
       "dts_driver_status": "AVAILABLE",
       "dts_bridge": {
         "status": "PRELIMINARY",
         "edge": "NONE",
-        "point": 197.9097,
+        "point": 197.8121,
         "range80": [
-          189.2587,
-          208.2853
+          189.1611,
+          208.1877
         ],
         "baseline": 200.0,
-        "dts_contribution": 0.0093,
-        "dts_direction": "UP",
-        "dts_asof": "2026-11-10",
+        "dts_contribution": -0.0883,
+        "dts_direction": "DOWN",
+        "dts_asof": "2026-11-12",
         "dts_cutoff_scheduled": "2026-11-17",
-        "dts_sessions_missing": 4,
+        "dts_sessions_missing": 3,
         "driver_en": "DOL unemployment-benefit payments, 5 sessions, change in Lag-364 growth",
         "driver_es": "Pagos de prestaciones por desempleo DOL, 5 sesiones, cambio del crecimiento Lag 364",
         "validation": {
@@ -677,7 +677,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/RSAFS",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "d829c86ce02e96c1049c96dadda3897a6748daf443befa58875d8696133cb24e",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -864,10 +864,10 @@
       "observed_period": "2026-09-01",
       "reference_period": "2026-10",
       "edge": "DEMONSTRATED",
-      "dts_driver": "Tax Refunds FYTD YoY (EFT + Checks): +6.3%",
-      "dts_driver_es": "Devoluciones fiscales interanual acumulado fiscal (EFT + cheques): +6,3%",
-      "dts_driver_asof": "2026-11-10",
-      "dts_driver_expires": "2026-11-13T21:45:00Z",
+      "dts_driver": "Tax Refunds FYTD YoY (EFT + Checks): +16.7%",
+      "dts_driver_es": "Devoluciones fiscales interanual acumulado fiscal (EFT + cheques): +16,7%",
+      "dts_driver_asof": "2026-11-12",
+      "dts_driver_expires": "2026-11-16T21:45:00Z",
       "dts_driver_metric": "indiv_refunds_fytd_yoy_pct",
       "dts_driver_status": "AVAILABLE",
       "dts_bridge": {
@@ -909,7 +909,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "453fd44aa6d549f34901561d71fec2e72b553f458cedbfaa3bd722e5919b9b62",
       "release_date": "2026-12-10",
       "status": "RESEARCH_ESTIMATE",
@@ -1107,7 +1107,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/CPILFESL",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "15f9ea7f42ab2bbb9c38c85362a84ae42ea6a12208b381f342320ff359b9350e",
       "release_date": "2026-12-10",
       "status": "RESEARCH_ESTIMATE",
@@ -1304,7 +1304,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/PCEPILFE",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "d604aece76c0467c84ab2a141e9265b236c15b8c2939cfbb5ae0dd51897bd25c",
       "release_date": "2026-11-25",
       "status": "RESEARCH_ESTIMATE",
@@ -1501,7 +1501,7 @@
       "unit": "percent_mom",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/INDPRO",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "d42158196d41b82d1a53526d3511a35f7826cbb4ae2d8663b89ec8515bab07f8",
       "release_date": "2026-11-17",
       "status": "RESEARCH_ESTIMATE",
@@ -1698,7 +1698,7 @@
       "unit": "thousand_homes_saar",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/HOUST",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "643e192d263a4690aaa4e13349d22d484a07dbf3a6d787da61cf0eb0aaaaae4b",
       "release_date": "2026-11-18",
       "status": "RESEARCH_ESTIMATE",
@@ -1895,7 +1895,7 @@
       "unit": "usd_billions",
       "frequency": "monthly",
       "source_url": "https://fred.stlouisfed.org/series/BOPGSTB",
-      "source_retrieved_at": "2026-11-13T20:39:56Z",
+      "source_retrieved_at": "2026-11-14T01:28:34Z",
       "source_sha256": "d0e6835a7e947727c75bada19f7208bc3a4327ec85efb57b6d4325c00f000268",
       "release_date": "2026-12-08",
       "status": "RESEARCH_ESTIMATE",
@@ -2083,26 +2083,26 @@
       "observed_period": "2026-09-01",
       "reference_period": "2026-10",
       "edge": "NONE",
-      "dts_driver": "Customs Duties FYTD: $29.30B",
-      "dts_driver_es": "Aduanas acumulado fiscal: 29,30 mil millones USD",
-      "dts_driver_asof": "2026-11-10",
-      "dts_driver_expires": "2026-11-13T21:45:00Z",
+      "dts_driver": "Customs Duties FYTD: $29.68B",
+      "dts_driver_es": "Aduanas acumulado fiscal: 29,68 mil millones USD",
+      "dts_driver_asof": "2026-11-12",
+      "dts_driver_expires": "2026-11-16T21:45:00Z",
       "dts_driver_metric": "customs_fytd_musd",
       "dts_driver_status": "AVAILABLE",
       "dts_bridge": {
         "status": "PRELIMINARY",
         "edge": "NONE",
-        "point": -109.835,
+        "point": -109.7284,
         "range80": [
-          -127.9573,
-          -100.1125
+          -127.8507,
+          -100.0059
         ],
         "baseline": -105.047,
-        "dts_contribution": -4.4974,
+        "dts_contribution": -4.3908,
         "dts_direction": "DOWN",
-        "dts_asof": "2026-11-10",
+        "dts_asof": "2026-11-12",
         "dts_cutoff_scheduled": "2026-11-25",
-        "dts_sessions_missing": 10,
+        "dts_sessions_missing": 9,
         "driver_en": "Customs duties, 15 sessions of the following month, Lag-364 growth vs its 12-month average",
         "driver_es": "Aduanas, 15 sesiones del mes siguiente, crecimiento Lag 364 frente a su media de 12 meses",
         "validation": {
@@ -2638,14 +2638,10 @@
       "frequency": "weekly",
       "basis": "weekly_sa",
       "status": "OK",
-      "observed_at": "2026-10-28",
-      "value": 20023.6331,
-      "change": 9.468899999999849,
+      "observed_at": "2026-11-04",
+      "value": 20083.1228,
+      "change": 58.04400000000169,
       "history": [
-        {
-          "date": "2025-09-10",
-          "value": 18725.1785
-        },
         {
           "date": "2025-09-17",
           "value": 18735.4884
@@ -2816,71 +2812,75 @@
         },
         {
           "date": "2026-07-08",
-          "value": 19681.334
+          "value": 19681.3436
         },
         {
           "date": "2026-07-15",
-          "value": 19774.8811
+          "value": 19774.8951
         },
         {
           "date": "2026-07-22",
-          "value": 19749.5382
+          "value": 19749.5625
         },
         {
           "date": "2026-07-29",
-          "value": 19779.1359
+          "value": 19779.1684
         },
         {
           "date": "2026-08-05",
-          "value": 19795.1238
+          "value": 19795.164
         },
         {
           "date": "2026-08-12",
-          "value": 19806.4521
+          "value": 19806.5067
         },
         {
           "date": "2026-08-19",
-          "value": 19842.9057
+          "value": 19842.9787
         },
         {
           "date": "2026-08-26",
-          "value": 19846.3861
+          "value": 19846.4732
         },
         {
           "date": "2026-09-02",
-          "value": 19849.3649
+          "value": 19849.4688
         },
         {
           "date": "2026-09-09",
-          "value": 19883.1668
+          "value": 19883.2498
         },
         {
           "date": "2026-09-16",
-          "value": 19894.3378
+          "value": 19894.4028
         },
         {
           "date": "2026-09-23",
-          "value": 19871.2073
+          "value": 19871.2523
         },
         {
           "date": "2026-09-30",
-          "value": 19893.5402
+          "value": 19893.1549
         },
         {
           "date": "2026-10-07",
-          "value": 19939.4546
+          "value": 19940.4589
         },
         {
           "date": "2026-10-14",
-          "value": 19985.3213
+          "value": 19984.4261
         },
         {
           "date": "2026-10-21",
-          "value": 20014.1642
+          "value": 20014.4012
         },
         {
           "date": "2026-10-28",
-          "value": 20023.6331
+          "value": 20025.0788
+        },
+        {
+          "date": "2026-11-04",
+          "value": 20083.1228
         }
       ]
     },
@@ -3146,14 +3146,10 @@
       "frequency": "daily",
       "basis": "constant_maturity",
       "status": "OK",
-      "observed_at": "2026-11-10",
-      "value": 4.73,
-      "change": 0.17000000000000082,
+      "observed_at": "2026-11-12",
+      "value": 4.86,
+      "change": 0.1299999999999999,
       "history": [
-        {
-          "date": "2026-08-17",
-          "value": 4.19
-        },
         {
           "date": "2026-08-18",
           "value": 4.19
@@ -3389,6 +3385,10 @@
         {
           "date": "2026-11-10",
           "value": 4.73
+        },
+        {
+          "date": "2026-11-12",
+          "value": 4.86
         }
       ]
     },
@@ -3400,14 +3400,10 @@
       "frequency": "daily",
       "basis": "constant_maturity",
       "status": "OK",
-      "observed_at": "2026-11-10",
-      "value": 4.98,
-      "change": 0.10000000000000053,
+      "observed_at": "2026-11-12",
+      "value": 5.1,
+      "change": 0.11999999999999922,
       "history": [
-        {
-          "date": "2026-08-17",
-          "value": 4.72
-        },
         {
           "date": "2026-08-18",
           "value": 4.71
@@ -3643,6 +3639,10 @@
         {
           "date": "2026-11-10",
           "value": 4.98
+        },
+        {
+          "date": "2026-11-12",
+          "value": 5.1
         }
       ]
     },
@@ -3901,7 +3901,7 @@
       ]
     }
   ],
-  "dts_asof": "2026-11-10",
+  "dts_asof": "2026-11-12",
   "dts_status": "OK",
   "research_policy": "NO_AUTOTRADE_NO_SURPRISE_PROBABILITY_BEFORE_FIRST_RELEASE_VALIDATION"
 }

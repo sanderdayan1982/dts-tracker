@@ -1,8 +1,8 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-13T20:39:56Z",
-  "valid_until_utc": "2026-11-16T22:39:56Z",
-  "dts_asof": "2026-11-10",
+  "generated_at": "2026-11-14T01:28:34Z",
+  "valid_until_utc": "2026-11-17T03:28:34Z",
+  "dts_asof": "2026-11-12",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
     "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
@@ -270,14 +270,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-10",
+      "dts_cutoff_used": "2026-11-12",
       "dts_cutoff_scheduled": "2026-12-02",
-      "dts_sessions_missing": 14,
-      "point": 148.3869565421664,
+      "dts_sessions_missing": 13,
+      "point": 137.23954295436545,
       "baseline": 137.0,
       "range80": [
-        2.83072712129416,
-        227.30937506616308
+        -8.31668646650678,
+        216.16196147836214
       ],
       "coefficients": {
         "intercept": 55.53215303674814,
@@ -288,10 +288,10 @@
       },
       "feature_values": {
         "baseline_3m": 137.0,
-        "withheld_growth_surprise_pp": -5.3421462166657205
+        "withheld_growth_surprise_pp": 4.309430162961827
       },
-      "dts_contribution": 6.170091908445019,
-      "dts_direction": "UP"
+      "dts_contribution": -4.977321679355952,
+      "dts_direction": "DOWN"
     },
     "claims": {
       "series_id": "ICSA",
@@ -546,14 +546,14 @@
         }
       ],
       "reference_period": "2026-11-14",
-      "dts_cutoff_used": "2026-11-10",
+      "dts_cutoff_used": "2026-11-12",
       "dts_cutoff_scheduled": "2026-11-17",
-      "dts_sessions_missing": 4,
-      "point": 197.90973608267672,
+      "dts_sessions_missing": 3,
+      "point": 197.81213435741142,
       "baseline": 200.0,
       "range80": [
-        189.25866071336458,
-        208.28529376428872
+        189.16105898809928,
+        208.18769203902343
       ],
       "coefficients": {
         "intercept": -0.0012026002861238,
@@ -564,10 +564,10 @@
       },
       "feature_values": {
         "prior_week_log_change": 0.0460439385014068,
-        "dol_ui_growth_change_pp": 1.3636258595848911
+        "dol_ui_growth_change_pp": -12.880463065912364
       },
-      "dts_contribution": 0.009345766009232648,
-      "dts_direction": "UP"
+      "dts_contribution": -0.08825595925605967,
+      "dts_direction": "DOWN"
     },
     "retail": {
       "series_id": "RSAFS",
@@ -1100,14 +1100,14 @@
         }
       ],
       "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-11-10",
+      "dts_cutoff_used": "2026-11-12",
       "dts_cutoff_scheduled": "2026-11-25",
-      "dts_sessions_missing": 10,
-      "point": -109.83498923056948,
+      "dts_sessions_missing": 9,
+      "point": -109.72839316367921,
       "baseline": -105.047,
       "range80": [
-        -127.9572963657608,
-        -100.11250957393761
+        -127.85070029887054,
+        -100.00591350704735
       ],
       "coefficients": {
         "intercept": -0.2906247925481421,
@@ -1116,9 +1116,9 @@
         }
       },
       "feature_values": {
-        "customs_growth_surprise_pp": -67.39179552121976
+        "customs_growth_surprise_pp": -65.79448215197118
       },
-      "dts_contribution": -4.497364438021336,
+      "dts_contribution": -4.390768371131074,
       "dts_direction": "DOWN"
     }
   }
