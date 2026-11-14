@@ -44,6 +44,6 @@ export function cashDeskHTML(book,selection,mode,lang){
  <article class="panel"><h3>${t.rolling}</h3><p>${t.unit}</p>${rollingSvg}<p>${t.rollingNote}</p></article>
  <article class="panel"><h3>${t.heat}</h3><p>${t.unit}</p>${heat}<p>${t.heatNote}</p></article>
  <article class="panel"><h3>${t.compare}</h3><p>${t.unit}</p>${compare}<p>${t.compareNote}</p></article>
- <article class="panel"><h3>${t.headroom}</h3><div class="cash-value">${b(debt.headroom)}</div><p>${t.unit}</p>${headroom}<p>${t.totalDebt}: ${b(debt.total)} · ${t.publicDebt}: ${b(debt.public)}</p><p>${t.debtNote}</p></article>
+ <article class="panel"><h3>${t.headroom}</h3><div class="cash-value">${debt.status==='SUSPENDED'?'SUSPENDIDO':b(debt.headroom)}</div><p>${t.unit}</p>${headroom}<p>${t.totalDebt}: ${b(debt.total)} · ${t.publicDebt}: ${b(debt.public)}</p><p>${t.debtNote}</p></article>
  </div></details>`;
 }

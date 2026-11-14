@@ -19,7 +19,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from treasury_book import build_book, debt_headroom
+from treasury_book import build_book, debt_headroom, debt_limit_suspended
 from argos_dts import fiscal_pulse, ntf_persistence, refund_total
 from institutional_core import (atomic_json, business_day, cash_contract, finite,
                                 lag364_stats, settlement)
@@ -2082,7 +2082,9 @@ def main():
         policy_age = 999
     if not 0 <= policy_age <= 3:
         slgs_window_policy_status, slgs_open = "UNKNOWN", None
-    debt_headroom_iiic = debt_headroom_musd(t3c_asof)
+    debt_headroom_iiic = (
+        None if debt_limit_suspended(asof, t3c_asof.get("stat_debt_limit")) else debt_headroom_musd(t3c_asof)
+    )
 
     interest_today = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "today"))
     interest_mtd = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "mtd"))
@@ -2291,7 +2293,7 @@ def main():
                 "z_surp": rec["z_ntf_realized_weekday_100bd"],
                 "z_uncond": rec["z_ntf_uncond_60d"],
                 "debt_iiib": rec["net_debt_cash_iiib"],
-                "headroom": debt_headroom_musd(t3c_d),
+                "headroom": None if debt_limit_suspended(d, t3c_d.get("stat_debt_limit")) else debt_headroom_musd(t3c_d),
                 "withheld_t2": withheld_t2,
                 "withheld_t4": round(t4_by_date.get(d, {}).get("withheld_today", 0.0)),
                 "corp_tax": corp_tax,
