@@ -27,6 +27,12 @@ COMPONENTS = [
 def number(x):
     return round(x, 3) if finite(x) else None
 
+def debt_headroom(limit, subject):
+    """Statutory limit minus debt subject to it. A missing side is not zero."""
+    if not finite(limit) or not finite(subject):
+        return None
+    return limit - subject
+
 def cash_row(day, source):
     r={'d':day,'fy':int(day[:4])+(int(day[5:7])>=10),'tga':number(source.get('tga_close')),'periods':{}}
     for mode,suffix,open_key in [('today','t1','tga_open'),('mtd','mtd_t1','tga_open_mtd'),('fytd','fytd_t1','tga_open_fytd')]:
@@ -44,7 +50,7 @@ def build_book(t1, t2, t3b, daily, contract, t3c=None):
         debt=(t3c or {}).get(day,{})
         limit=number(debt.get('stat_debt_limit'));subject=number(debt.get('debt_subj_limit'))
         r['debt']={'public':number(debt.get('debt_public')),'total':number(debt.get('debt_total')),
-                   'headroom':number(limit-subject) if finite(limit) and limit>0 and finite(subject) else None}
+                   'headroom':number(debt_headroom(limit, subject))}
         r['ntf']=number(rec.get('ntf_total')) if rec.get('inputs_complete') and rec.get('recon_diff',999)<=5 else None
         r['z']=number(rec.get('z_ntf_ex_exp_weekday_100bd')) if not rec.get('calendar_miss') and not rec.get('calendar_warmup') and r['ntf'] is not None else None
         for mode in ('today','mtd','fytd'):

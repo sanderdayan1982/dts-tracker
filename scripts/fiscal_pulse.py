@@ -229,7 +229,14 @@ def build_pulse(book, cpi_obs=None, now=None):
         old_path = [value(r, spec["parts"], "fytd") for r in rows if r["fy"] == last["fy"] - 1]
         to_bn = lambda xs: [round(x / 1000, 3) if finite(x) else None for x in xs]
         basis = trend3 if events and trend3 is not None else f_chg
-        text = (spec["up_es"], spec["up_en"]) if (basis or 0) > 0 else (spec["down_es"], spec["down_en"])
+        # A missing basis is not a down reading. A real zero still selects the down copy,
+        # and the stable/distorted states below keep that zero on its current sentence.
+        if basis is None:
+            text = ("NO DATA", "NO DATA")
+        elif basis > 0:
+            text = (spec["up_es"], spec["up_en"])
+        else:
+            text = (spec["down_es"], spec["down_en"])
         out["indicators"].append({
             "id": spec["id"], "theme": spec["theme"], "es": spec["es"], "en": spec["en"], "kind": "net" if net else "pct",
             "good": spec["good"], "feeds": spec["feeds"], "note_es": spec["note_es"], "note_en": spec["note_en"],
@@ -242,9 +249,9 @@ def build_pulse(book, cpi_obs=None, now=None):
             "base_effects": [{"id": ev["id"], "es": ev["es"], "en": ev["en"]} for ev in events],
             "state": state,
             "reading_es": (("Acumulado no comparable; últimos 3 meses comparables: " + f"{trend3:+.1f}".replace(".", ",") + (" bn. " if net else " %. ")) if events and trend3 is not None else "")
-                          + (text[0] if basis is not None and state not in ("stable", "distorted") else "Sin cambio relevante frente al año pasado"),
+                          + ("NO DATA" if basis is None else text[0] if state not in ("stable", "distorted") else "Sin cambio relevante frente al año pasado"),
             "reading_en": ((f"Cumulative not comparable; last 3 comparable months: {trend3:+.1f}" + (" bn. " if net else "%. ")) if events and trend3 is not None else "")
-                          + (text[1] if basis is not None and state not in ("stable", "distorted") else "No material change versus last year"),
+                          + ("NO DATA" if basis is None else text[1] if state not in ("stable", "distorted") else "No material change versus last year"),
             "chart": {"current": to_bn(cur_path), "prior": to_bn(old_path)},
             "monthly": monthly, "trend3": trend3, "judged_on": "trend3" if events and trend3 is not None else "fytd"})
     # Theme verdicts: count indicators better/worse than a year ago (pressure lines are reported, not scored).
