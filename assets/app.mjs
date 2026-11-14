@@ -3,6 +3,9 @@ import {pulseHTML,attachPulseHover,pulseExpired} from './pulse.mjs';
 import {copy,targets,contextNames,contextNotes,unitNames} from './content.mjs';
 
 export const numeric=x=>typeof x==='number'&&Number.isFinite(x);
+export function formatAmount(v, lang='en', digits=2){
+  return numeric(v)?new Intl.NumberFormat(lang==='es'?'es-ES':'en-US',{maximumFractionDigits:digits}).format(v):'NO DATA';
+}
 export const escapeHTML=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function expired(payload,now=Date.now()){
   const until=Date.parse(payload?.valid_until_utc),created=Date.parse(payload?.generated_at);
@@ -97,7 +100,7 @@ const state={lang:'es',tab:'radar',filter:'all',days:60,data:null,radar:null,his
 const $=id=>document.getElementById(id);
 const t=key=>copy[state.lang][key]??key;
 const e=escapeHTML;
-const n=(v,d=2)=>numeric(v)?new Intl.NumberFormat(state.lang==='es'?'es-ES':'en-US',{maximumFractionDigits:d}).format(v):'NO DATA';
+const n=(v,d=2)=>formatAmount(v, state.lang, d);
 const signed=(v,d=2)=>{if(!numeric(v))return 'NO DATA';const r=Number(v.toFixed(d))||0;return (r>0?'+':'')+n(r,d);};
 const date=(v,withTime=false)=>{if(!v)return t('unverified');const d=new Date(v.length===10?v+'T12:00:00Z':v);return Number.isNaN(d.getTime())?t('unverified'):new Intl.DateTimeFormat(state.lang==='es'?'es-ES':'en-US',{dateStyle:'medium',...(withTime?{timeStyle:'short'}:{})}).format(d);};
 const pill=(label,cls='')=>`<span class="pill ${cls}">${e(label)}</span>`;

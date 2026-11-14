@@ -19,8 +19,8 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from treasury_book import build_book
-from argos_dts import fiscal_pulse, ntf_persistence
+from treasury_book import build_book, debt_headroom, debt_limit_suspended
+from argos_dts import fiscal_pulse, ntf_persistence, refund_total
 from institutional_core import (atomic_json, business_day, cash_contract, finite,
                                 lag364_stats, settlement)
 
@@ -489,6 +489,25 @@ def publish_round(value):
     return round(value) if finite(value) else None
 
 
+def merge_table_ii_line(existing, today, mtd, fytd):
+    """Repeat of one Table II line.
+
+    The stored cell is the first row's reported amount, not an empty accumulator.
+    None is a missing report: it stays None on a line with no report, and it
+    poisons that vintage instead of being added as zero.
+    """
+    incoming = (today, mtd, fytd)
+    if existing is None:
+        return [today, mtd, fytd]
+    merged = []
+    for prior, value in zip(existing, incoming):
+        if prior is None or value is None:
+            merged.append(None)
+        else:
+            merged.append(prior + value)
+    return merged
+
+
 def add_into(rec, key, value):
     """A missing component poisons the sum. It is not added as zero."""
     if rec.get(key) is None or not finite(value):
@@ -508,6 +527,134 @@ def read_bucket(rec, key):
     if key not in rec:
         return 0.0
     return observed(rec.get(key))
+
+
+def _blank_debt_limit():
+    return {
+        "debt_public": 0.0,
+        "debt_intra": 0.0,
+        "debt_total": None,
+        "not_subj_limit": 0.0,
+        "other_subj_limit": 0.0,
+        "debt_subj_limit": None,
+        "stat_debt_limit": None,
+    }
+
+
+def organize_debt_limit(rows):
+    """Table IIIC. A blank balance stays null and does not enter a sum or a derived total."""
+    by_date = {}
+    reported = {}
+    for r in rows or []:
+        d = r.get("record_date")
+        if not d:
+            continue
+        catg_low = (r.get("debt_catg") or "").strip().lower()
+        desc_low = (r.get("debt_catg_desc") or "").strip().lower()
+        val = parse_num(r.get("close_today_bal"))
+        if val is None:
+            val = parse_num(r.get("open_today_bal"))
+        v_num = observed(val)
+        rec = by_date.setdefault(d, _blank_debt_limit())
+        flags = reported.setdefault(d, set())
+        if "debt held by the public" in catg_low:
+            rec["debt_public"] = v_num
+            flags.add("debt_public")
+        elif "intragovernmental holdings" in catg_low:
+            rec["debt_intra"] = v_num
+            flags.add("debt_intra")
+        elif "total public debt outstanding" in catg_low:
+            rec["debt_total"] = v_num
+            flags.add("debt_total")
+        elif "debt not subject to limit" in catg_low:
+            add_into(rec, "not_subj_limit", v_num)
+            flags.add("not_subj_limit")
+        elif "other debt subject to limit" in catg_low or "guaranteed debt" in desc_low:
+            add_into(rec, "other_subj_limit", v_num)
+            flags.add("other_subj_limit")
+        elif "total public debt subject to limit" in catg_low:
+            rec["debt_subj_limit"] = v_num
+            flags.add("debt_subj_limit")
+        elif "statutory debt limit" in catg_low:
+            rec["stat_debt_limit"] = v_num
+            flags.add("stat_debt_limit")
+    for d, rec in by_date.items():
+        flags = reported.get(d, ())
+        if "debt_total" not in flags:
+            public, intra = rec["debt_public"], rec["debt_intra"]
+            rec["debt_total"] = public + intra if finite(public) and finite(intra) else None
+        if "debt_subj_limit" not in flags:
+            total, excluded, extra = rec["debt_total"], rec["not_subj_limit"], rec["other_subj_limit"]
+            if finite(total) and finite(excluded) and finite(extra):
+                rec["debt_subj_limit"] = total - excluded + extra
+            else:
+                rec["debt_subj_limit"] = None
+    return by_date
+
+
+def debt_headroom_musd(rec):
+    """Published headroom. Missing limit or subject stays null, including a stored zero that was never reported."""
+    rec = rec or {}
+    return publish_round(debt_headroom(rec.get("stat_debt_limit"), rec.get("debt_subj_limit")))
+
+
+def _blank_tax_refunds():
+    return {
+        "present": set(),
+        "_gap": set(),
+        "biz_checks_today": 0.0,
+        "biz_checks_fytd": 0.0,
+        "biz_eft_today": 0.0,
+        "biz_eft_fytd": 0.0,
+        "indiv_checks_today": 0.0,
+        "indiv_checks_fytd": 0.0,
+        "indiv_eft_today": 0.0,
+        "indiv_eft_fytd": 0.0,
+    }
+
+
+def organize_tax_refunds(rows):
+    """Table V today and FYTD. A missing amount is not added as zero."""
+    by_date = {}
+    for r in rows or []:
+        d = r.get("record_date")
+        if not d:
+            continue
+        label = get_catg_label(r).lower()
+        today_v, _mtd_v, fytd_v = get_row_amounts(r)
+        t_v = observed(today_v)
+        f_v = observed(fytd_v)
+        rec = by_date.setdefault(d, _blank_tax_refunds())
+        kind = "biz" if "business" in label else "indiv" if "individual" in label else None
+        channel = "checks" if "check" in label else "eft" if "eft" in label else None
+        if not (kind and channel):
+            continue
+        for period, amount in (("today", t_v), ("fytd", f_v)):
+            key = f"{kind}_{channel}_{period}"
+            if amount is None:
+                rec[key] = None
+                rec["present"].discard(key)
+                rec["_gap"].add(key)
+            elif key not in rec["_gap"]:
+                if key in rec["present"]:
+                    rec[key] += amount
+                else:
+                    rec[key] = amount
+                rec["present"].add(key)
+    for rec in by_date.values():
+        rec.pop("_gap", None)
+    return by_date
+
+
+def reported_channel(rec, key):
+    if not rec or key not in rec.get("present", ()):
+        return None
+    return observed(rec.get(key))
+
+
+def published_refund(rec, kind, period):
+    """EFT plus checks. One missing channel makes the total null. A reported zero stays zero."""
+    return publish_round(refund_total(rec or {}, kind, period))
 
 
 def operating_total(canonical, component_sum, table_present):
@@ -1233,12 +1380,7 @@ def main():
         today_v, mtd_v, fytd_v = get_row_amounts(r)
         key = (side, catg, desc)
         day_map = t2_raw.setdefault(d, {})
-        if key not in day_map:
-            day_map[key] = [today_v, mtd_v, fytd_v]
-        else:
-            for idx_v, v in enumerate((today_v, mtd_v, fytd_v)):
-                if v is not None:
-                    day_map[key][idx_v] = (day_map[key][idx_v] or 0.0) + v
+        day_map[key] = merge_table_ii_line(day_map.get(key), today_v, mtd_v, fytd_v)
 
     # INTEGRIDAD-01 (Sander 14-nov-2026): never reconstruct today from MTD.
     refused_mtd_dates = set()
@@ -1407,53 +1549,7 @@ def main():
             rec["cash_redemp_calc"] = rec["iiia_redemp"] - rec["redemp_adj"]
 
     # ── Organize Table IIIC (Debt Subject to Limit) ──
-    t3c_by_date = {}
-    for r in t3c_rows:
-        d = r.get("record_date")
-        if not d:
-            continue
-        catg = (r.get("debt_catg") or "").strip()
-        desc = (r.get("debt_catg_desc") or "").strip()
-        catg_low = catg.lower()
-        desc_low = desc.lower()
-        val = parse_num(r.get("close_today_bal"))
-        if val is None:
-            val = parse_num(r.get("open_today_bal"))
-        v_num = val or 0.0
-        rec = t3c_by_date.setdefault(
-            d,
-            {
-                "debt_public": 0.0,
-                "debt_intra": 0.0,
-                "debt_total": None,
-                "not_subj_limit": 0.0,
-                "other_subj_limit": 0.0,
-                "debt_subj_limit": None,
-                "stat_debt_limit": 0.0,
-            },
-        )
-        if "debt held by the public" in catg_low:
-            rec["debt_public"] = v_num
-        elif "intragovernmental holdings" in catg_low:
-            rec["debt_intra"] = v_num
-        elif "total public debt outstanding" in catg_low:
-            rec["debt_total"] = v_num
-        elif "debt not subject to limit" in catg_low:
-            rec["not_subj_limit"] += v_num
-        elif "other debt subject to limit" in catg_low or "guaranteed debt" in desc_low:
-            rec["other_subj_limit"] += v_num
-        elif "total public debt subject to limit" in catg_low:
-            rec["debt_subj_limit"] = v_num
-        elif "statutory debt limit" in catg_low:
-            rec["stat_debt_limit"] = v_num
-
-    for d, rec in t3c_by_date.items():
-        if rec["debt_total"] is None:
-            rec["debt_total"] = rec["debt_public"] + rec["debt_intra"]
-        if rec["debt_subj_limit"] is None:
-            rec["debt_subj_limit"] = (
-                rec["debt_total"] - rec["not_subj_limit"] + rec["other_subj_limit"]
-            )
+    t3c_by_date = organize_debt_limit(t3c_rows)
 
     # ── Organize Table IV (Inter-agency Tax Transfers — diagnostic, never summed into Table II) ──
     t4_by_date = {}
@@ -1473,48 +1569,7 @@ def main():
                 rec["withheld_fytd"] += fytd_v
 
     # ── Organize Table V (Income Tax Refunds Issued) ──
-    t5_by_date = {}
-    for r in t5_rows:
-        d = r.get("record_date")
-        if not d:
-            continue
-        label = get_catg_label(r).lower()
-        today_v, mtd_v, fytd_v = get_row_amounts(r)
-        t_v = today_v or 0.0
-        f_v = fytd_v or 0.0
-        rec = t5_by_date.setdefault(
-            d,
-            {
-                "present": set(),
-                "biz_checks_today": 0.0,
-                "biz_checks_fytd": 0.0,
-                "biz_eft_today": 0.0,
-                "biz_eft_fytd": 0.0,
-                "indiv_checks_today": 0.0,
-                "indiv_checks_fytd": 0.0,
-                "indiv_eft_today": 0.0,
-                "indiv_eft_fytd": 0.0,
-            },
-        )
-        kind = "biz" if "business" in label else "indiv" if "individual" in label else None
-        channel = "checks" if "check" in label else "eft" if "eft" in label else None
-        if kind and channel:
-            for period, amount in (("today", today_v), ("fytd", fytd_v)):
-                if amount is not None: rec["present"].add(f"{kind}_{channel}_{period}")
-        if "business" in label:
-            if "check" in label:
-                rec["biz_checks_today"] += t_v
-                rec["biz_checks_fytd"] += f_v
-            elif "eft" in label:
-                rec["biz_eft_today"] += t_v
-                rec["biz_eft_fytd"] += f_v
-        elif "individual" in label:
-            if "check" in label:
-                rec["indiv_checks_today"] += t_v
-                rec["indiv_checks_fytd"] += f_v
-            elif "eft" in label:
-                rec["indiv_eft_today"] += t_v
-                rec["indiv_eft_fytd"] += f_v
+    t5_by_date = organize_tax_refunds(t5_rows)
 
     def nullable_cval(side, cid, d, field="today"):
         rec = t2_canon.get(side, {}).get(cid, {}).get(d, {})
@@ -1857,29 +1912,16 @@ def main():
     t5_prev = t5_by_date.get(yoy_anchor, {}) if yoy_anchor else {}
 
     # Strict Table V comparability (ChatGPT #5: never fall back from Table V EFT+Checks to Table II EFT-only!)
-    has_t5_cur = (asof in t5_by_date) and (
-        (t5_cur.get("indiv_eft_fytd", 0.0) + t5_cur.get("indiv_checks_fytd", 0.0)) > 0
-    )
-    has_t5_prev = bool(
-        yoy_anchor
-        and (yoy_anchor in t5_by_date)
-        and ((t5_prev.get("indiv_eft_fytd", 0.0) + t5_prev.get("indiv_checks_fytd", 0.0)) > 0)
-    )
-    indiv_refunds_fytd_cur = (
-        (t5_cur.get("indiv_eft_fytd", 0.0) + t5_cur.get("indiv_checks_fytd", 0.0))
-        if has_t5_cur
-        else None
-    )
-    indiv_refunds_fytd_prev = (
-        (t5_prev.get("indiv_eft_fytd", 0.0) + t5_prev.get("indiv_checks_fytd", 0.0))
-        if has_t5_prev
-        else None
-    )
+    # A reported zero total stays zero. A missing EFT or checks channel does not enter the total.
+    indiv_refunds_fytd_cur = refund_total(t5_cur, "indiv", "fytd")
+    indiv_refunds_fytd_prev = refund_total(t5_prev, "indiv", "fytd")
+    has_t5_cur = indiv_refunds_fytd_cur is not None
+    has_t5_prev = indiv_refunds_fytd_prev is not None
 
     indiv_refunds_total_fytd_yoy = pct_yoy(indiv_refunds_fytd_cur, indiv_refunds_fytd_prev)
     indiv_refunds_eft_only_yoy = pct_yoy(
-        t5_cur.get("indiv_eft_fytd") if has_t5_cur else None,
-        t5_prev.get("indiv_eft_fytd") if has_t5_prev else None,
+        reported_channel(t5_cur, "indiv_eft_fytd") if has_t5_cur else None,
+        reported_channel(t5_prev, "indiv_eft_fytd") if has_t5_prev else None,
     )
 
     snap_fytd_cur = get_cval("Withdrawals", "USDA_SNAP", asof, "fytd")
@@ -1928,14 +1970,18 @@ def main():
     non_withheld_fytd_prev = get_cval("Deposits", "NON_WITHHELD_SECA", yoy_anchor, "fytd") if yoy_anchor else None
     non_withheld_fytd_yoy = pct_yoy(non_withheld_fytd_cur, non_withheld_fytd_prev)
 
-    biz_refund_today_musd = round(
-        t5_cur.get("biz_eft_today", 0.0) + t5_cur.get("biz_checks_today", 0.0)
-    )
+    biz_refund_today_musd = published_refund(t5_cur, "biz", "today")
 
-    biz_ref_hist = sorted(
-        (t5_by_date.get(d, {}).get("biz_eft_today", 0.0) + t5_by_date.get(d, {}).get("biz_checks_today", 0.0))
-        for d in all_bd_dates
-    )
+    biz_ref_hist = []
+    for d in all_bd_dates:
+        if d not in t5_by_date:
+            # A day with no Table V rows keeps the previous sample default.
+            biz_ref_hist.append(0.0)
+            continue
+        total = refund_total(t5_by_date[d], "biz", "today")
+        if total is not None:
+            biz_ref_hist.append(total)
+    biz_ref_hist.sort()
     p95_idx = min(len(biz_ref_hist) - 1, int(0.95 * len(biz_ref_hist)))
     biz_refund_p95_musd = round(biz_ref_hist[p95_idx]) if biz_ref_hist else 1000
 
@@ -1999,7 +2045,7 @@ def main():
     else:
         corp_flags.append("active_15th_tax_window")
 
-    if biz_refund_today_musd >= max(1000, biz_refund_p95_musd):
+    if finite(biz_refund_today_musd) and biz_refund_today_musd >= max(1000, biz_refund_p95_musd):
         corp_flags.append("biz_refund_shock_today")
 
     if not customs_fytd_clean:
@@ -2036,9 +2082,9 @@ def main():
         policy_age = 999
     if not 0 <= policy_age <= 3:
         slgs_window_policy_status, slgs_open = "UNKNOWN", None
-    stat_limit = t3c_asof.get("stat_debt_limit") or 0.0
-    subj_limit = t3c_asof.get("debt_subj_limit") or 0.0
-    debt_headroom_iiic = round(stat_limit - subj_limit) if stat_limit > 0 else None
+    debt_headroom_iiic = (
+        None if debt_limit_suspended(asof, t3c_asof.get("stat_debt_limit")) else debt_headroom_musd(t3c_asof)
+    )
 
     interest_today = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "today"))
     interest_mtd = publish_round(get_cval("Withdrawals", "TREAS_INTEREST", asof, "mtd"))
@@ -2058,7 +2104,7 @@ def main():
         funding_state = "INLINE_CALENDAR"
 
     ssa_today = get_cval("Withdrawals", "SSA_BENEFITS", asof, "today")
-    biz_shock = biz_refund_today_musd >= max(1000, biz_refund_p95_musd)
+    biz_shock = finite(biz_refund_today_musd) and biz_refund_today_musd >= max(1000, biz_refund_p95_musd)
     if not (finite(ssa_today) and finite(bills_net_iiia) and finite(interest_today)):
         funding_driver = None
     elif ssa_today > 10000 and abs(bills_net_iiia) > 10000:
@@ -2247,11 +2293,7 @@ def main():
                 "z_surp": rec["z_ntf_realized_weekday_100bd"],
                 "z_uncond": rec["z_ntf_uncond_60d"],
                 "debt_iiib": rec["net_debt_cash_iiib"],
-                "headroom": round(
-                    (t3c_d.get("stat_debt_limit") or 0.0) - (t3c_d.get("debt_subj_limit") or 0.0)
-                )
-                if (t3c_d.get("stat_debt_limit") or 0.0) > 0
-                else None,
+                "headroom": None if debt_limit_suspended(d, t3c_d.get("stat_debt_limit")) else debt_headroom_musd(t3c_d),
                 "withheld_t2": withheld_t2,
                 "withheld_t4": round(t4_by_date.get(d, {}).get("withheld_today", 0.0)),
                 "corp_tax": corp_tax,

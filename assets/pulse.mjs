@@ -67,7 +67,7 @@ export function pulseHTML(pulse,cards,lang='es',now=Date.now()){
       const mtd=x.mtd.change!=null?(net?`${sg(x.mtd.change,0)} ${c.bn}`:`${sg(x.mtd.change)} %`):c.mtdWait.replace('{n}',x.mtd.sessions??'—');
       const fmt=v=>nf(v,0);
       return `<article class="pulse-item ${cls}" data-pulse-item="${e(x.id)}"><div class="pulse-top"><h4>${e(lang==='es'?x.es:x.en)}</h4><span class="pulse-big">${arrow} ${big}</span></div>
-      ${f.change==null?`<p class="muted small">${c.na}</p>`:`<div class="pulse-sub"><span>${net?c.net:c.fytd}</span>${real}<span>${c.mtd}: ${mtd}</span></div>
+      ${f.change==null?`<p class="muted small">${c.na}</p><p class="pulse-reading">${e(lang==='es'?x.reading_es:x.reading_en)}</p>`:`<div class="pulse-sub"><span>${net?c.net:c.fytd}</span>${real}<span>${c.mtd}: ${mtd}</span></div>
       ${(x.base_effects||[]).map(b=>`<p class="pulse-base">⚠ ${e(lang==='es'?b.es:b.en)}</p>`).join('')}<p class="pulse-reading">${e(lang==='es'?x.reading_es:x.reading_en)}</p>${chart(x,lang)}`}
       <p class="pulse-note">${e(lang==='es'?x.note_es:x.note_en)}</p></article>`;}).join('');
     return `<div class="pulse-block"><div class="pulse-block-head"><div><h3>${e(lang==='es'?th.es:th.en)}</h3><span class="muted small">${c.feeds}: ${e(lang==='es'?th.feeds_es:th.feeds_en)}</span></div><span class="pulse-verdict ${VERDICT_CLASS[v.verdict]||'flat'}">${c.verdict[v.verdict]||'—'}</span></div>
