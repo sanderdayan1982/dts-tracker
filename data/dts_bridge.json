@@ -1,8 +1,8 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-17T03:55:53Z",
-  "valid_until_utc": "2026-11-18T05:55:53Z",
-  "dts_asof": "2026-11-13",
+  "generated_at": "2026-11-17T21:55:04Z",
+  "valid_until_utc": "2026-11-18T23:55:04Z",
+  "dts_asof": "2026-11-16",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
     "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
@@ -270,14 +270,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-13",
+      "dts_cutoff_used": "2026-11-16",
       "dts_cutoff_scheduled": "2026-12-02",
-      "dts_sessions_missing": 12,
-      "point": 132.3455473237741,
+      "dts_sessions_missing": 11,
+      "point": 138.70841880430865,
       "baseline": 137.0,
       "range80": [
-        -13.210682097098129,
-        211.2679658477708
+        -6.847810616563578,
+        217.63083732830535
       ],
       "coefficients": {
         "intercept": 55.53215303674814,
@@ -288,9 +288,9 @@
       },
       "feature_values": {
         "baseline_3m": 137.0,
-        "withheld_growth_surprise_pp": 8.546715543842149
+        "withheld_growth_surprise_pp": 3.037658254056282
       },
-      "dts_contribution": -9.871317309947283,
+      "dts_contribution": -3.5084458294127394,
       "dts_direction": "DOWN"
     },
     "claims": {
@@ -546,14 +546,14 @@
         }
       ],
       "reference_period": "2026-11-14",
-      "dts_cutoff_used": "2026-11-13",
+      "dts_cutoff_used": "2026-11-16",
       "dts_cutoff_scheduled": "2026-11-17",
-      "dts_sessions_missing": 2,
-      "point": 197.77629649908536,
+      "dts_sessions_missing": 1,
+      "point": 197.88403829397984,
       "baseline": 200.0,
       "range80": [
-        189.12522112977322,
-        208.15185418069734
+        189.2329629246677,
+        208.25959597559182
       ],
       "coefficients": {
         "intercept": -0.0012026002861238,
@@ -564,9 +564,9 @@
       },
       "feature_values": {
         "prior_week_log_change": 0.0460439385014068,
-        "dol_ui_growth_change_pp": -18.11243846873823
+        "dol_ui_growth_change_pp": -2.3860525465574045
       },
-      "dts_contribution": -0.12409381758212135,
+      "dts_contribution": -0.016352022687641465,
       "dts_direction": "DOWN"
     },
     "retail": {
@@ -579,38 +579,32 @@
       ],
       "driver_en": "Withholding growth surprise plus individual refund cash vs a year earlier",
       "driver_es": "Sorpresa de retenciones más caja de devoluciones individuales frente al año anterior",
-      "status": "FINAL_INFORMATION_SET",
+      "status": "PRELIMINARY",
       "edge": "NONE",
       "validation": {
-        "n": 70,
+        "n": 71,
         "first": "2019-02",
-        "last": "2026-09",
-        "mae_bridge": 0.691598647598919,
-        "mae_baseline": 0.78138757376068,
-        "improvement_pct": 11.49095905500811,
-        "dm_stat": -1.7653897549079258,
-        "dm_p_one_sided": 0.03874914202066426,
+        "last": "2026-10",
+        "mae_bridge": 0.6885737910428666,
+        "mae_baseline": 0.7799807076587751,
+        "improvement_pct": 11.71912532173771,
+        "dm_stat": -1.8235508386841874,
+        "dm_p_one_sided": 0.03411000229522848,
         "recent_n": 24,
-        "recent_improvement_pct": 13.435935556682121,
-        "direction_hit_rate_vs_baseline_pct": 71.42857142857143,
+        "recent_improvement_pct": 15.826466100809055,
+        "direction_hit_rate_vs_baseline_pct": 71.83098591549296,
         "dts_added_value": {
-          "n": 70,
-          "mae_ablation": 0.6947141954525796,
-          "improvement_pct": 0.44846468865242795,
-          "dm_stat": -0.32372026604581305,
-          "dm_p_one_sided": 0.37307491314493557
+          "n": 71,
+          "mae_ablation": 0.6902404942014122,
+          "improvement_pct": 0.24146702092201489,
+          "dm_stat": -0.1752950095638108,
+          "dm_p_one_sided": 0.4304239164255914
         },
         "edge": "NONE",
         "residual_p10": -0.9125315205933007,
-        "residual_p90": 0.8374158241385323
+        "residual_p90": 0.8380479165902892
       },
       "history": [
-        {
-          "period": "2023-10",
-          "actual": -0.4889,
-          "bridge": 0.2581,
-          "baseline": 0.3316
-        },
         {
           "period": "2023-11",
           "actual": -0.209,
@@ -745,107 +739,113 @@
         },
         {
           "period": "2025-09",
-          "actual": 0.0772,
+          "actual": 0.0296,
           "bridge": 0.1592,
           "baseline": 0.7207
         },
         {
           "period": "2025-10",
-          "actual": -0.0225,
-          "bridge": 0.2218,
-          "baseline": 0.4355
+          "actual": -0.0267,
+          "bridge": 0.2256,
+          "baseline": 0.4196
         },
         {
           "period": "2025-11",
-          "actual": 0.6654,
-          "bridge": 0.3422,
-          "baseline": 0.1198
+          "actual": 0.7176,
+          "bridge": 0.3462,
+          "baseline": 0.1025
         },
         {
           "period": "2025-12",
           "actual": 0.115,
-          "bridge": 0.335,
-          "baseline": 0.24
+          "bridge": 0.3346,
+          "baseline": 0.2401
         },
         {
           "period": "2026-01",
           "actual": -0.6236,
-          "bridge": 0.4405,
-          "baseline": 0.2526
+          "bridge": 0.4374,
+          "baseline": 0.2686
         },
         {
           "period": "2026-02",
           "actual": 0.869,
-          "bridge": 0.4035,
-          "baseline": 0.0523
+          "bridge": 0.3996,
+          "baseline": 0.0697
         },
         {
           "period": "2026-03",
           "actual": 1.6584,
-          "bridge": 0.3811,
+          "bridge": 0.3808,
           "baseline": 0.1201
         },
         {
           "period": "2026-04",
           "actual": 0.5865,
-          "bridge": 0.2704,
+          "bridge": 0.2685,
           "baseline": 0.6346
         },
         {
           "period": "2026-05",
           "actual": 1.0352,
-          "bridge": 0.2268,
+          "bridge": 0.2255,
           "baseline": 1.038
         },
         {
           "period": "2026-06",
           "actual": 0.2028,
-          "bridge": 0.1073,
+          "bridge": 0.1044,
           "baseline": 1.0934
         },
         {
           "period": "2026-07",
           "actual": -0.407,
-          "bridge": 0.192,
+          "bridge": 0.1904,
           "baseline": 0.6081
         },
         {
           "period": "2026-08",
-          "actual": 1.2888,
-          "bridge": 0.373,
+          "actual": 1.4504,
+          "bridge": 0.3734,
           "baseline": 0.277
         },
         {
           "period": "2026-09",
-          "actual": 0.7708,
-          "bridge": 0.3029,
-          "baseline": 0.3615
+          "actual": 0.8285,
+          "bridge": 0.2919,
+          "baseline": 0.4154
+        },
+        {
+          "period": "2026-10",
+          "actual": 0.212,
+          "bridge": 0.3499,
+          "baseline": 0.624
         }
       ],
-      "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-10-30",
-      "dts_cutoff_scheduled": "2026-10-30",
-      "dts_sessions_missing": 0,
-      "point": 0.37433960204382954,
-      "baseline": 0.5508690823881576,
+      "reference_period": "2026-11",
+      "dts_cutoff_used": "2026-11-16",
+      "dts_cutoff_scheduled": "2026-11-30",
+      "dts_sessions_missing": 9,
+      "point": 0.25982838385826157,
+      "baseline": 0.8303174117464026,
       "range80": [
-        -0.5381919185494711,
-        1.211755426182362
+        -0.6527031367350391,
+        1.0978763004485508
       ],
       "coefficients": {
-        "intercept": 0.40488329359478514,
+        "intercept": 0.3963265852174276,
         "slopes": {
-          "baseline_3m": -0.19987127881175382,
-          "withheld_growth_surprise_pp": 0.012381902480398804,
-          "refund_impulse_pct_of_withholding": 0.025579481747099085
+          "baseline_3m": -0.2025921097459496,
+          "withheld_growth_surprise_pp": 0.01151844615246486,
+          "refund_impulse_pct_of_withholding": 0.025441240795951652
         }
       },
       "feature_values": {
-        "baseline_3m": 0.5508690823881576,
-        "withheld_growth_surprise_pp": 6.248776729139224,
-        "refund_impulse_pct_of_withholding": 0.08551667869829475
+        "baseline_3m": 0.8303174117464026,
+        "withheld_growth_surprise_pp": 3.4672292859604146,
+        "refund_impulse_pct_of_withholding": -0.3230793281339563
       },
-      "dts_contribution": 0.07955921640382285,
+      "dts_contribution": 0.031717554845333965,
       "dts_direction": "UP"
     },
     "trade": {
@@ -1100,14 +1100,14 @@
         }
       ],
       "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-11-13",
+      "dts_cutoff_used": "2026-11-16",
       "dts_cutoff_scheduled": "2026-11-25",
-      "dts_sessions_missing": 8,
-      "point": -99.57843253686104,
+      "dts_sessions_missing": 7,
+      "point": -109.36867385914913,
       "baseline": -105.047,
       "range80": [
-        -117.70073967205236,
-        -89.85595288022918
+        -127.49098099434045,
+        -99.64619420251726
       ],
       "coefficients": {
         "intercept": -0.2906247925481421,
@@ -1116,10 +1116,10 @@
         }
       },
       "feature_values": {
-        "customs_growth_surprise_pp": 86.29994571518766
+        "customs_growth_surprise_pp": -60.40418520138813
       },
-      "dts_contribution": 5.759192255687097,
-      "dts_direction": "UP"
+      "dts_contribution": -4.0310490666009855,
+      "dts_direction": "DOWN"
     }
   }
 }
