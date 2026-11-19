@@ -1,8 +1,8 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-19T02:36:40Z",
-  "valid_until_utc": "2026-11-20T04:36:40Z",
-  "dts_asof": "2026-11-17",
+  "generated_at": "2026-11-19T21:49:59Z",
+  "valid_until_utc": "2026-11-20T23:49:59Z",
+  "dts_asof": "2026-11-18",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
     "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
@@ -270,14 +270,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-17",
+      "dts_cutoff_used": "2026-11-18",
       "dts_cutoff_scheduled": "2026-12-02",
-      "dts_sessions_missing": 10,
-      "point": 138.4663386406056,
+      "dts_sessions_missing": 9,
+      "point": 139.17793968474544,
       "baseline": 137.0,
       "range80": [
-        -7.0898907802666145,
-        217.3887571646023
+        -6.3782897361267885,
+        218.10035820874214
       ],
       "coefficients": {
         "intercept": 55.53215303674814,
@@ -288,9 +288,9 @@
       },
       "feature_values": {
         "baseline_3m": 137.0,
-        "withheld_growth_surprise_pp": 3.247254423748002
+        "withheld_growth_surprise_pp": 2.6311409391945775
       },
-      "dts_contribution": -3.750525993115767,
+      "dts_contribution": -3.038924948975941,
       "dts_direction": "DOWN"
     },
     "claims": {
@@ -302,38 +302,32 @@
       ],
       "driver_en": "DOL unemployment-benefit payments, 5 sessions, change in Lag-364 growth",
       "driver_es": "Pagos de prestaciones por desempleo DOL, 5 sesiones, cambio del crecimiento Lag 364",
-      "status": "FINAL_INFORMATION_SET",
+      "status": "PRELIMINARY",
       "edge": "NONE",
       "validation": {
-        "n": 377,
+        "n": 378,
         "first": "2017-10-28",
-        "last": "2026-11-07",
-        "mae_bridge": 7.0939616678738915,
-        "mae_baseline": 7.164456233421751,
-        "improvement_pct": 0.9839485824340244,
-        "dm_stat": -0.9196491816747878,
-        "dm_p_one_sided": 0.17887805842910054,
+        "last": "2026-11-14",
+        "mae_bridge": 7.089583489594596,
+        "mae_baseline": 7.1534391534391535,
+        "improvement_pct": 0.8926568392471412,
+        "dm_stat": -0.8327766855183837,
+        "dm_p_one_sided": 0.20248534298741544,
         "recent_n": 24,
-        "recent_improvement_pct": -2.133639685220934,
-        "direction_hit_rate_vs_baseline_pct": 51.724137931034484,
+        "recent_improvement_pct": -4.035022704989721,
+        "direction_hit_rate_vs_baseline_pct": 51.58730158730159,
         "dts_added_value": {
-          "n": 377,
-          "mae_ablation": 7.054746855635552,
-          "improvement_pct": -0.5558642009530601,
-          "dm_stat": 1.9858634205408416,
-          "dm_p_one_sided": 0.9764757543102489
+          "n": 378,
+          "mae_ablation": 7.050408660293352,
+          "improvement_pct": -0.5556391294290641,
+          "dm_stat": 1.9890519395640125,
+          "dm_p_one_sided": 0.9766522648400211
         },
         "edge": "NONE",
         "residual_p10": -8.651075369312139,
-        "residual_p90": 10.375557681611994
+        "residual_p90": 11.375557681611994
       },
       "history": [
-        {
-          "period": "2026-03-07",
-          "actual": 213.0,
-          "bridge": 213.2397,
-          "baseline": 214.0
-        },
         {
           "period": "2026-03-14",
           "actual": 205.0,
@@ -540,34 +534,40 @@
         },
         {
           "period": "2026-11-07",
-          "actual": 200.0,
+          "actual": 202.0,
           "bridge": 191.657,
           "baseline": 191.0
+        },
+        {
+          "period": "2026-11-14",
+          "actual": 203.0,
+          "bridge": 199.561,
+          "baseline": 202.0
         }
       ],
-      "reference_period": "2026-11-14",
-      "dts_cutoff_used": "2026-11-17",
-      "dts_cutoff_scheduled": "2026-11-17",
-      "dts_sessions_missing": 0,
-      "point": 197.87091777798375,
-      "baseline": 200.0,
+      "reference_period": "2026-11-21",
+      "dts_cutoff_used": "2026-11-18",
+      "dts_cutoff_scheduled": "2026-11-24",
+      "dts_sessions_missing": 4,
+      "point": 202.61329472884765,
+      "baseline": 203.0,
       "range80": [
-        189.2198424086716,
-        208.24647545959573
+        193.9622193595355,
+        213.98885241045963
       ],
       "coefficients": {
-        "intercept": -0.0012026002861238,
+        "intercept": -0.001071483515432715,
         "slopes": {
-          "prior_week_log_change": -0.20308734802615838,
-          "dol_ui_growth_change_pp": 3.463081956453854e-05
+          "prior_week_log_change": -0.19647350441175884,
+          "dol_ui_growth_change_pp": 3.485968770878356e-05
         }
       },
       "feature_values": {
-        "prior_week_log_change": 0.0460439385014068,
-        "dol_ui_growth_change_pp": -4.300713052159974
+        "prior_week_log_change": 0.004938281640582577,
+        "dol_ui_growth_change_pp": 3.871411954636714
       },
-      "dts_contribution": -0.02947253868373423,
-      "dts_direction": "DOWN"
+      "dts_contribution": 0.027342077669771925,
+      "dts_direction": "UP"
     },
     "retail": {
       "series_id": "RSAFS",
@@ -823,14 +823,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-17",
+      "dts_cutoff_used": "2026-11-18",
       "dts_cutoff_scheduled": "2026-11-30",
-      "dts_sessions_missing": 8,
-      "point": 0.26321766062503316,
+      "dts_sessions_missing": 7,
+      "point": 0.2735693356094496,
       "baseline": 0.8303174117464026,
       "range80": [
-        -0.6493138599682675,
-        1.1012655772153224
+        -0.638962184983851,
+        1.1116172521997387
       ],
       "coefficients": {
         "intercept": 0.3963265852174276,
@@ -842,10 +842,10 @@
       },
       "feature_values": {
         "baseline_3m": 0.8303174117464026,
-        "withheld_growth_surprise_pp": 3.6768254556521343,
-        "refund_impulse_pct_of_withholding": -0.28475358057175965
+        "withheld_growth_surprise_pp": 3.0607119710987094,
+        "refund_impulse_pct_of_withholding": 0.40107558633070745
       },
-      "dts_contribution": 0.03510683161210563,
+      "dts_contribution": 0.04545850659652209,
       "dts_direction": "UP"
     },
     "trade": {
@@ -1100,14 +1100,14 @@
         }
       ],
       "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-11-17",
+      "dts_cutoff_used": "2026-11-18",
       "dts_cutoff_scheduled": "2026-11-25",
-      "dts_sessions_missing": 6,
-      "point": -109.3445051484751,
+      "dts_sessions_missing": 5,
+      "point": -109.34816171650169,
       "baseline": -105.047,
       "range80": [
-        -127.46681228366641,
-        -99.62202549184323
+        -127.47046885169301,
+        -99.62568205986983
       ],
       "coefficients": {
         "intercept": -0.2906247925481421,
@@ -1116,9 +1116,9 @@
         }
       },
       "feature_values": {
-        "customs_growth_surprise_pp": -60.04202357757442
+        "customs_growth_surprise_pp": -60.09681626519253
       },
-      "dts_contribution": -4.006880355926953,
+      "dts_contribution": -4.010536923953552,
       "dts_direction": "DOWN"
     }
   }
