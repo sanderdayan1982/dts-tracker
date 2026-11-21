@@ -1,9 +1,9 @@
 {
   "v": "dts-g8-6.0",
   "asof": "2026-11-19",
-  "expected_asof": "2026-11-18",
-  "valid_until_utc": "2026-11-20T21:45:00Z",
-  "generated_at": "2026-11-20T21:32:59Z",
+  "expected_asof": "2026-11-19",
+  "valid_until_utc": "2026-11-23T21:45:00Z",
+  "generated_at": "2026-11-21T02:19:15Z",
   "fy": 2027,
   "bd_fy": 34,
   "bd_fy_prev": 34,
