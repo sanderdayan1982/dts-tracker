@@ -1,7 +1,7 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-24T01:14:07Z",
-  "valid_until_utc": "2026-11-25T03:14:07Z",
+  "generated_at": "2026-11-24T05:20:49Z",
+  "valid_until_utc": "2026-11-25T07:20:49Z",
   "dts_asof": "2026-11-20",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
