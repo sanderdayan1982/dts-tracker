@@ -1,8 +1,8 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-24T05:20:49Z",
-  "valid_until_utc": "2026-11-25T07:20:49Z",
-  "dts_asof": "2026-11-20",
+  "generated_at": "2026-11-24T23:17:17Z",
+  "valid_until_utc": "2026-11-27T01:17:17Z",
+  "dts_asof": "2026-11-23",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
     "edge_rule": "vs baseline: improvement>=5.0% AND DM one-sided p<0.1 AND recent 24 improvement>0; vs no-DTS ablation: improvement>=2% AND DM p<0.1",
@@ -270,14 +270,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-20",
+      "dts_cutoff_used": "2026-11-23",
       "dts_cutoff_scheduled": "2026-12-02",
-      "dts_sessions_missing": 7,
-      "point": 136.9274684636738,
+      "dts_sessions_missing": 6,
+      "point": 136.95095817667735,
       "baseline": 137.0,
       "range80": [
-        -8.628760957198438,
-        215.8498869876705
+        -8.605271244194881,
+        215.87337670067404
       ],
       "coefficients": {
         "intercept": 55.53215303674814,
@@ -288,9 +288,9 @@
       },
       "feature_values": {
         "baseline_3m": 137.0,
-        "withheld_growth_surprise_pp": 4.579628335777452
+        "withheld_growth_surprise_pp": 4.559290635251333
       },
-      "dts_contribution": -5.289396170047609,
+      "dts_contribution": -5.265906457044039,
       "dts_direction": "DOWN"
     },
     "claims": {
@@ -546,14 +546,14 @@
         }
       ],
       "reference_period": "2026-11-21",
-      "dts_cutoff_used": "2026-11-20",
+      "dts_cutoff_used": "2026-11-23",
       "dts_cutoff_scheduled": "2026-11-24",
-      "dts_sessions_missing": 2,
-      "point": 202.74261849740685,
+      "dts_sessions_missing": 1,
+      "point": 202.60504243178931,
       "baseline": 203.0,
       "range80": [
-        194.0915431280947,
-        214.11817617901886
+        193.95396706247718,
+        213.9806001134013
       ],
       "coefficients": {
         "intercept": -0.001071483515432715,
@@ -564,9 +564,9 @@
       },
       "feature_values": {
         "prior_week_log_change": 0.004938281640582577,
-        "dol_ui_growth_change_pp": 22.175511000840853
+        "dol_ui_growth_change_pp": 2.7030100226853175
       },
-      "dts_contribution": 0.15666584622897517,
+      "dts_contribution": 0.019089780611437845,
       "dts_direction": "UP"
     },
     "retail": {
@@ -823,14 +823,14 @@
         }
       ],
       "reference_period": "2026-11",
-      "dts_cutoff_used": "2026-11-20",
+      "dts_cutoff_used": "2026-11-23",
       "dts_cutoff_scheduled": "2026-11-30",
-      "dts_sessions_missing": 5,
-      "point": 0.3019401881927932,
+      "dts_sessions_missing": 4,
+      "point": 0.30233030653517495,
       "baseline": 0.8303174117464026,
       "range80": [
-        -0.6105913324005074,
-        1.1399881047830824
+        -0.6102012140581257,
+        1.1403782231254642
       ],
       "coefficients": {
         "intercept": 0.3963265852174276,
@@ -842,10 +842,10 @@
       },
       "feature_values": {
         "baseline_3m": 0.8303174117464026,
-        "withheld_growth_surprise_pp": 5.0091993676815845,
-        "refund_impulse_pct_of_withholding": 0.6340557886166927
+        "withheld_growth_surprise_pp": 4.988861667155466,
+        "refund_impulse_pct_of_withholding": 0.6585977146872221
       },
-      "dts_contribution": 0.07382935917986566,
+      "dts_contribution": 0.07421947752224739,
       "dts_direction": "UP"
     },
     "trade": {
@@ -1100,14 +1100,14 @@
         }
       ],
       "reference_period": "2026-10",
-      "dts_cutoff_used": "2026-11-20",
+      "dts_cutoff_used": "2026-11-23",
       "dts_cutoff_scheduled": "2026-11-25",
-      "dts_sessions_missing": 3,
-      "point": -109.6129387142123,
+      "dts_sessions_missing": 2,
+      "point": -109.6097093034696,
       "baseline": -105.047,
       "range80": [
-        -127.73524584940363,
-        -99.89045905758044
+        -127.73201643866092,
+        -99.88722964683774
       ],
       "coefficients": {
         "intercept": -0.2906247925481421,
@@ -1116,9 +1116,9 @@
         }
       },
       "feature_values": {
-        "customs_growth_surprise_pp": -64.06442830427535
+        "customs_growth_surprise_pp": -64.01603645357568
       },
-      "dts_contribution": -4.275313921664164,
+      "dts_contribution": -4.272084510921459,
       "dts_direction": "DOWN"
     }
   }
