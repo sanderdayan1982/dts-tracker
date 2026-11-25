@@ -1,7 +1,7 @@
 {
   "schema": "dts-bridge-1.0",
-  "generated_at": "2026-11-25T12:01:10Z",
-  "valid_until_utc": "2026-11-27T14:01:10Z",
+  "generated_at": "2026-11-25T18:19:06Z",
+  "valid_until_utc": "2026-11-27T20:19:06Z",
   "dts_asof": "2026-11-23",
   "vintage": "latest_revised_targets_point_in_time_dts",
   "policy": {
@@ -308,18 +308,18 @@
         "n": 378,
         "first": "2017-10-28",
         "last": "2026-11-14",
-        "mae_bridge": 7.089583489594596,
-        "mae_baseline": 7.1534391534391535,
-        "improvement_pct": 0.8926568392471412,
+        "mae_bridge": 7.086937986949094,
+        "mae_baseline": 7.150793650793651,
+        "improvement_pct": 0.8929870859505251,
         "dm_stat": -0.8327766855183837,
         "dm_p_one_sided": 0.20248534298741544,
         "recent_n": 24,
-        "recent_improvement_pct": -4.035022704989721,
+        "recent_improvement_pct": -4.070109858946158,
         "direction_hit_rate_vs_baseline_pct": 51.58730158730159,
         "dts_added_value": {
           "n": 378,
-          "mae_ablation": 7.050408660293352,
-          "improvement_pct": -0.5556391294290641,
+          "mae_ablation": 7.047763157647849,
+          "improvement_pct": -0.5558476984110161,
           "dm_stat": 1.9890519395640125,
           "dm_p_one_sided": 0.9766522648400211
         },
@@ -540,33 +540,33 @@
         },
         {
           "period": "2026-11-14",
-          "actual": 203.0,
+          "actual": 202.0,
           "bridge": 199.561,
           "baseline": 202.0
         }
       ],
-      "reference_period": "2026-11-21",
+      "reference_period": "2026-11-28",
       "dts_cutoff_used": "2026-11-23",
-      "dts_cutoff_scheduled": "2026-11-24",
-      "dts_sessions_missing": 1,
-      "point": 202.60504243178931,
-      "baseline": 203.0,
+      "dts_cutoff_scheduled": "2026-12-01",
+      "dts_sessions_missing": 5,
+      "point": 191.30198168893187,
+      "baseline": 189.0,
       "range80": [
-        193.95396706247718,
-        213.9806001134013
+        182.65090631961974,
+        202.67753937054385
       ],
       "coefficients": {
-        "intercept": -0.001071483515432715,
+        "intercept": -0.0010847997199594109,
         "slopes": {
-          "prior_week_log_change": -0.19647350441175884,
-          "dol_ui_growth_change_pp": 3.485968770878356e-05
+          "prior_week_log_change": -0.19687843847121866,
+          "dol_ui_growth_change_pp": 3.49728822942702e-05
         }
       },
       "feature_values": {
-        "prior_week_log_change": 0.004938281640582577,
+        "prior_week_log_change": -0.06652068234156232,
         "dol_ui_growth_change_pp": 2.7030100226853175
       },
-      "dts_contribution": 0.019089780611437845,
+      "dts_contribution": 0.018083314019122554,
       "dts_direction": "UP"
     },
     "retail": {
