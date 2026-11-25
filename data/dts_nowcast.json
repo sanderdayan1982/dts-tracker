@@ -41,7 +41,7 @@
     "unclass_wd_pct": 6.33,
     "warn": true,
     "block": true,
-    "fetch_error": "Failed to fetch deposits_withdrawals_operating_cash page 2: The read operation timed out"
+    "fetch_error": "Failed to fetch deposits_withdrawals_operating_cash page 5: The read operation timed out"
   },
   "mmt_liquidity": {
     "tga_close": 898796,
@@ -161,5 +161,5 @@
   },
   "units": "USD_millions",
   "model_status": "DESCRIPTIVE_FISCAL_CASH_NOT_CONSENSUS_FORECAST",
-  "last_fetch_attempt_utc": "2026-11-25T22:50:13Z"
+  "last_fetch_attempt_utc": "2026-11-25T22:55:23Z"
 }
