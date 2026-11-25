@@ -36,6 +36,7 @@ SERIES = {
     "retail": {"id":"RSAFS", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"Census", "group":"growth", "sign":1},
     "cpi": {"id":"CPIAUCSL", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"BLS", "group":"inflation", "sign":1},
     "core_cpi": {"id":"CPILFESL", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"BLS", "group":"inflation", "sign":1},
+    "pce": {"id":"PCEPI", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"BEA", "group":"inflation", "sign":1},
     "core_pce": {"id":"PCEPILFE", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"BEA", "group":"inflation", "sign":1},
     "production": {"id":"INDPRO", "frequency":"monthly", "transform":"pct", "unit":"percent_mom", "agency":"Federal Reserve", "group":"growth", "sign":1},
     "housing": {"id":"HOUST", "frequency":"monthly", "transform":"level", "unit":"thousand_homes_saar", "agency":"Census / HUD", "group":"growth", "sign":1},
@@ -110,6 +111,13 @@ def load_series(spec, now, offline=False):
                     except ValueError: pass
         except Exception:
             result["calendar_status"] = "UNVERIFIED"
+        # A failed page scrape must not drop a release date we already verified.
+        # Without it, PCE and trade fall through the 80-day clock on the next run.
+        if result["next_release_date"] is None and path.exists():
+            cached = json.loads(path.read_text())
+            if cached.get("next_release_date"):
+                result["next_release_date"] = cached["next_release_date"]
+                result["calendar_status"] = "CARRIED_FORWARD"
         atomic_json(path, result, compact=True)
         return result
     except Exception as exc:
@@ -208,7 +216,8 @@ def verified_consensus(config, target, period, unit, now):
 # Market consensus from the desk's own RadarNews feed (ForexFactory calendar, refreshed every 5 min).
 RADAR_NEWS_URL="https://raw.githubusercontent.com/sanderdayan1982/g8-radar-news/main/public/data/radar_news_full.json"
 FF_TITLES={"nfp":"Non-Farm Employment Change","unemployment":"Unemployment Rate","claims":"Unemployment Claims",
-           "retail":"Retail Sales m/m","cpi":"CPI m/m","core_cpi":"Core CPI m/m","core_pce":"Core PCE Price Index m/m",
+           "retail":"Retail Sales m/m","cpi":"CPI m/m","core_cpi":"Core CPI m/m",
+           "pce":"PCE Price Index m/m","core_pce":"Core PCE Price Index m/m",
            "production":"Industrial Production m/m","housing":"Housing Starts","trade":"Trade Balance"}
 FF_SCALE={"K":1e3,"M":1e6,"B":1e9,"T":1e12}
 UNIT_DIVISOR={"thousand_jobs":1e3,"thousand_claims":1e3,"thousand_homes_saar":1e3,"usd_billions":1e9}
@@ -246,6 +255,14 @@ def radar_news_consensus(cards,now,feed=None):
                              "captured_at":iso(min(captured,now)),"release_at":iso(at),"automatic":True}
     return out
 
+def release_pending(source, now):
+    """True when FRED's verified next release date is today or still ahead."""
+    raw = source.get("next_release_date")
+    try:
+        return bool(raw) and now.date() <= dt.date.fromisoformat(raw)
+    except ValueError:
+        return False
+
 def apply_consensus(card,entry):
     if not entry or not card.get("forecast"):return card
     card["consensus"]=entry
@@ -269,8 +286,16 @@ def make_card(key,spec,source,now,consensus):
                 reference_period=month_step(last["date"])[:7] if spec["frequency"]=="monthly" else (day+dt.timedelta(days=7)).isoformat())
     observation_age=(now.date()-day).days
     retrieved=parse_time(source.get("retrieved_at"))
-    stale=(observation_age>(80 if spec["frequency"]=="monthly" else 16)
-           or retrieved is None or now-retrieved>dt.timedelta(hours=26))
+    age_limit=80 if spec["frequency"]=="monthly" else 16
+    pending=release_pending(source, now)
+    fetch_stale=retrieved is None or now-retrieved>dt.timedelta(hours=26)
+    # The 80/16-day limit is unchanged when no release is pending or that date
+    # has already passed. A verified next release still ahead means this print
+    # is the latest official vintage: PCE and the trade balance are dated the
+    # 1st and published weeks later, so the month-start is often older than 80
+    # days on the morning of the release. Do not return before the forecast.
+    age_stale=observation_age>age_limit and not pending
+    stale=fetch_stale or age_stale
     if source.get("status")!="OK" or stale:
         card.update(status="STALE" if stale else "FETCH_FAIL")
         return card
@@ -294,6 +319,7 @@ def make_card(key,spec,source,now,consensus):
     if forecast["edge"]=="NONE":card["flags"].append("NO_DEMONSTRATED_EDGE")
     if forecast["demoted_on_holdout"]:card["flags"].append("AR1_DEMOTED_ON_HOLDOUT")
     if any(v is None for v in dense):card["flags"].append("HISTORICAL_GAPS_SKIPPED_NOT_IMPUTED")
+    if observation_age>age_limit:card["flags"].append("RELEASE_PENDING")
     delta=forecast["point"]-last["value"]
     # Use forecast uncertainty to distinguish a material change from noise.
     material=max(forecast["validation"]["mae"]*.25,1e-9)

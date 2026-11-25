@@ -22,6 +22,7 @@ Este panel tiene tres capas diferentes: **caja fiscal observada**, **contexto de
 | Ventas minoristas | Census RSAFS | 100 × (nivel / nivel anterior − 1) | % mensual nominal |
 | CPI general | BLS CPIAUCSL | Variación mensual | % mensual |
 | CPI subyacente | BLS CPILFESL | Variación mensual | % mensual |
+| PCE general | BEA PCEPI | Variación mensual | % mensual |
 | PCE subyacente | BEA PCEPILFE | Variación mensual | % mensual |
 | Producción industrial | Federal Reserve INDPRO | Variación mensual | % mensual real |
 | Viviendas iniciadas | Census/HUD HOUST | Nivel anualizado | Miles de viviendas |
@@ -93,7 +94,7 @@ Fuentes: [Treasury DTS](https://fiscaldata.treasury.gov/datasets/daily-treasury-
 
 The dashboard separates observed Treasury cash, central-bank liquidity context and numerical research estimates. Every estimate names its reference period, source, units, previous observation, held-out error band and research status. “Stronger than previous” is not “above consensus”, and neither automatically implies a stronger dollar.
 
-Ten official monthly/weekly series are mapped in the table above. A persistence/recent-average baseline competes with a fixed-specification rolling AR1. Thirty chronological origins select the method; thirty later origins evaluate it without re-selection. At least 120 valid observations are required. Historical gaps remain missing; invalid prediction origins are skipped, and a multi-month change is never represented as one month. The empirical error band does not guarantee future 80% coverage.
+Eleven official monthly/weekly series are mapped in the table above. Headline PCE (PCEPI) uses the same monthly percent change as core PCE. A persistence/recent-average baseline competes with a fixed-specification rolling AR1. Thirty chronological origins select the method; thirty later origins evaluate it without re-selection. At least 120 valid observations are required. Historical gaps remain missing; invalid prediction origins are skipped, and a multi-month change is never represented as one month. The empirical error band does not guarantee future 80% coverage.
 
 All backtests use the latest revised vintage. Real-time first-release and market-surprise performance remain unverified. No surprise probability is published. First daily forecasts are archived immutably by target and reference period for future evaluation against verified first releases.
 
