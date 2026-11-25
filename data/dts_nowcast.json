@@ -10,8 +10,8 @@
   "bd_skew_fytd": 0,
   "sign_convention": "ntf>0: net non-debt cash outflow; tga_reserve_contribution=-dtga (other factors unchanged)",
   "dq": {
-    "status": "OK",
-    "stale": false,
+    "status": "EXPIRED",
+    "stale": true,
     "recon_ok": true,
     "inputs_complete": true,
     "endpoint_dates": {
@@ -40,7 +40,8 @@
     ],
     "unclass_wd_pct": 6.33,
     "warn": true,
-    "block": false
+    "block": true,
+    "fetch_error": "Failed to fetch deposits_withdrawals_operating_cash page 2: The read operation timed out"
   },
   "mmt_liquidity": {
     "tga_close": 898796,
@@ -72,7 +73,7 @@
     "slgs_window_policy_status": "UNKNOWN",
     "slgs_policy_asof": "2026-11-03",
     "slgs_open": null,
-    "funding_state": "INLINE_CALENDAR",
+    "funding_state": "BLOCKED",
     "funding_driver": "regular_operations",
     "ntf_5d": 40345,
     "ntf_20d": 343108,
@@ -81,7 +82,7 @@
   },
   "nowcast_cards": {
     "nfp_wage_bill": {
-      "state": "INFO_ONLY",
+      "state": "BLOCKED",
       "dir": null,
       "surprise_bias": "NOT_ESTIMATED",
       "matched_pairs_20d": 19,
@@ -100,7 +101,7 @@
       ]
     },
     "retail_household": {
-      "state": "DORMANT",
+      "state": "BLOCKED",
       "dir": null,
       "indiv_refunds_fytd_musd": 27723,
       "indiv_refunds_total_fytd_yoy": null,
@@ -113,7 +114,7 @@
       "surprise_bias": "NOT_ESTIMATED"
     },
     "corp_and_tariffs": {
-      "state": "DORMANT",
+      "state": "BLOCKED",
       "dir": null,
       "corp_window_yoy": null,
       "corp_tax_fytd_yoy": null,
@@ -159,5 +160,6 @@
     ]
   },
   "units": "USD_millions",
-  "model_status": "DESCRIPTIVE_FISCAL_CASH_NOT_CONSENSUS_FORECAST"
+  "model_status": "DESCRIPTIVE_FISCAL_CASH_NOT_CONSENSUS_FORECAST",
+  "last_fetch_attempt_utc": "2026-11-25T22:50:13Z"
 }
