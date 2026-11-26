@@ -1,0 +1,22 @@
+name: Tests
+# Solo verificación: no descarga datos, no hace commit ni push (orden Sander t383u).
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths: ['scripts/**', 'tests/**', 'assets/**', 'index.html', '.github/workflows/**']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify accounting and forecast contracts
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Verify bilingual interface and expiry rules
+        run: node --test tests/test_ui.mjs
